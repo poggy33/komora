@@ -1,13 +1,51 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection, Point } from "geojson";
+import { properties } from "../data/properties";
 
 export default function Map() {
   const mapContainer = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
 
+  const [typeFilter, setTypeFilter] = useState<"sale" | "rent">("sale");
+
+  const buildGeoJSON = (type: "sale" | "rent"): FeatureCollection<Point> => {
+    const filtered = properties.filter((p) => p.type === type);
+
+    return {
+      type: "FeatureCollection",
+      features: filtered.map((p) => {
+        const pricePerSqm = p.area > 0 ? Math.round(p.price / p.area) : 0;
+
+        // 🔥 різні label для sale / rent
+        let label = "";
+        if (type === "sale") {
+          label =
+            `$${p.price.toLocaleString()}\n` +
+            `${p.rooms} кімн.\n` +
+            `$${pricePerSqm.toLocaleString()}/m²`;
+        } else {
+          label = `$${p.price.toLocaleString()}/міс\n` + `${p.rooms} кімн.`;
+        }
+        return {
+          type: "Feature",
+          id: p.id,
+          properties: {
+            label,
+          },
+          geometry: {
+            type: "Point",
+            coordinates: p.coordinates,
+          },
+        };
+      }),
+    };
+  };
+
+  // 🔥 створення карти (ОДИН РАЗ)
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -20,57 +58,18 @@ export default function Map() {
       zoom: 12,
     });
 
+    mapRef.current = map;
+
     map.on("load", () => {
-      const geojson: FeatureCollection<Point> = {
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            id: 1,
-            properties: {
-              color: "green",
-              priceLabel: "$50k",
-              sqmLabel: "$1k/m²",
-            },
-            geometry: {
-              type: "Point",
-              coordinates: [24.71, 48.92],
-            },
-          },
-          {
-            type: "Feature",
-            id: 2,
-            properties: {
-              color: "orange",
-              priceLabel: "$60k",
-              sqmLabel: "$1.1k/m²",
-            },
-            geometry: {
-              type: "Point",
-              coordinates: [24.72, 48.925],
-            },
-          },
-          {
-            type: "Feature",
-            id: 3,
-            properties: {
-              color: "red",
-              priceLabel: "$70k",
-              sqmLabel: "$1.3k/m²",
-            },
-            geometry: {
-              type: "Point",
-              coordinates: [24.705, 48.915],
-            },
-          },
-        ],
-      };
+      const geojson = buildGeoJSON("sale"); // 🔥 дефолт
 
       map.addSource("points", {
         type: "geojson",
         data: geojson,
+        generateId: true, // 🔥 ДОДАЙ ЦЕ
       });
 
+      // 🔵 фон
       map.addLayer({
         id: "badge-bg",
         type: "circle",
@@ -84,6 +83,7 @@ export default function Map() {
         minzoom: 13,
       });
 
+      // 🔵 точки
       map.addLayer({
         id: "points-layer",
         type: "circle",
@@ -92,14 +92,14 @@ export default function Map() {
           "circle-radius": [
             "case",
             ["boolean", ["feature-state", "hover"], false],
-            12, // 🔥 при hover
-            6, // звичайний
+            12,
+            6,
           ],
           "circle-color": [
             "case",
             ["boolean", ["feature-state", "hover"], false],
-            "#000", // 🔥 hover колір
-            ["get", "color"],
+            "#000",
+            "#2563eb", // 🔥 фіксований колір
           ],
           "circle-stroke-width": 2,
           "circle-stroke-color": "#fff",
@@ -112,32 +112,7 @@ export default function Map() {
         type: "symbol",
         source: "points",
         layout: {
-          "text-field": ["get", "priceLabel"],
-          "text-size": 14,
-          "text-anchor": "center",
-          "text-allow-overlap": true,
-        },
-        paint: {
-          "text-color": "#000",
-        },
-        minzoom: 13,
-        maxzoom: 15, // 🔥 до цього рівня
-      });
-
-      map.addLayer({
-        id: "price-full-layer",
-        type: "symbol",
-        source: "points",
-        layout: {
-          "text-field": [
-            "format",
-            ["get", "priceLabel"],
-            { "font-scale": 1.1 },
-            "\n",
-            {},
-            ["get", "sqmLabel"],
-            { "font-scale": 0.8 },
-          ],
+          "text-field": ["get", "label"],
           "text-size": 12,
           "text-anchor": "center",
           "text-allow-overlap": true,
@@ -145,49 +120,90 @@ export default function Map() {
         paint: {
           "text-color": "#000",
         },
-        minzoom: 15, // 🔥 тільки коли сильно зумимо
+        minzoom: 13,
       });
-    });
 
-    let hoveredId: number | null = null;
+      // 🔥 hover
+      let hoveredId: string | number | null = null;
 
-    map.on("mousemove", "points-layer", (e) => {
-      if (!e.features?.length) return;
+      map.on("mousemove", "points-layer", (e) => {
+        if (!e.features?.length) return;
 
-      const feature = e.features[0];
+        const feature = e.features[0];
 
-      if (hoveredId !== null) {
+        if (!feature.id) return; // 🔥 FIX
+
+        if (hoveredId !== null) {
+          map.setFeatureState(
+            { source: "points", id: hoveredId },
+            { hover: false },
+          );
+        }
+
+        hoveredId = feature.id;
+
         map.setFeatureState(
           { source: "points", id: hoveredId },
-          { hover: false },
+          { hover: true },
         );
-      }
+      });
 
-      hoveredId = feature.id as number;
-
-      map.setFeatureState({ source: "points", id: hoveredId }, { hover: true });
-    });
-
-    map.on("mouseleave", "points-layer", () => {
-      if (hoveredId !== null) {
-        map.setFeatureState(
-          { source: "points", id: hoveredId },
-          { hover: false },
-        );
-      }
-      hoveredId = null;
+      map.on("mouseleave", "points-layer", () => {
+        if (hoveredId !== null) {
+          map.setFeatureState(
+            { source: "points", id: hoveredId },
+            { hover: false },
+          );
+        }
+        hoveredId = null;
+      });
     });
 
     return () => map.remove();
   }, []);
 
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const map = mapRef.current;
+
+    if (!map.isStyleLoaded()) return; // 🔥 захист
+
+    const source = map.getSource("points") as mapboxgl.GeoJSONSource;
+
+    if (!source) return;
+
+    const geojson = buildGeoJSON(typeFilter);
+
+    source.setData(geojson);
+  }, [typeFilter]);
+
   return (
-    <div
-      ref={mapContainer}
-      style={{
-        position: "fixed",
-        inset: 0,
-      }}
-    />
+    <>
+      {/* 🔥 UI окремо */}
+      <div
+        style={{
+          position: "absolute",
+          top: 20,
+          left: 20,
+          zIndex: 10,
+          background: "#fff",
+          padding: "8px",
+          borderRadius: "8px",
+        }}
+      >
+        <button onClick={() => setTypeFilter("sale")}>Продаж</button>
+        <button onClick={() => setTypeFilter("rent")}>Оренда</button>
+      </div>
+
+      {/* 🔥 карта */}
+      <div
+        ref={mapContainer}
+        style={{
+          position: "fixed",
+          inset: 0,
+        }}
+      />
+    </>
   );
 }
