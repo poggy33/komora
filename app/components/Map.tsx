@@ -6,6 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection, Point } from "geojson";
 import { properties } from "../data/properties";
 import type { Property } from "../types/property";
+import Sidebar from "./Sidebar";
 
 export default function Map() {
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -220,40 +221,42 @@ export default function Map() {
     source.setData(geojson);
   }, [dealType, propertyType]);
 
+  const filteredProperties = properties.filter(
+    (p) => p.dealType === dealType && p.propertyType === propertyType,
+  );
+
+  const handleSelect = (p: Property) => {
+    if (!mapRef.current) return;
+
+    mapRef.current.flyTo({
+      center: p.coordinates,
+      zoom: 15,
+      speed: 1.2,
+    });
+  };
+
   return (
-    <>
-      {/* 🔥 UI окремо */}
-      <div
-        style={{
-          position: "absolute",
-          top: 20,
-          left: 20,
-          zIndex: 10,
-          color: "black",
-        }}
-      >
-        {/* DEAL */}
-        <div>
-          <button onClick={() => setDealType("sale")}>Продаж</button>
-          <button onClick={() => setDealType("rent")}>Оренда</button>
-        </div>
-
-        {/* PROPERTY */}
-        <div>
-          <button onClick={() => setPropertyType("apartment")}>Квартири</button>
-          <button onClick={() => setPropertyType("house")}>Будинки</button>
-          <button onClick={() => setPropertyType("land")}>Земля</button>
-        </div>
-      </div>
-
-      {/* 🔥 карта */}
-      <div
-        ref={mapContainer}
-        style={{
-          position: "fixed",
-          inset: 0,
-        }}
+    <div style={{ display: "flex" }}>
+      {/* 🔥 SIDEBAR */}
+      <Sidebar
+        properties={filteredProperties}
+        dealType={dealType}
+        propertyType={propertyType}
+        setDealType={setDealType}
+        setPropertyType={setPropertyType}
+        onSelect={handleSelect}
       />
-    </>
+
+      {/* 🔥 MAP */}
+      <div style={{ flex: 1, position: "relative" }}>
+        <div
+          ref={mapContainer}
+          style={{
+            position: "absolute",
+            inset: 0,
+          }}
+        />
+      </div>
+    </div>
   );
 }
