@@ -23,6 +23,7 @@ export default function Sidebar({
     <div
       style={{
         width: "360px",
+        maxWidth: "100%",
         height: "100vh",
         overflowY: "auto",
         background: "#fff",
@@ -33,13 +34,10 @@ export default function Sidebar({
     >
       {/* 🔥 FILTERS */}
       <div style={{ padding: "12px", borderBottom: "1px solid #eee" }}>
-        
         {/* PROPERTY TYPE (dropdown) */}
         <select
           value={propertyType}
-          onChange={(e) =>
-            setPropertyType(e.target.value as any)
-          }
+          onChange={(e) => setPropertyType(e.target.value as any)}
           style={{
             width: "100%",
             padding: "8px",
@@ -111,9 +109,7 @@ export default function Sidebar({
               </div>
             )}
 
-            {p.propertyType === "land" && (
-              <div>🌍 {p.area} сот.</div>
-            )}
+            {p.propertyType === "land" && <div>🌍 {p.area} сот.</div>}
           </div>
         ))}
       </div>

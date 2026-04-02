@@ -222,41 +222,43 @@ export default function Map() {
   }, [dealType, propertyType]);
 
   const filteredProperties = properties.filter(
-    (p) => p.dealType === dealType && p.propertyType === propertyType,
-  );
+  (p) => p.dealType === dealType && p.propertyType === propertyType
+);
 
-  const handleSelect = (p: Property) => {
-    if (!mapRef.current) return;
+const handleSelect = (p: Property) => {
+  if (!mapRef.current) return;
 
-    mapRef.current.flyTo({
-      center: p.coordinates,
-      zoom: 15,
-      speed: 1.2,
-    });
-  };
+  mapRef.current.flyTo({
+    center: p.coordinates,
+    zoom: 15,
+    speed: 1.2,
+  });
+};
 
-  return (
-    <div style={{ display: "flex" }}>
-      {/* 🔥 SIDEBAR */}
-      <Sidebar
-        properties={filteredProperties}
-        dealType={dealType}
-        propertyType={propertyType}
-        setDealType={setDealType}
-        setPropertyType={setPropertyType}
-        onSelect={handleSelect}
+return (
+  <div style={{ display: "flex" }}>
+    
+    {/* 🔥 SIDEBAR */}
+    <Sidebar
+      properties={filteredProperties}
+      dealType={dealType}
+      propertyType={propertyType}
+      setDealType={setDealType}
+      setPropertyType={setPropertyType}
+      onSelect={handleSelect}
+    />
+
+    {/* 🔥 MAP */}
+    <div style={{ flex: 1, position: "relative" }}>
+      <div
+        ref={mapContainer}
+        style={{
+          position: "absolute",
+          inset: 0,
+        }}
       />
-
-      {/* 🔥 MAP */}
-      <div style={{ flex: 1, position: "relative" }}>
-        <div
-          ref={mapContainer}
-          style={{
-            position: "absolute",
-            inset: 0,
-          }}
-        />
-      </div>
     </div>
-  );
+  </div>
+);
+
 }
