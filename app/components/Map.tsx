@@ -5,31 +5,73 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection, Point } from "geojson";
 import { properties } from "../data/properties";
+import type { Property } from "../types/property";
 
 export default function Map() {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
-  const [typeFilter, setTypeFilter] = useState<"sale" | "rent">("sale");
+  // const [typeFilter, setTypeFilter] = useState<"sale" | "rent">("sale");
+  const [dealType, setDealType] = useState<"sale" | "rent">("sale");
+  const [propertyType, setPropertyType] = useState<
+    "apartment" | "house" | "land"
+  >("apartment");
+  const formatToK = (num: number) => {
+    if (num >= 1000) {
+      const value = num / 1000;
 
-  const buildGeoJSON = (type: "sale" | "rent"): FeatureCollection<Point> => {
-    const filtered = properties.filter((p) => p.type === type);
+      // якщо ціле → без .0
+      if (value % 1 === 0) {
+        return `$${value}k`;
+      }
+
+      return `$${value.toFixed(1)}k`;
+    }
+
+    return `$${num}`;
+  };
+
+  const buildGeoJSON = (): FeatureCollection<Point> => {
+    const filtered = properties.filter(
+      (p) => p.dealType === dealType && p.propertyType === propertyType,
+    );
 
     return {
       type: "FeatureCollection",
       features: filtered.map((p) => {
         const pricePerSqm = p.area > 0 ? Math.round(p.price / p.area) : 0;
+        const pricePerSotka = p.area > 0 ? Math.round(p.price / p.area) : 0;
 
-        // 🔥 різні label для sale / rent
         let label = "";
-        if (type === "sale") {
+
+        // 🏢 КВАРТИРИ
+        if (p.propertyType === "apartment") {
+          if (p.dealType === "sale") {
+            label =
+              `$${p.price.toLocaleString()}\n` +
+              `${p.rooms} кімн.\n` +
+              `$${pricePerSqm.toLocaleString()}/m²`;
+          } else {
+            label = `$${p.price.toLocaleString()}/міс\n` + `${p.rooms} кімн.`;
+          }
+        }
+
+        // 🏠 БУДИНКИ
+        if (p.propertyType === "house") {
           label =
             `$${p.price.toLocaleString()}\n` +
             `${p.rooms} кімн.\n` +
-            `$${pricePerSqm.toLocaleString()}/m²`;
-        } else {
-          label = `$${p.price.toLocaleString()}/міс\n` + `${p.rooms} кімн.`;
+            `${p.floors} пов.`;
         }
+
+        // 🌍 ЗЕМЛЯ
+        if (p.propertyType === "land") {
+          label =
+            `$${p.price.toLocaleString()}\n` +
+            `${p.area} сот.\n` +
+            `${formatToK(pricePerSotka)}/сот.`;
+        }
+
         return {
           type: "Feature",
           id: p.id,
@@ -61,7 +103,7 @@ export default function Map() {
     mapRef.current = map;
 
     map.on("load", () => {
-      const geojson = buildGeoJSON("sale"); // 🔥 дефолт
+      const geojson = buildGeoJSON(); // 🔥 дефолт
 
       map.addSource("points", {
         type: "geojson",
@@ -173,10 +215,10 @@ export default function Map() {
 
     if (!source) return;
 
-    const geojson = buildGeoJSON(typeFilter);
+    const geojson = buildGeoJSON();
 
     source.setData(geojson);
-  }, [typeFilter]);
+  }, [dealType, propertyType]);
 
   return (
     <>
@@ -187,13 +229,21 @@ export default function Map() {
           top: 20,
           left: 20,
           zIndex: 10,
-          background: "#fff",
-          padding: "8px",
-          borderRadius: "8px",
+          color: "black",
         }}
       >
-        <button onClick={() => setTypeFilter("sale")}>Продаж</button>
-        <button onClick={() => setTypeFilter("rent")}>Оренда</button>
+        {/* DEAL */}
+        <div>
+          <button onClick={() => setDealType("sale")}>Продаж</button>
+          <button onClick={() => setDealType("rent")}>Оренда</button>
+        </div>
+
+        {/* PROPERTY */}
+        <div>
+          <button onClick={() => setPropertyType("apartment")}>Квартири</button>
+          <button onClick={() => setPropertyType("house")}>Будинки</button>
+          <button onClick={() => setPropertyType("land")}>Земля</button>
+        </div>
       </div>
 
       {/* 🔥 карта */}
