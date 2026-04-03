@@ -91,6 +91,7 @@ export default function Map() {
   // 🔥 створення карти (ОДИН РАЗ)
   useEffect(() => {
     if (!mapContainer.current) return;
+    if (mapRef.current) return; // 🔥 КРИТИЧНО
 
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -200,9 +201,13 @@ export default function Map() {
         }
         hoveredId = null;
       });
+      setTimeout(() => map.resize(), 100); // 🔥 FIX
     });
 
-    return () => map.remove();
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -221,44 +226,45 @@ export default function Map() {
     source.setData(geojson);
   }, [dealType, propertyType]);
 
+
   const filteredProperties = properties.filter(
-  (p) => p.dealType === dealType && p.propertyType === propertyType
-);
+    (p) => p.dealType === dealType && p.propertyType === propertyType,
+  );
 
-const handleSelect = (p: Property) => {
-  if (!mapRef.current) return;
+  const handleSelect = (p: Property) => {
+    if (!mapRef.current) return;
 
-  mapRef.current.flyTo({
-    center: p.coordinates,
-    zoom: 15,
-    speed: 1.2,
-  });
-};
+    mapRef.current.flyTo({
+      center: p.coordinates,
+      zoom: 15,
+      speed: 1.2,
+    });
+  };
 
-return (
-  <div style={{ display: "flex" }}>
-    
-    {/* 🔥 SIDEBAR */}
-    <Sidebar
-      properties={filteredProperties}
-      dealType={dealType}
-      propertyType={propertyType}
-      setDealType={setDealType}
-      setPropertyType={setPropertyType}
-      onSelect={handleSelect}
-    />
+  return (
+    <div className="layout">
+      {/* 🔥 SIDEBAR */}
+      <div className="sidebar">
+        <Sidebar
+          properties={filteredProperties}
+          dealType={dealType}
+          propertyType={propertyType}
+          setDealType={setDealType}
+          setPropertyType={setPropertyType}
+          onSelect={handleSelect}
+        />
+      </div>
 
-    {/* 🔥 MAP */}
-    <div style={{ flex: 1, position: "relative" }}>
-      <div
-        ref={mapContainer}
-        style={{
-          position: "absolute",
-          inset: 0,
-        }}
-      />
+      {/* 🔥 MAP */}
+      <div className="map-wrapper">
+        <div
+          ref={mapContainer}
+          style={{
+            position: "absolute",
+            inset: 0,
+          }}
+        />
+      </div>
     </div>
-  </div>
-);
-
+  );
 }
