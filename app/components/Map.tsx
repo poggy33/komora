@@ -181,6 +181,7 @@ export default function Map() {
           "circle-stroke-width": 3,
           "circle-stroke-color": "#000",
         },
+        minzoom: 13,
       });
 
       // 🔵 точки
