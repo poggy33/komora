@@ -11,8 +11,6 @@ import Sidebar from "./Sidebar";
 export default function Map() {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
-
-  // const [typeFilter, setTypeFilter] = useState<"sale" | "rent">("sale");
   const [dealType, setDealType] = useState<"sale" | "rent">("sale");
   const [propertyType, setPropertyType] = useState<
     "apartment" | "house" | "land"
@@ -33,60 +31,55 @@ export default function Map() {
   };
 
   const buildGeoJSON = (): FeatureCollection<Point> => {
-    const filtered = properties.filter(
-      (p) => p.dealType === dealType && p.propertyType === propertyType,
-    );
+  const filtered = properties.filter(
+    (p) => p.dealType === dealType && p.propertyType === propertyType
+  );
 
-    return {
-      type: "FeatureCollection",
-      features: filtered.map((p) => {
-        const pricePerSqm = p.area > 0 ? Math.round(p.price / p.area) : 0;
-        const pricePerSotka = p.area > 0 ? Math.round(p.price / p.area) : 0;
+  return {
+    type: "FeatureCollection",
+    features: filtered.map((p) => {
+      let label = "";
 
-        let label = "";
+      if (p.propertyType === "apartment") {
+        if (p.dealType === "sale") {
+          const pricePerSqm = Math.round(p.price / p.area);
 
-        // 🏢 КВАРТИРИ
-        if (p.propertyType === "apartment") {
-          if (p.dealType === "sale") {
-            label =
-              `$${p.price.toLocaleString()}\n` +
-              `${p.rooms} кімн.\n` +
-              `$${pricePerSqm.toLocaleString()}/m²`;
-          } else {
-            label = `$${p.price.toLocaleString()}/міс\n` + `${p.rooms} кімн.`;
-          }
-        }
-
-        // 🏠 БУДИНКИ
-        if (p.propertyType === "house") {
           label =
             `$${p.price.toLocaleString()}\n` +
             `${p.rooms} кімн.\n` +
-            `${p.floors} пов.`;
+            `$${pricePerSqm}/m²`;
+        } else {
+          label = `$${p.price}/міс\n${p.rooms} кімн.`;
         }
+      }
 
-        // 🌍 ЗЕМЛЯ
-        if (p.propertyType === "land") {
-          label =
-            `$${p.price.toLocaleString()}\n` +
-            `${p.area} сот.\n` +
-            `${formatToK(pricePerSotka)}/сот.`;
-        }
+      if (p.propertyType === "house") {
+        label =
+          `$${p.price.toLocaleString()}\n` +
+          `${p.rooms} кімн.\n` +
+          `${p.floors} пов.`;
+      }
 
-        return {
-          type: "Feature",
-          id: p.id,
-          properties: {
-            label,
-          },
-          geometry: {
-            type: "Point",
-            coordinates: p.coordinates,
-          },
-        };
-      }),
-    };
+      if (p.propertyType === "land") {
+        const perSotka = Math.round(p.price / p.area);
+        label =
+          `$${p.price.toLocaleString()}\n` +
+          `${p.area} сот.\n` +
+          `${formatToK(perSotka)}/сот.`;
+      }
+
+      return {
+        type: "Feature",
+        id: p.id,
+        properties: { label },
+        geometry: {
+          type: "Point",
+          coordinates: p.coordinates,
+        },
+      };
+    }),
   };
+};
 
   // 🔥 створення карти (ОДИН РАЗ)
   useEffect(() => {
@@ -210,21 +203,21 @@ export default function Map() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!mapRef.current) return;
+useEffect(() => {
+  if (!mapRef.current) return;
 
-    const map = mapRef.current;
+  const map = mapRef.current;
 
-    if (!map.isStyleLoaded()) return; // 🔥 захист
+  if (!map.isStyleLoaded()) return;
 
-    const source = map.getSource("points") as mapboxgl.GeoJSONSource;
+  const source = map.getSource("points") as mapboxgl.GeoJSONSource;
 
-    if (!source) return;
+  if (!source) return;
 
-    const geojson = buildGeoJSON();
+  const geojson = buildGeoJSON();
 
-    source.setData(geojson);
-  }, [dealType, propertyType]);
+  source.setData(geojson);
+}, [dealType, propertyType]);
 
 
   const filteredProperties = properties.filter(
