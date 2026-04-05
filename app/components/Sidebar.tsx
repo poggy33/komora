@@ -9,6 +9,7 @@ type Props = {
   setDealType: (v: "sale" | "rent") => void;
   setPropertyType: (v: "apartment" | "house" | "land") => void;
   onSelect: (p: Property) => void;
+  onHover: (id: string | null) => void;
 };
 
 export default function Sidebar({
@@ -18,6 +19,7 @@ export default function Sidebar({
   setDealType,
   setPropertyType,
   onSelect,
+  onHover, // 🔥 ДОДАЙ
 }: Props) {
   return (
     <div
@@ -85,6 +87,8 @@ export default function Sidebar({
           <div
             key={p.id}
             onClick={() => onSelect(p)}
+            onMouseEnter={() => onHover(p.id)}
+            onMouseLeave={() => onHover(null)}
             style={{
               padding: "12px",
               marginBottom: "10px",

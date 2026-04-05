@@ -10,11 +10,15 @@ import Sidebar from "./Sidebar";
 
 export default function Map() {
   const mapContainer = useRef<HTMLDivElement | null>(null);
+  const popupRef = useRef<mapboxgl.Popup | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const [dealType, setDealType] = useState<"sale" | "rent">("sale");
   const [propertyType, setPropertyType] = useState<
     "apartment" | "house" | "land"
   >("apartment");
+  const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(
+    null,
+  );
   const formatToK = (num: number) => {
     if (num >= 1000) {
       const value = num / 1000;
@@ -72,7 +76,13 @@ export default function Map() {
           type: "Feature",
           properties: {
             label,
-            id: p.id, // 🔥 ДОДАЙ
+            // id: p.id,
+            id: String(p.id),
+            price: p.price,
+            rooms: p.rooms,
+            area: p.area,
+            type: p.propertyType,
+            deal: p.dealType,
           },
           geometry: {
             type: "Point",
@@ -236,6 +246,50 @@ export default function Map() {
         map.setFilter("hover-layer", ["==", ["get", "id"], -1]);
       });
 
+      map.on("click", "badge-bg", (e) => {
+        if (!e.features?.length) return;
+
+        const feature = e.features[0];
+        const props = feature.properties;
+
+        if (!props) return;
+
+        const coordinates = (feature.geometry as any).coordinates;
+
+        // ❗ закриваємо попередній popup
+        if (popupRef.current) {
+          popupRef.current.remove();
+        }
+
+        const html = `
+    <div style="font-family: Arial; min-width: 150px;">
+      <div style="font-weight: bold; font-size: 16px;">
+        $${Number(props.price).toLocaleString()}
+      </div>
+      <div>${props.rooms} кімн.</div>
+      <div>${props.area} м²</div>
+    </div>
+  `;
+
+        const popup = new mapboxgl.Popup({
+          closeButton: true,
+          closeOnClick: true,
+        })
+          .setLngLat(coordinates)
+          .setHTML(html)
+          .addTo(map);
+
+        popupRef.current = popup;
+      });
+
+      map.on("mouseenter", "badge-bg", () => {
+        map.getCanvas().style.cursor = "pointer";
+      });
+
+      map.on("mouseleave", "badge-bg", () => {
+        map.getCanvas().style.cursor = "";
+      });
+
       map.on("click", "clusters", (e) => {
         const features = map.queryRenderedFeatures(e.point, {
           layers: ["clusters"],
@@ -286,6 +340,25 @@ export default function Map() {
     source.setData(buildGeoJSON());
   }, [dealType, propertyType]);
 
+  // ховер сайдбар ефект карта
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const map = mapRef.current;
+
+    // 🔥 КРИТИЧНО
+    if (!map.isStyleLoaded()) return;
+
+    // 🔥 перевір що layer існує
+    if (!map.getLayer("hover-layer")) return;
+
+    if (hoveredPropertyId === null) {
+      map.setFilter("hover-layer", ["==", ["get", "id"], -1]);
+    } else {
+      map.setFilter("hover-layer", ["==", ["get", "id"], hoveredPropertyId]);
+    }
+  }, [hoveredPropertyId]);
+
   const filteredProperties = properties.filter(
     (p) => p.dealType === dealType && p.propertyType === propertyType,
   );
@@ -311,6 +384,7 @@ export default function Map() {
           setDealType={setDealType}
           setPropertyType={setPropertyType}
           onSelect={handleSelect}
+          onHover={setHoveredPropertyId} // 🔥 ДОДАЙ
         />
       </div>
 
