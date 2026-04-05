@@ -84,37 +84,46 @@ export default function Sidebar({
       {/* 🔥 LIST */}
       <div style={{ padding: "12px" }}>
         {properties.map((p) => (
-          <div
+          <a
             key={p.id}
-            onClick={() => onSelect(p)}
-            onMouseEnter={() => onHover(p.id)}
-            onMouseLeave={() => onHover(null)}
+            href={`/property/${p.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
             style={{
-              padding: "12px",
-              marginBottom: "10px",
-              borderRadius: "10px",
-              border: "1px solid #eee",
-              cursor: "pointer",
+              textDecoration: "none",
+              color: "inherit",
             }}
           >
-            <div style={{ fontWeight: 600 }}>{p.title}</div>
+            <div
+              onMouseEnter={() => onHover(p.id)}
+              onMouseLeave={() => onHover(null)}
+              style={{
+                padding: "12px",
+                marginBottom: "10px",
+                borderRadius: "10px",
+                border: "1px solid #eee",
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ fontWeight: 600 }}>{p.title}</div>
 
-            <div>💰 ${p.price.toLocaleString()}</div>
+              <div>💰 ${p.price.toLocaleString()}</div>
 
-            {p.propertyType === "apartment" && (
-              <div>
-                📐 {p.area} м² • 🛏 {p.rooms}
-              </div>
-            )}
+              {p.propertyType === "apartment" && (
+                <div>
+                  📐 {p.area} м² • 🛏 {p.rooms}
+                </div>
+              )}
 
-            {p.propertyType === "house" && (
-              <div>
-                🏠 {p.area} м² • 🛏 {p.rooms} • 🏢 {p.floors} пов.
-              </div>
-            )}
+              {p.propertyType === "house" && (
+                <div>
+                  🏠 {p.area} м² • 🛏 {p.rooms} • 🏢 {p.floors} пов.
+                </div>
+              )}
 
-            {p.propertyType === "land" && <div>🌍 {p.area} сот.</div>}
-          </div>
+              {p.propertyType === "land" && <div>🌍 {p.area} сот.</div>}
+            </div>
+          </a>
         ))}
       </div>
     </div>
