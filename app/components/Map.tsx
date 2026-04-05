@@ -83,6 +83,7 @@ export default function Map() {
             area: p.area,
             type: p.propertyType,
             deal: p.dealType,
+            image: p.images[0],
           },
           geometry: {
             type: "Point",
@@ -261,15 +262,128 @@ export default function Map() {
           popupRef.current.remove();
         }
 
-        const html = `
-    <div style="font-family: Arial; min-width: 150px;">
-      <div style="font-weight: bold; font-size: 16px;">
-        $${Number(props.price).toLocaleString()}
-      </div>
-      <div>${props.rooms} кімн.</div>
-      <div>${props.area} м²</div>
+//         const html = `
+//   <div style="
+//     font-family: Arial;
+//     width: 200px;
+//   ">
+//     <img 
+//       src="${props.image}" 
+//       style="
+//         width:100%;
+//         height:130px;
+//         object-fit:cover;
+//         border-radius:12px;
+//         margin-bottom:8px;
+//       "
+//     />
+
+//     <div style="font-weight:600; font-size:15px;">
+//       $${Number(props.price).toLocaleString()}
+//     </div>
+
+//     <div style="color:#555; font-size:13px;">
+//       ${props.rooms} кімн. • ${props.area} м²
+//     </div>
+
+//     <a 
+//       href="/property/${props.id}" 
+//       target="_blank"
+//       style="
+//         display:block;
+//         margin-top:8px;
+//         color:#2563eb;
+//         text-decoration:none;
+//         font-size:13px;
+//       "
+//     >
+//       Детальніше →
+//     </a>
+//   </div>
+// `;
+
+// const html = `
+//   <div style="
+//     font-family: Arial;
+//     width: 220px;
+//     cursor: pointer;
+//   ">
+//     <img 
+//       src="${props.image}" 
+//       style="
+//         width:100%;
+//         height:130px;
+//         object-fit:cover;
+//         border-radius:12px;
+//         margin-bottom:8px;
+//       "
+//     />
+
+//     <div style="
+//       font-weight:600;
+//       font-size:15px;
+//       margin-bottom:2px;
+//     ">
+//       $${Number(props.price).toLocaleString()}
+//     </div>
+
+//     <div style="
+//       color:#555;
+//       font-size:13px;
+//     ">
+//       ${props.rooms} кімн. • ${props.area} м²
+//     </div>
+
+//     <a 
+//       href="/property/${props.id}" 
+//       target="_blank"
+//       style="
+//         display:block;
+//         margin-top:8px;
+//         color:#2563eb;
+//         text-decoration:none;
+//         font-size:13px;
+//       "
+//     >
+//       Детальніше →
+//     </a>
+//   </div>
+// `;
+
+const html = `
+  <a 
+    href="/property/${props.id}" 
+    target="_blank"
+    style="
+      text-decoration:none;
+      color:inherit;
+      font-family: Arial;
+      display:block;
+      width:220px;
+    "
+  >
+    <img 
+      src="${props.image}" 
+      style="
+        width:100%;
+        height:130px;
+        object-fit:cover;
+        border-radius:12px;
+        margin-bottom:8px;
+      "
+    />
+
+    <div style="font-weight:600; font-size:15px;">
+      $${Number(props.price).toLocaleString()}
     </div>
-  `;
+
+    <div style="color:#555; font-size:13px;">
+      ${props.rooms} кімн. • ${props.area} м²
+    </div>
+  </a>
+`;
+
+
 
         const popup = new mapboxgl.Popup({
           closeButton: true,

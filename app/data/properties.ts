@@ -1,4 +1,22 @@
-import { Property } from "../types/property";
+import { Property } from "../types/property"
+
+const apartmentImages = [
+  "https://images.unsplash.com/photo-1507089947368-19c1da9775ae",
+  "https://images.unsplash.com/photo-1493809842364-78817add7ffb",
+  "https://images.unsplash.com/photo-1484154218962-a197022b5858"
+];
+
+const houseImages = [
+  "https://images.unsplash.com/photo-1568605114967-8130f3a36994",
+  "https://images.unsplash.com/photo-1570129477492-45c003edd2be",
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"
+];
+
+const landImages = [
+  "https://images.unsplash.com/photo-1500382017468-9049fed747ef",
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
+];
 
 export const properties: Property[] = [
 
@@ -16,6 +34,7 @@ export const properties: Property[] = [
     ownerType: "owner",
     yearBuilt: 2012,
     coordinates: [24.709, 48.922],
+    images: apartmentImages,
   },
   {
     id: "a2",
@@ -30,6 +49,7 @@ export const properties: Property[] = [
     ownerType: "realtor",
     yearBuilt: 2008,
     coordinates: [24.715, 48.918],
+    images: apartmentImages,
   },
   {
     id: "a3",
@@ -44,6 +64,7 @@ export const properties: Property[] = [
     ownerType: "realtor",
     yearBuilt: 2015,
     coordinates: [24.703, 48.919],
+    images: apartmentImages,
   },
   {
     id: "a4",
@@ -58,6 +79,7 @@ export const properties: Property[] = [
     ownerType: "owner",
     yearBuilt: 2000,
     coordinates: [24.721, 48.926],
+    images: apartmentImages,
   },
   {
     id: "a5",
@@ -72,6 +94,7 @@ export const properties: Property[] = [
     ownerType: "owner",
     yearBuilt: 2018,
     coordinates: [24.698, 48.921],
+    images: apartmentImages,
   },
   {
     id: "a6",
@@ -86,6 +109,7 @@ export const properties: Property[] = [
     ownerType: "realtor",
     yearBuilt: 2016,
     coordinates: [24.727, 48.917],
+    images: apartmentImages,
   },
 
   // 🏠 БУДИНКИ (6)
@@ -101,6 +125,7 @@ export const properties: Property[] = [
     houseType: "detached",
     ownerType: "realtor",
     coordinates: [24.735, 48.935],
+    images: houseImages,
   },
   {
     id: "h2",
@@ -114,6 +139,7 @@ export const properties: Property[] = [
     houseType: "semi-detached",
     ownerType: "owner",
     coordinates: [24.742, 48.932],
+    images: houseImages,
   },
   {
     id: "h3",
@@ -127,6 +153,7 @@ export const properties: Property[] = [
     houseType: "detached",
     ownerType: "realtor",
     coordinates: [24.728, 48.938],
+    images: houseImages,
   },
   {
     id: "h4",
@@ -140,6 +167,7 @@ export const properties: Property[] = [
     houseType: "detached",
     ownerType: "realtor",
     coordinates: [24.745, 48.940],
+    images: houseImages,
   },
   {
     id: "h5",
@@ -153,6 +181,7 @@ export const properties: Property[] = [
     houseType: "semi-detached",
     ownerType: "owner",
     coordinates: [24.733, 48.929],
+    images: houseImages,
   },
   {
     id: "h6",
@@ -166,6 +195,7 @@ export const properties: Property[] = [
     houseType: "semi-detached",
     ownerType: "realtor",
     coordinates: [24.748, 48.934],
+    images: houseImages,
   },
 
   // 🌍 ЗЕМЛЯ (6) → В СОТКАХ
@@ -178,6 +208,7 @@ export const properties: Property[] = [
     area: 6, // 🔥 сотки
     ownerType: "owner",
     coordinates: [24.755, 48.945],
+    images: landImages,
   },
   {
     id: "l2",
@@ -188,6 +219,7 @@ export const properties: Property[] = [
     area: 8,
     ownerType: "realtor",
     coordinates: [24.760, 48.942],
+    images: landImages,
   },
   {
     id: "l3",
@@ -198,6 +230,7 @@ export const properties: Property[] = [
     area: 5,
     ownerType: "owner",
     coordinates: [24.768, 48.948],
+    images: landImages,
   },
   {
     id: "l4",
@@ -208,6 +241,7 @@ export const properties: Property[] = [
     area: 10,
     ownerType: "realtor",
     coordinates: [24.772, 48.950],
+    images: landImages,
   },
   {
     id: "l5",
@@ -218,6 +252,7 @@ export const properties: Property[] = [
     area: 7,
     ownerType: "owner",
     coordinates: [24.765, 48.944],
+    images: landImages,
   },
   {
     id: "l6",
@@ -228,5 +263,6 @@ export const properties: Property[] = [
     area: 12,
     ownerType: "realtor",
     coordinates: [24.780, 48.952],
+    images: landImages,
   },
 ];

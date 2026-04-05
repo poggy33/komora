@@ -29,4 +29,6 @@ export type Property = {
   yearBuilt?: number;
 
   coordinates: [number, number];
+
+  images: string[];
 };
