@@ -411,7 +411,6 @@
 //   );
 // }
 
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -537,15 +536,7 @@ export default function Map() {
         filter: ["has", "point_count"],
         paint: {
           "circle-color": "#2563eb",
-          "circle-radius": [
-            "step",
-            ["get", "point_count"],
-            20,
-            10,
-            25,
-            30,
-            30,
-          ],
+          "circle-radius": ["step", ["get", "point_count"], 20, 10, 25, 30, 30],
           "circle-stroke-width": 2,
           "circle-stroke-color": "#fff",
         },
@@ -644,7 +635,11 @@ export default function Map() {
         map.getCanvas().style.cursor = "";
 
         if (hoveredPropertyId) {
-          map.setFilter("hover-layer", ["==", ["get", "id"], hoveredPropertyId]);
+          map.setFilter("hover-layer", [
+            "==",
+            ["get", "id"],
+            hoveredPropertyId,
+          ]);
         } else {
           map.setFilter("hover-layer", ["==", ["get", "id"], "__none__"]);
         }
@@ -671,8 +666,36 @@ export default function Map() {
           popupRef.current = null;
         }
 
+        // const container = document.createElement("div");
+        // const root: Root = createRoot(container);
+
+        // root.render(
+        //   <PopupCard
+        //     id={String(property.id)}
+        //     price={property.price}
+        //     rooms={property.rooms}
+        //     area={property.area}
+        //     images={property.images}
+        //   />,
+        // );
+
+        // const popup = new mapboxgl.Popup({
+        //   closeButton: true,
+        //   closeOnClick: true,
+        //   offset: 12,
+        // })
+        //   .setLngLat(coordinates)
+        //   .setDOMContent(container)
+        //   .addTo(map);
+
+        // popup.on("close", () => {
+        //   root.unmount();
+        // });
+
+        // popupRef.current = popup;
+
         const container = document.createElement("div");
-        const root: Root = createRoot(container);
+        const root = createRoot(container);
 
         root.render(
           <PopupCard
@@ -693,11 +716,18 @@ export default function Map() {
           .setDOMContent(container)
           .addTo(map);
 
+        let isUnmounted = false;
+
         popup.on("close", () => {
-          root.unmount();
+          setTimeout(() => {
+            if (isUnmounted) return;
+            isUnmounted = true;
+            root.unmount();
+          }, 0);
         });
 
         popupRef.current = popup;
+        
       });
 
       map.on("click", "clusters", (e) => {
@@ -750,7 +780,9 @@ export default function Map() {
     if (!mapRef.current) return;
 
     const map = mapRef.current;
-    const source = map.getSource("points") as mapboxgl.GeoJSONSource | undefined;
+    const source = map.getSource("points") as
+      | mapboxgl.GeoJSONSource
+      | undefined;
 
     if (!source) return;
 

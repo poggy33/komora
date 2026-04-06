@@ -1,25 +1,24 @@
-import { Property } from "../types/property"
+import { Property } from "../types/property";
 
 const apartmentImages = [
   "https://images.unsplash.com/photo-1507089947368-19c1da9775ae",
   "https://images.unsplash.com/photo-1493809842364-78817add7ffb",
-  "https://images.unsplash.com/photo-1484154218962-a197022b5858"
+  "https://images.unsplash.com/photo-1484154218962-a197022b5858",
 ];
 
 const houseImages = [
   "https://images.unsplash.com/photo-1568605114967-8130f3a36994",
   "https://images.unsplash.com/photo-1570129477492-45c003edd2be",
-  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
 ];
 
 const landImages = [
   "https://images.unsplash.com/photo-1500382017468-9049fed747ef",
   "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
 ];
 
 export const properties: Property[] = [
-
   // 🏢 КВАРТИРИ (6)
   {
     id: "a1",
@@ -35,6 +34,25 @@ export const properties: Property[] = [
     yearBuilt: 2012,
     coordinates: [24.709, 48.922],
     images: apartmentImages,
+    owner: {
+      id: "u1",
+      type: "owner",
+      name: "Іван Петренко",
+      isVerified: true,
+      phone: "+38 097 123 45 67",
+      email: "ivan.petrenko@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Центр",
+      street: "Височана",
+      building: "18 к7",
+      fullAddress: "вулиця Височана, 18 к7, Івано-Франківськ",
+    },
+    description:
+      "Світла однокімнатна квартира з хорошим плануванням, сучасним ремонтом і зручною локацією поблизу центру міста.",
+    publishedAt: "2026-04-01",
+    status: "active",
   },
   {
     id: "a2",
@@ -50,6 +68,26 @@ export const properties: Property[] = [
     yearBuilt: 2008,
     coordinates: [24.715, 48.918],
     images: apartmentImages,
+    owner: {
+      id: "u2",
+      type: "realtor",
+      name: "Ротерман Іван",
+      companyName: "Майдан",
+      isVerified: true,
+      phone: "+38 097 555 22 11",
+      email: "rotterman@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Центр",
+      street: "Незалежності",
+      building: "45",
+      fullAddress: "вулиця Незалежності, 45, Івано-Франківськ",
+    },
+    description:
+      "Простора двокімнатна квартира в оренду, поруч транспорт, магазини, школа та вся необхідна інфраструктура.",
+    publishedAt: "2026-04-02",
+    status: "active",
   },
   {
     id: "a3",
@@ -65,6 +103,26 @@ export const properties: Property[] = [
     yearBuilt: 2015,
     coordinates: [24.703, 48.919],
     images: apartmentImages,
+    owner: {
+      id: "u3",
+      type: "realtor",
+      name: "Оксана Мельник",
+      companyName: "City House",
+      isVerified: true,
+      phone: "+38 066 210 44 88",
+      email: "oksana.melnyk@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Центр",
+      street: "Січових Стрільців",
+      building: "27",
+      fullAddress: "вулиця Січових Стрільців, 27, Івано-Франківськ",
+    },
+    description:
+      "Трикімнатна квартира для сім’ї у хорошому районі міста, з великою кухнею та зручним плануванням.",
+    publishedAt: "2026-04-03",
+    status: "active",
   },
   {
     id: "a4",
@@ -80,6 +138,25 @@ export const properties: Property[] = [
     yearBuilt: 2000,
     coordinates: [24.721, 48.926],
     images: apartmentImages,
+    owner: {
+      id: "u4",
+      type: "owner",
+      name: "Марія Ковальчук",
+      isVerified: true,
+      phone: "+38 095 222 33 44",
+      email: "maria.kovalchuk@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Каскад",
+      street: "Миколайчука",
+      building: "12",
+      fullAddress: "вулиця Миколайчука, 12, Івано-Франківськ",
+    },
+    description:
+      "Компактна квартира в оренду з базовим ремонтом і зручним розташуванням у спокійному житловому районі.",
+    publishedAt: "2026-04-04",
+    status: "active",
   },
   {
     id: "a5",
@@ -95,6 +172,25 @@ export const properties: Property[] = [
     yearBuilt: 2018,
     coordinates: [24.698, 48.921],
     images: apartmentImages,
+    owner: {
+      id: "u5",
+      type: "owner",
+      name: "Андрій Савчук",
+      isVerified: false,
+      phone: "+38 098 777 14 26",
+      email: "andrii.savchuk@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Бам",
+      street: "Довженка",
+      building: "15",
+      fullAddress: "вулиця Довженка, 15, Івано-Франківськ",
+    },
+    description:
+      "Двокімнатна квартира у новішому будинку, підійде як для проживання, так і для інвестиції під оренду.",
+    publishedAt: "2026-04-05",
+    status: "active",
   },
   {
     id: "a6",
@@ -110,6 +206,26 @@ export const properties: Property[] = [
     yearBuilt: 2016,
     coordinates: [24.727, 48.917],
     images: apartmentImages,
+    owner: {
+      id: "u6",
+      type: "realtor",
+      name: "Наталія Романюк",
+      companyName: "Lunet Realty",
+      isVerified: true,
+      phone: "+38 067 901 33 20",
+      email: "nataliia.romaniuk@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Центр",
+      street: "Галицька",
+      building: "54",
+      fullAddress: "вулиця Галицька, 54, Івано-Франківськ",
+    },
+    description:
+      "Простора трикімнатна квартира в оренду, зручна для сім’ї або спільного проживання кількох людей.",
+    publishedAt: "2026-04-06",
+    status: "active",
   },
 
   // 🏠 БУДИНКИ (6)
@@ -126,6 +242,26 @@ export const properties: Property[] = [
     ownerType: "realtor",
     coordinates: [24.735, 48.935],
     images: houseImages,
+    owner: {
+      id: "u7",
+      type: "realtor",
+      name: "Ігор Ворончак",
+      companyName: "Prestige Home",
+      isVerified: true,
+      phone: "+38 099 112 00 45",
+      email: "ihor.voronchak@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Пасічна",
+      street: "Сонячна",
+      building: "8",
+      fullAddress: "вулиця Сонячна, 8, Івано-Франківськ",
+    },
+    description:
+      "Просторий особняк із доглянутим подвір’ям, великими кімнатами та хорошим під’їздом до будинку.",
+    publishedAt: "2026-04-02",
+    status: "active",
   },
   {
     id: "h2",
@@ -140,6 +276,25 @@ export const properties: Property[] = [
     ownerType: "owner",
     coordinates: [24.742, 48.932],
     images: houseImages,
+    owner: {
+      id: "u8",
+      type: "owner",
+      name: "Христина Бойчук",
+      isVerified: true,
+      phone: "+38 096 501 90 18",
+      email: "hrystyna.boichuk@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Крихівці",
+      street: "Затишна",
+      building: "3",
+      fullAddress: "вулиця Затишна, 3, Івано-Франківськ",
+    },
+    description:
+      "Комфортний напівособняк в оренду з окремим входом, подвір’ям і тихим приватним сектором поруч.",
+    publishedAt: "2026-04-03",
+    status: "active",
   },
   {
     id: "h3",
@@ -154,6 +309,26 @@ export const properties: Property[] = [
     ownerType: "realtor",
     coordinates: [24.728, 48.938],
     images: houseImages,
+    owner: {
+      id: "u9",
+      type: "realtor",
+      name: "Василь Федорів",
+      companyName: "Real Invest",
+      isVerified: false,
+      phone: "+38 097 804 11 32",
+      email: "vasyl.fedoriv@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Опришівці",
+      street: "Лісова",
+      building: "21",
+      fullAddress: "вулиця Лісова, 21, Івано-Франківськ",
+    },
+    description:
+      "Одноповерховий будинок для сім’ї в зеленій зоні міста, з гарним плануванням і просторим подвір’ям.",
+    publishedAt: "2026-04-04",
+    status: "active",
   },
   {
     id: "h4",
@@ -166,8 +341,28 @@ export const properties: Property[] = [
     floors: 2,
     houseType: "detached",
     ownerType: "realtor",
-    coordinates: [24.745, 48.940],
+    coordinates: [24.745, 48.94],
     images: houseImages,
+    owner: {
+      id: "u10",
+      type: "realtor",
+      name: "Петро Данилюк",
+      companyName: "Premium Estate",
+      isVerified: true,
+      phone: "+38 067 222 65 41",
+      email: "petro.danyliuk@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Крихівці",
+      street: "Паркова",
+      building: "11",
+      fullAddress: "вулиця Паркова, 11, Івано-Франківськ",
+    },
+    description:
+      "Великий особняк преміумкласу з сучасним фасадом, просторими кімнатами та престижною локацією.",
+    publishedAt: "2026-04-05",
+    status: "active",
   },
   {
     id: "h5",
@@ -182,6 +377,25 @@ export const properties: Property[] = [
     ownerType: "owner",
     coordinates: [24.733, 48.929],
     images: houseImages,
+    owner: {
+      id: "u11",
+      type: "owner",
+      name: "Олена Марчук",
+      isVerified: true,
+      phone: "+38 093 310 88 76",
+      email: "olena.marchuk@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Пасічна",
+      street: "Квіткова",
+      building: "6",
+      fullAddress: "вулиця Квіткова, 6, Івано-Франківськ",
+    },
+    description:
+      "Затишний будинок в оренду, підійде для сім’ї, є окремий двір та зручний заїзд для авто.",
+    publishedAt: "2026-04-06",
+    status: "active",
   },
   {
     id: "h6",
@@ -196,19 +410,58 @@ export const properties: Property[] = [
     ownerType: "realtor",
     coordinates: [24.748, 48.934],
     images: houseImages,
+    owner: {
+      id: "u12",
+      type: "realtor",
+      name: "Юлія Кушнір",
+      companyName: "Home Expert",
+      isVerified: false,
+      phone: "+38 098 450 23 55",
+      email: "yuliia.kushnir@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Крихівці",
+      street: "Вербова",
+      building: "14",
+      fullAddress: "вулиця Вербова, 14, Івано-Франківськ",
+    },
+    description:
+      "Акуратний напівособняк для комфортного проживання, зручний варіант для молодої сім’ї або інвестиції.",
+    publishedAt: "2026-04-06",
+    status: "active",
   },
 
-  // 🌍 ЗЕМЛЯ (6) → В СОТКАХ
+  // 🌍 ЗЕМЛЯ (6)
   {
     id: "l1",
     title: "Ділянка",
     propertyType: "land",
     dealType: "sale",
     price: 25000,
-    area: 6, // 🔥 сотки
+    area: 6,
     ownerType: "owner",
     coordinates: [24.755, 48.945],
     images: landImages,
+    owner: {
+      id: "u13",
+      type: "owner",
+      name: "Марія Ковальчук",
+      isVerified: false,
+      phone: "+38 095 444 10 20",
+      email: "maria.land@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Пасічна",
+      street: "Сонячна",
+      building: "12",
+      fullAddress: "вулиця Сонячна, 12, Івано-Франківськ",
+    },
+    description:
+      "Земельна ділянка під приватну забудову в перспективному районі міста з хорошим доїздом.",
+    publishedAt: "2026-04-01",
+    status: "active",
   },
   {
     id: "l2",
@@ -218,8 +471,28 @@ export const properties: Property[] = [
     price: 30000,
     area: 8,
     ownerType: "realtor",
-    coordinates: [24.760, 48.942],
+    coordinates: [24.76, 48.942],
     images: landImages,
+    owner: {
+      id: "u14",
+      type: "realtor",
+      name: "Степан Гнатюк",
+      companyName: "Захід Земля",
+      isVerified: true,
+      phone: "+38 067 800 11 02",
+      email: "stepan.hnatiuk@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Угринів",
+      street: "Польова",
+      building: "7",
+      fullAddress: "вулиця Польова, 7, Івано-Франківськ",
+    },
+    description:
+      "Простора ділянка правильної форми, підійде для будівництва будинку або невеликого котеджу.",
+    publishedAt: "2026-04-02",
+    status: "active",
   },
   {
     id: "l3",
@@ -231,6 +504,25 @@ export const properties: Property[] = [
     ownerType: "owner",
     coordinates: [24.768, 48.948],
     images: landImages,
+    owner: {
+      id: "u15",
+      type: "owner",
+      name: "Олег Федишин",
+      isVerified: true,
+      phone: "+38 098 311 40 77",
+      email: "oleh.fedyshyn@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Опришівці",
+      street: "Гірська",
+      building: "5",
+      fullAddress: "вулиця Гірська, 5, Івано-Франківськ",
+    },
+    description:
+      "Компактна земельна ділянка в тихому районі міста, хороший варіант для приватної забудови.",
+    publishedAt: "2026-04-03",
+    status: "active",
   },
   {
     id: "l4",
@@ -240,8 +532,28 @@ export const properties: Property[] = [
     price: 35000,
     area: 10,
     ownerType: "realtor",
-    coordinates: [24.772, 48.950],
+    coordinates: [24.772, 48.95],
     images: landImages,
+    owner: {
+      id: "u16",
+      type: "realtor",
+      name: "Тарас Ващук",
+      companyName: "Land Expert",
+      isVerified: true,
+      phone: "+38 066 780 50 66",
+      email: "taras.vashchuk@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Крихівці",
+      street: "Яблунева",
+      building: "2",
+      fullAddress: "вулиця Яблунева, 2, Івано-Франківськ",
+    },
+    description:
+      "Велика ділянка у хорошій локації, зручний заїзд, підведені комунікації поруч із ділянкою.",
+    publishedAt: "2026-04-04",
+    status: "active",
   },
   {
     id: "l5",
@@ -253,6 +565,25 @@ export const properties: Property[] = [
     ownerType: "owner",
     coordinates: [24.765, 48.944],
     images: landImages,
+    owner: {
+      id: "u17",
+      type: "owner",
+      name: "Ганна Романюк",
+      isVerified: false,
+      phone: "+38 093 901 24 18",
+      email: "hanna.romaniuk@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Пасічна",
+      street: "Зелена",
+      building: "9",
+      fullAddress: "вулиця Зелена, 9, Івано-Франківськ",
+    },
+    description:
+      "Ділянка середнього розміру під індивідуальне будівництво, спокійне оточення та житлова забудова поруч.",
+    publishedAt: "2026-04-05",
+    status: "active",
   },
   {
     id: "l6",
@@ -262,7 +593,27 @@ export const properties: Property[] = [
     price: 40000,
     area: 12,
     ownerType: "realtor",
-    coordinates: [24.780, 48.952],
+    coordinates: [24.78, 48.952],
     images: landImages,
+    owner: {
+      id: "u18",
+      type: "realtor",
+      name: "Роман Дорош",
+      companyName: "West Plot",
+      isVerified: true,
+      phone: "+38 097 620 19 90",
+      email: "roman.dorosh@example.com",
+    },
+    location: {
+      city: "Івано-Франківськ",
+      district: "Угринів",
+      street: "Тиха",
+      building: "1",
+      fullAddress: "вулиця Тиха, 1, Івано-Франківськ",
+    },
+    description:
+      "Простора ділянка з хорошим потенціалом для будівництва приватного будинку або інвестиційного проєкту.",
+    publishedAt: "2026-04-06",
+    status: "active",
   },
 ];
