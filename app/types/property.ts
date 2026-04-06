@@ -64,4 +64,9 @@ export type Property = {
   description?: string;
   publishedAt?: string;
   status?: PropertyStatus;
+
+  livingArea?: number;
+  kitchenArea?: number;
+  renovation?: string;
+  heating?: string;
 };
