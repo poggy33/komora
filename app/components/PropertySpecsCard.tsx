@@ -7,94 +7,7 @@ type Props = {
 };
 
 export default function PropertySpecsCard({ property }: Props) {
-  const propertyTypeLabel = getPropertyTypeLabel(property.propertyType);
-  const dealTypeLabel = property.dealType === "sale" ? "Продаж" : "Оренда";
-
-  const roomsLabel =
-    property.rooms !== undefined
-      ? `${property.rooms} ${getRoomWord(property.rooms)}`
-      : null;
-
-  const areaTriple =
-    property.propertyType !== "land" &&
-    property.livingArea !== undefined &&
-    property.kitchenArea !== undefined
-      ? `${property.area} / ${property.livingArea} / ${property.kitchenArea} м²`
-      : property.propertyType === "land"
-        ? `${property.area} сот.`
-        : `${property.area} м²`;
-
-  const floorLabel =
-    property.propertyType === "apartment" &&
-    property.floor !== undefined &&
-    property.totalFloors !== undefined
-      ? `${property.floor} поверх з ${property.totalFloors}`
-      : property.propertyType === "house" && property.floors !== undefined
-        ? `${property.floors} ${property.floors === 1 ? "поверх" : "поверхи"}`
-        : null;
-
-  const facts = [
-    {
-      icon: "🏠",
-      label: "Тип",
-      value: propertyTypeLabel,
-    },
-    {
-      icon: "💼",
-      label: "Операція",
-      value: dealTypeLabel,
-    },
-    {
-      icon: "📐",
-      label: "Площа",
-      value: areaTriple,
-    },
-    ...(roomsLabel
-      ? [
-          {
-            icon: "🛏",
-            label: "Кімнати",
-            value: roomsLabel,
-          },
-        ]
-      : []),
-    ...(floorLabel
-      ? [
-          {
-            icon: "🏢",
-            label: "Поверх",
-            value: floorLabel,
-          },
-        ]
-      : []),
-    ...(property.renovation
-      ? [
-          {
-            icon: "🛠",
-            label: "Стан",
-            value: property.renovation,
-          },
-        ]
-      : []),
-    ...(property.heating
-      ? [
-          {
-            icon: "🔥",
-            label: "Опалення",
-            value: property.heating,
-          },
-        ]
-      : []),
-    ...(property.yearBuilt
-      ? [
-          {
-            icon: "📅",
-            label: "Рік будівництва",
-            value: String(property.yearBuilt),
-          },
-        ]
-      : []),
-  ];
+  const items = buildSpecs(property);
 
   return (
     <section style={{ marginBottom: "32px" }}>
@@ -103,6 +16,7 @@ export default function PropertySpecsCard({ property }: Props) {
           fontSize: "24px",
           fontWeight: 700,
           marginBottom: "16px",
+          color: "#111",
         }}
       >
         Основна інформація
@@ -110,7 +24,7 @@ export default function PropertySpecsCard({ property }: Props) {
 
       <div
         style={{
-          border: "1px solid #e9e9e9",
+          border: "1px solid #e7e7e7",
           borderRadius: "18px",
           background: "#fff",
           overflow: "hidden",
@@ -122,57 +36,139 @@ export default function PropertySpecsCard({ property }: Props) {
             gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
           }}
         >
-          {facts.map((item, index) => (
-            <div
-              key={`${item.label}-${index}`}
-              style={{
-                padding: "18px 20px",
-                borderRight: index % 2 === 0 ? "1px solid #f1f1f1" : "none",
-                borderBottom:
-                  index < facts.length - (facts.length % 2 === 0 ? 2 : 1)
-                    ? "1px solid #f1f1f1"
-                    : "none",
-              }}
-            >
+          {items.map((item, index) => {
+            const isLeft = index % 2 === 0;
+            const isLastRow =
+              index >= items.length - (items.length % 2 === 0 ? 2 : 1);
+
+            return (
               <div
+                key={`${item.label}-${index}`}
                 style={{
+                  padding: "18px 20px",
+                  borderRight: isLeft ? "1px solid #f1f1f1" : "none",
+                  borderBottom: isLastRow ? "none" : "1px solid #f1f1f1",
+                  minHeight: "86px",
                   display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  marginBottom: "8px",
+                  flexDirection: "column",
+                  justifyContent: "center",
                 }}
               >
-                <span style={{ fontSize: "18px", lineHeight: 1 }}>
-                  {item.icon}
-                </span>
-
-                <span
+                <div
                   style={{
                     fontSize: "13px",
-                    color: "#777",
-                    fontWeight: 500,
+                    color: "#7a7a7a",
+                    marginBottom: "8px",
+                    lineHeight: 1.3,
                   }}
                 >
                   {item.label}
-                </span>
-              </div>
+                </div>
 
-              <div
-                style={{
-                  fontSize: "18px",
-                  fontWeight: 700,
-                  color: "#111",
-                  lineHeight: 1.35,
-                }}
-              >
-                {item.value}
+                <div
+                  style={{
+                    fontSize: "18px",
+                    fontWeight: 700,
+                    color: "#111",
+                    lineHeight: 1.35,
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {item.value}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
   );
+}
+
+function buildSpecs(property: Property) {
+  const propertyTypeLabel = getPropertyTypeLabel(property.propertyType);
+  const dealTypeLabel = property.dealType === "sale" ? "Продаж" : "Оренда";
+
+  const items: Array<{ label: string; value: string }> = [
+    {
+      label: "Тип",
+      value: propertyTypeLabel,
+    },
+    {
+      label: "Операція",
+      value: dealTypeLabel,
+    },
+  ];
+
+  if (property.propertyType === "land") {
+    items.push({
+      label: "Площа",
+      value: `${property.area} сот.`,
+    });
+  } else {
+    items.push({
+      label: "Площа",
+      value:
+        property.livingArea !== undefined && property.kitchenArea !== undefined
+          ? `${property.area} / ${property.livingArea} / ${property.kitchenArea} м²`
+          : `${property.area} м²`,
+    });
+  }
+
+  if (property.rooms !== undefined) {
+    items.push({
+      label: "Кімнати",
+      value: `${property.rooms} ${getRoomWord(property.rooms)}`,
+    });
+  }
+
+  if (
+    property.propertyType === "apartment" &&
+    property.floor !== undefined &&
+    property.totalFloors !== undefined
+  ) {
+    items.push({
+      label: "Поверх",
+      value: `${property.floor} з ${property.totalFloors}`,
+    });
+  }
+
+  if (property.propertyType === "house" && property.floors !== undefined) {
+    items.push({
+      label: "Поверховість",
+      value: `${property.floors} ${getFloorWord(property.floors)}`,
+    });
+  }
+
+  if (property.renovation) {
+    items.push({
+      label: "Стан",
+      value: capitalize(property.renovation),
+    });
+  }
+
+  if (property.heating) {
+    items.push({
+      label: "Опалення",
+      value: capitalize(property.heating),
+    });
+  }
+
+  if (property.yearBuilt) {
+    items.push({
+      label: "Рік будівництва",
+      value: String(property.yearBuilt),
+    });
+  }
+
+  if (property.propertyType === "house" && property.houseType) {
+    items.push({
+      label: "Тип будинку",
+      value: getHouseTypeLabel(property.houseType),
+    });
+  }
+
+  return items;
 }
 
 function getPropertyTypeLabel(type: Property["propertyType"]) {
@@ -188,13 +184,32 @@ function getPropertyTypeLabel(type: Property["propertyType"]) {
   }
 }
 
+function getHouseTypeLabel(type: NonNullable<Property["houseType"]>) {
+  switch (type) {
+    case "detached":
+      return "Окремий";
+    case "semi-detached":
+      return "Напівособняк";
+    default:
+      return type;
+  }
+}
+
 function getRoomWord(count: number) {
   if (count % 10 === 1 && count % 100 !== 11) return "кімната";
-  if (
-    [2, 3, 4].includes(count % 10) &&
-    ![12, 13, 14].includes(count % 100)
-  ) {
+  if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) {
     return "кімнати";
   }
   return "кімнат";
+}
+
+function getFloorWord(count: number) {
+  if (count === 1) return "поверх";
+  if ([2, 3, 4].includes(count)) return "поверхи";
+  return "поверхів";
+}
+
+function capitalize(value: string) {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }

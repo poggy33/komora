@@ -3,6 +3,10 @@ import { properties } from "@/data/properties";
 import PropertyGallery from "@/components/PropertyGallery";
 import SellerCard from "@/components/SellerCard";
 import PropertySpecsCard from "@/components/PropertySpecsCard";
+import PropertyHeader from "@/components/PropertyHeader";
+import PropertyDescription from "@/components/PropertyDescription";
+import PropertyAmenities from "@/components/PropertyAmenities";
+import PropertyLocationMapWrapper from "@/components/PropertyLocationMapWrapper";
 
 type PageProps = {
   params: Promise<{
@@ -33,53 +37,7 @@ export default async function PropertyPage({ params }: PageProps) {
         Головна / Нерухомість / {property.title}
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: "20px",
-          marginBottom: "20px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: "34px",
-              fontWeight: 700,
-              margin: 0,
-              marginBottom: "10px",
-            }}
-          >
-            {property.title}
-          </h1>
-
-          <div style={{ color: "#555", fontSize: "15px" }}>
-            {property.propertyType === "land" ? (
-              <>{property.area} сот.</>
-            ) : (
-              <>
-                {property.rooms ?? "—"} кімн. • {property.area} м²
-                {property.propertyType === "house" && property.floors
-                  ? ` • ${property.floors} пов.`
-                  : ""}
-              </>
-            )}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-          }}
-        >
-          <button style={secondaryButtonStyle}>Поділитися</button>
-          <button style={secondaryButtonStyle}>Зберегти</button>
-        </div>
-      </div>
+      <PropertyHeader property={property} />
 
       <PropertyGallery images={property.images} title={property.title} />
 
@@ -91,122 +49,32 @@ export default async function PropertyPage({ params }: PageProps) {
           alignItems: "start",
         }}
       >
-        <section>
-          <div
-            style={{
-              paddingBottom: "24px",
-              marginBottom: "24px",
-              borderBottom: "1px solid #eee",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "30px",
-                fontWeight: 700,
-                marginBottom: "10px",
-              }}
-            >
-              ${property.price.toLocaleString()}
-              {property.dealType === "rent" ? " / міс." : ""}
-            </div>
+<section>
+  <PropertySpecsCard property={property} />
 
-            <div
-              style={{
-                color: "#555",
-                fontSize: "16px",
-              }}
-            >
-              {property.dealType === "sale" ? "Продаж" : "Оренда"} •{" "}
-              {property.propertyType === "apartment"
-                ? "Квартира"
-                : property.propertyType === "house"
-                  ? "Будинок"
-                  : "Земельна ділянка"}
-            </div>
-          </div>
+  <PropertyDescription description={property.description} />
 
-          <PropertySpecsCard property={property} />
+  <PropertyAmenities property={property} />
 
-          <div style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "16px",
-              }}
-            >
-              Опис
-            </h2>
+  <div style={{ marginBottom: "32px" }}>
+    <h2
+      style={{
+        fontSize: "24px",
+        fontWeight: 700,
+        marginBottom: "16px",
+        color: "#111",
+      }}
+    >
+      Локація
+    </h2>
 
-            <p
-              style={{
-                fontSize: "16px",
-                lineHeight: 1.75,
-                color: "#333",
-                margin: 0,
-              }}
-            >
-              Просторий і перспективний об’єкт у хорошій локації. Тут можна
-              розмістити повний опис нерухомості: стан ремонту, планування,
-              інфраструктуру поблизу, транспортну доступність, особливості
-              району, переваги для проживання або інвестиції, умови продажу чи
-              оренди, а також інші ключові характеристики.
-            </p>
-          </div>
-
-          <div style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "16px",
-              }}
-            >
-              Зручності
-            </h2>
-
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "10px",
-              }}
-            >
-              <div style={chipStyle}>Wi-Fi</div>
-              <div style={chipStyle}>Паркування</div>
-              <div style={chipStyle}>Поруч транспорт</div>
-              <div style={chipStyle}>Розвинена інфраструктура</div>
-              <div style={chipStyle}>Гарна локація</div>
-            </div>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "16px",
-              }}
-            >
-              Локація
-            </h2>
-
-            <div
-              style={{
-                height: "280px",
-                borderRadius: "18px",
-                background: "#f3f3f3",
-                border: "1px solid #eee",
-                display: "grid",
-                placeItems: "center",
-                color: "#777",
-                fontSize: "15px",
-              }}
-            >
-              Тут буде блок карти або адреси об’єкта
-            </div>
-          </div>
-        </section>
+    <PropertyLocationMapWrapper
+      coordinates={property.coordinates}
+      title={property.title}
+      address={property.location?.fullAddress}
+    />
+  </div>
+</section>
 
         <SellerCard property={property} />
       </div>
