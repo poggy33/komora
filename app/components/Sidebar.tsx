@@ -14,7 +14,7 @@ export default function Sidebar({ properties, onSelect, onHover }: Props) {
       style={{
         width: "360px",
         maxWidth: "100%",
-        height: "100vh",
+        height: "100%",
         overflowY: "auto",
         background: "#fff",
         borderRight: "1px solid #eee",

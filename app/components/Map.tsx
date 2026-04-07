@@ -19,11 +19,6 @@ export default function Map({ dealType, propertyType }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
-
-  // const [dealType, setDealType] = useState<"sale" | "rent">("sale");
-  // const [propertyType, setPropertyType] = useState<
-  //   "apartment" | "house" | "land"
-  // >("apartment");
   const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(
     null,
   );
@@ -385,29 +380,49 @@ export default function Map({ dealType, propertyType }: Props) {
     });
   };
 
-  return (
-    <div className="layout">
-      <div className="sidebar">
-        <Sidebar
-          properties={filteredProperties}
-          // dealType={dealType}
-          // propertyType={propertyType}
-          // setDealType={setDealType}
-          // setPropertyType={setPropertyType}
-          onSelect={handleSelect}
-          onHover={setHoveredPropertyId}
-        />
-      </div>
-
-      <div className="map-wrapper">
-        <div
-          ref={mapContainer}
-          style={{
-            position: "absolute",
-            inset: 0,
-          }}
-        />
-      </div>
+return (
+  <div
+    style={{
+      height: "100%",
+      display: "grid",
+      gridTemplateColumns: "380px minmax(0, 1fr)",
+      gridTemplateRows: "1fr",
+    }}
+    className="main-search-layout"
+  >
+    <div
+      style={{
+        minWidth: 0,
+        minHeight: 0,
+        background: "#fff",
+        borderRight: "1px solid #eee",
+      }}
+      className="main-search-sidebar"
+    >
+      <Sidebar
+        properties={filteredProperties}
+        onSelect={handleSelect}
+        onHover={setHoveredPropertyId}
+      />
     </div>
-  );
+
+    <div
+      style={{
+        position: "relative",
+        minWidth: 0,
+        minHeight: 0,
+        background: "#f8f8f8",
+      }}
+      className="main-search-map"
+    >
+      <div
+        ref={mapContainer}
+        style={{
+          position: "absolute",
+          inset: 0,
+        }}
+      />
+    </div>
+  </div>
+);
 }
