@@ -44,39 +44,47 @@ export default async function PropertyPage({ params }: PageProps) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(0, 2fr) 380px",
-          gap: "40px",
-          alignItems: "start",
+          gridTemplateColumns: "1fr",
+          gap: "32px",
         }}
       >
-<section>
-  <PropertySpecsCard property={property} />
+        <section>
+          <PropertySpecsCard property={property} />
 
-  <PropertyDescription description={property.description} />
+          <PropertyDescription description={property.description} />
 
-  <PropertyAmenities property={property} />
+          <PropertyAmenities property={property} />
 
-  <div style={{ marginBottom: "32px" }}>
-    <h2
-      style={{
-        fontSize: "24px",
-        fontWeight: 700,
-        marginBottom: "16px",
-        color: "#111",
-      }}
-    >
-      Локація
-    </h2>
+          <div style={{ marginBottom: "32px" }}>
+            <h2
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                marginBottom: "16px",
+                color: "#111",
+              }}
+            >
+              Локація
+            </h2>
 
-    <PropertyLocationMapWrapper
-      coordinates={property.coordinates}
-      title={property.title}
-      address={property.location?.fullAddress}
-    />
-  </div>
-</section>
+            <PropertyLocationMapWrapper
+              coordinates={property.coordinates}
+              title={property.title}
+              address={property.location?.fullAddress}
+            />
+          </div>
+        </section>
 
-        <SellerCard property={property} />
+        <div
+          style={{
+            maxWidth: "420px",
+            width: "100%",
+            margin: "0 auto",
+          }}
+        >
+          <SellerCard property={property} />
+        </div>
+        
       </div>
     </main>
   );
