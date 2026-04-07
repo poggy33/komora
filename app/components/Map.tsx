@@ -19,6 +19,9 @@ export default function Map({ dealType, propertyType }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
+  const markerRefs = useRef<globalThis.Map<string, mapboxgl.Marker>>(
+    new globalThis.Map(),
+  );
   const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(
     null,
   );
@@ -37,6 +40,181 @@ export default function Map({ dealType, propertyType }: Props) {
     return `$${num}`;
   };
 
+  const formatCompactPrice = (num: number) => {
+    if (num >= 1000000) {
+      const value = num / 1000000;
+      return value % 1 === 0 ? `$${value}M` : `$${value.toFixed(1)}M`;
+    }
+
+    if (num >= 1000) {
+      const value = num / 1000;
+      return value % 1 === 0 ? `$${value}k` : `$${value.toFixed(1)}k`;
+    }
+
+    return `$${num}`;
+  };
+
+  const formatCompactMetricPrice = (num: number) => {
+    if (num >= 1000) {
+      const value = num / 1000;
+      return value % 1 === 0 ? `$${value}k` : `$${value.toFixed(1)}k`;
+    }
+
+    return `$${num}`;
+  };
+
+  const buildMarkerLabel = (p: Property) => {
+    const topLine = formatCompactPrice(p.price);
+
+    if (p.propertyType === "apartment") {
+      const pricePerSqm = Math.round(p.price / p.area);
+      return `${topLine}\n${p.rooms}к • $${pricePerSqm}/м²`;
+    }
+
+    if (p.propertyType === "house") {
+      return `${topLine}\n${p.rooms}к • ${p.floors} пов.`;
+    }
+
+    if (p.propertyType === "land") {
+      const perSotka = Math.round(p.price / p.area);
+      return `${topLine}\n${p.area} сот. • ${formatCompactMetricPrice(perSotka)}/сот.`;
+    }
+
+    return topLine;
+  };
+
+  const createMarkerElement = (property: Property) => {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.setAttribute("data-property-id", String(property.id));
+
+    const topLine = formatCompactPrice(property.price);
+
+    let bottomLine = "";
+
+    if (property.propertyType === "apartment") {
+      const pricePerSqm = Math.round(property.price / property.area);
+      bottomLine = `${property.rooms}к • $${pricePerSqm}/м²`;
+    }
+
+    if (property.propertyType === "house") {
+      bottomLine = `${property.rooms}к • ${property.floors} пов.`;
+    }
+
+    if (property.propertyType === "land") {
+      const perSotka = Math.round(property.price / property.area);
+      bottomLine = `${property.area} сот. • ${formatCompactMetricPrice(perSotka)}/сот.`;
+    }
+
+    el.innerHTML = `
+    <span class="marker-pill__top">${topLine}</span>
+    <span class="marker-pill__bottom">${bottomLine}</span>
+  `;
+
+    el.className = "marker-pill";
+    return el;
+  };
+
+  const openPropertyPopup = (
+    map: mapboxgl.Map,
+    property: Property,
+    coordinates: [number, number],
+  ) => {
+    if (popupRef.current) {
+      popupRef.current.remove();
+      popupRef.current = null;
+    }
+
+    const container = document.createElement("div");
+    const root = createRoot(container);
+
+    root.render(
+      <PopupCard
+        id={String(property.id)}
+        price={property.price}
+        rooms={property.rooms}
+        area={property.area}
+        images={property.images}
+      />,
+    );
+
+    const popup = new mapboxgl.Popup({
+      closeButton: true,
+      closeOnClick: true,
+      offset: 12,
+    })
+      .setLngLat(coordinates)
+      .setDOMContent(container)
+      .addTo(map);
+
+    let isUnmounted = false;
+
+    popup.on("close", () => {
+      setTimeout(() => {
+        if (isUnmounted) return;
+        isUnmounted = true;
+        root.unmount();
+      }, 0);
+    });
+
+    popupRef.current = popup;
+  };
+
+  const renderHtmlMarkers = (map: mapboxgl.Map) => {
+    const features = map.queryRenderedFeatures({
+      layers: ["unclustered-helper"],
+    });
+
+    const visibleIds = new Set<string>();
+
+    features.forEach((feature) => {
+      const id = String(feature.properties?.id ?? "");
+      if (!id) return;
+
+      visibleIds.add(id);
+
+      if (markerRefs.current.has(id)) return;
+
+      const property = filteredProperties.find((p) => String(p.id) === id);
+      if (!property) return;
+
+      const el = createMarkerElement(property);
+
+      el.addEventListener("mouseenter", () => {
+        el.classList.add("is-hovered");
+      });
+
+      el.addEventListener("mouseleave", () => {
+        if (hoveredPropertyId !== String(property.id)) {
+          el.classList.remove("is-hovered");
+        }
+      });
+
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        openPropertyPopup(map, property, property.coordinates);
+      });
+
+      const marker = new mapboxgl.Marker({
+        element: el,
+        anchor: "center",
+      })
+        .setLngLat(property.coordinates)
+        .addTo(map);
+
+      markerRefs.current.set(id, marker);
+    });
+
+    markerRefs.current.forEach((marker, id) => {
+      if (!visibleIds.has(id)) {
+        marker.remove();
+        markerRefs.current.delete(id);
+      }
+    });
+  };
+
   const filteredProperties = properties.filter(
     (p) => p.dealType === dealType && p.propertyType === propertyType,
   );
@@ -45,35 +223,7 @@ export default function Map({ dealType, propertyType }: Props) {
     return {
       type: "FeatureCollection",
       features: filteredProperties.map((p) => {
-        let label = "";
-
-        if (p.propertyType === "apartment") {
-          if (p.dealType === "sale") {
-            const pricePerSqm = Math.round(p.price / p.area);
-
-            label =
-              `$${p.price.toLocaleString()}\n` +
-              `${p.rooms} кімн.\n` +
-              `$${pricePerSqm}/m²`;
-          } else {
-            label = `$${p.price}/міс\n${p.rooms} кімн.`;
-          }
-        }
-
-        if (p.propertyType === "house") {
-          label =
-            `$${p.price.toLocaleString()}\n` +
-            `${p.rooms} кімн.\n` +
-            `${p.floors} пов.`;
-        }
-
-        if (p.propertyType === "land") {
-          const perSotka = Math.round(p.price / p.area);
-          label =
-            `$${p.price.toLocaleString()}\n` +
-            `${p.area} сот.\n` +
-            `${formatToK(perSotka)}/сот.`;
-        }
+        const label = buildMarkerLabel(p);
 
         return {
           type: "Feature" as const,
@@ -144,149 +294,15 @@ export default function Map({ dealType, propertyType }: Props) {
       });
 
       map.addLayer({
-        id: "badge-bg",
+        id: "unclustered-helper",
         type: "circle",
         source: "points",
         filter: ["!", ["has", "point_count"]],
         paint: {
-          "circle-radius": 18,
-          "circle-color": "#ffffff",
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#ddd",
+          "circle-radius": 1,
+          "circle-opacity": 0,
+          "circle-stroke-opacity": 0,
         },
-        minzoom: 13,
-      });
-
-      map.addLayer({
-        id: "hover-layer",
-        type: "circle",
-        source: "points",
-        filter: ["==", ["get", "id"], "__none__"],
-        paint: {
-          "circle-radius": 24,
-          "circle-color": "#ffffff",
-          "circle-stroke-width": 3,
-          "circle-stroke-color": "#000",
-        },
-        minzoom: 13,
-      });
-
-      map.addLayer({
-        id: "points-layer",
-        type: "circle",
-        source: "points",
-        filter: ["!", ["has", "point_count"]],
-        paint: {
-          "circle-radius": 6,
-          "circle-color": "#2563eb",
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#fff",
-        },
-        maxzoom: 13,
-      });
-
-      map.addLayer({
-        id: "price-layer",
-        type: "symbol",
-        source: "points",
-        filter: ["!", ["has", "point_count"]],
-        layout: {
-          "text-field": ["get", "label"],
-          "text-size": 12,
-          "text-anchor": "center",
-          "text-allow-overlap": true,
-        },
-        paint: {
-          "text-color": "#000",
-        },
-        minzoom: 13,
-      });
-
-      map.on("mousemove", "badge-bg", (e) => {
-        if (!e.features?.length) return;
-
-        const feature = e.features[0];
-        const id = String(feature.properties?.id ?? "");
-
-        if (!id) return;
-
-        map.getCanvas().style.cursor = "pointer";
-        map.setFilter("hover-layer", ["==", ["get", "id"], id]);
-      });
-
-      map.on("mouseenter", "badge-bg", () => {
-        map.getCanvas().style.cursor = "pointer";
-      });
-
-      map.on("mouseleave", "badge-bg", () => {
-        map.getCanvas().style.cursor = "";
-
-        if (hoveredPropertyId) {
-          map.setFilter("hover-layer", [
-            "==",
-            ["get", "id"],
-            hoveredPropertyId,
-          ]);
-        } else {
-          map.setFilter("hover-layer", ["==", ["get", "id"], "__none__"]);
-        }
-      });
-
-      map.on("click", "badge-bg", (e) => {
-        if (!e.features?.length) return;
-
-        const feature = e.features[0];
-        const id = String(feature.properties?.id ?? "");
-
-        if (!id) return;
-
-        const property = properties.find((p) => String(p.id) === id);
-        if (!property) return;
-
-        const coordinates = (feature.geometry as GeoJSON.Point).coordinates as [
-          number,
-          number,
-        ];
-
-        if (popupRef.current) {
-          popupRef.current.remove();
-          popupRef.current = null;
-        }
-
-        const container = document.createElement("div");
-        const root = createRoot(container);
-
-        root.render(
-          <PopupCard
-            id={String(property.id)}
-            price={property.price}
-            rooms={property.rooms}
-            area={property.area}
-            images={property.images}
-          />,
-        );
-
-        const popup = new mapboxgl.Popup({
-          closeButton: true,
-          closeOnClick: true,
-          offset: 12,
-        })
-          .setLngLat(coordinates)
-          .setDOMContent(container)
-          .addTo(map);
-
-        let isUnmounted = false;
-
-        popup.on("close", () => {
-          setTimeout(() => {
-            if (isUnmounted) return;
-            isUnmounted = true;
-            root.unmount();
-          }, 0);
-        });
-
-        popupRef.current = popup;
-
       });
 
       map.on("click", "clusters", (e) => {
@@ -322,6 +338,21 @@ export default function Map({ dealType, propertyType }: Props) {
       map.on("mouseleave", "clusters", () => {
         map.getCanvas().style.cursor = "";
       });
+
+      renderHtmlMarkers(map);
+
+      map.on("moveend", () => {
+        renderHtmlMarkers(map);
+      });
+
+      map.on("zoomend", () => {
+        renderHtmlMarkers(map);
+      });
+
+      map.on("data", () => {
+        if (!map.getLayer("unclustered-helper")) return;
+        renderHtmlMarkers(map);
+      });
     });
 
     return () => {
@@ -329,6 +360,9 @@ export default function Map({ dealType, propertyType }: Props) {
         popupRef.current.remove();
         popupRef.current = null;
       }
+
+      markerRefs.current.forEach((marker) => marker.remove());
+      markerRefs.current.clear();
 
       map.remove();
       mapRef.current = null;
@@ -352,22 +386,21 @@ export default function Map({ dealType, propertyType }: Props) {
       popupRef.current = null;
     }
 
-    map.setFilter("hover-layer", ["==", ["get", "id"], "__none__"]);
+    requestAnimationFrame(() => {
+      renderHtmlMarkers(map);
+    });
   }, [dealType, propertyType]);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    markerRefs.current.forEach((marker, id) => {
+      const el = marker.getElement();
 
-    const map = mapRef.current;
-
-    if (!map.isStyleLoaded()) return;
-    if (!map.getLayer("hover-layer")) return;
-
-    if (hoveredPropertyId === null) {
-      map.setFilter("hover-layer", ["==", ["get", "id"], "__none__"]);
-    } else {
-      map.setFilter("hover-layer", ["==", ["get", "id"], hoveredPropertyId]);
-    }
+      if (hoveredPropertyId !== null && id === hoveredPropertyId) {
+        el.classList.add("is-hovered");
+      } else {
+        el.classList.remove("is-hovered");
+      }
+    });
   }, [hoveredPropertyId]);
 
   const handleSelect = (p: Property) => {
@@ -380,49 +413,49 @@ export default function Map({ dealType, propertyType }: Props) {
     });
   };
 
-return (
-  <div
-    style={{
-      height: "100%",
-      display: "grid",
-      gridTemplateColumns: "380px minmax(0, 1fr)",
-      gridTemplateRows: "1fr",
-    }}
-    className="main-search-layout"
-  >
+  return (
     <div
       style={{
-        minWidth: 0,
-        minHeight: 0,
-        background: "#fff",
-        borderRight: "1px solid #eee",
+        height: "100%",
+        display: "grid",
+        gridTemplateColumns: "380px minmax(0, 1fr)",
+        gridTemplateRows: "1fr",
       }}
-      className="main-search-sidebar"
-    >
-      <Sidebar
-        properties={filteredProperties}
-        onSelect={handleSelect}
-        onHover={setHoveredPropertyId}
-      />
-    </div>
-
-    <div
-      style={{
-        position: "relative",
-        minWidth: 0,
-        minHeight: 0,
-        background: "#f8f8f8",
-      }}
-      className="main-search-map"
+      className="main-search-layout"
     >
       <div
-        ref={mapContainer}
         style={{
-          position: "absolute",
-          inset: 0,
+          minWidth: 0,
+          minHeight: 0,
+          background: "#fff",
+          borderRight: "1px solid #eee",
         }}
-      />
+        className="main-search-sidebar"
+      >
+        <Sidebar
+          properties={filteredProperties}
+          onSelect={handleSelect}
+          onHover={setHoveredPropertyId}
+        />
+      </div>
+
+      <div
+        style={{
+          position: "relative",
+          minWidth: 0,
+          minHeight: 0,
+          background: "#f8f8f8",
+        }}
+        className="main-search-map"
+      >
+        <div
+          ref={mapContainer}
+          style={{
+            position: "absolute",
+            inset: 0,
+          }}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
 }
