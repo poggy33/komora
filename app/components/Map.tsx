@@ -160,60 +160,60 @@ export default function Map({ dealType, propertyType }: Props) {
     popupRef.current = popup;
   };
 
-  const renderHtmlMarkers = (map: mapboxgl.Map) => {
-    const features = map.queryRenderedFeatures({
-      layers: ["unclustered-helper"],
+const renderHtmlMarkers = (map: mapboxgl.Map) => {
+  const features = map.queryRenderedFeatures({
+    layers: ["unclustered-helper"],
+  });
+
+  const visibleIds = new Set<string>();
+
+  features.forEach((feature) => {
+    const id = String(feature.properties?.id ?? "");
+    if (!id) return;
+
+    visibleIds.add(id);
+
+    if (markerRefs.current.has(id)) return;
+
+    const property = properties.find((p) => String(p.id) === id);
+    if (!property) return;
+
+    const el = createMarkerElement(property);
+
+    el.addEventListener("mouseenter", () => {
+      el.classList.add("is-hovered");
     });
 
-    const visibleIds = new Set<string>();
-
-    features.forEach((feature) => {
-      const id = String(feature.properties?.id ?? "");
-      if (!id) return;
-
-      visibleIds.add(id);
-
-      if (markerRefs.current.has(id)) return;
-
-      const property = filteredProperties.find((p) => String(p.id) === id);
-      if (!property) return;
-
-      const el = createMarkerElement(property);
-
-      el.addEventListener("mouseenter", () => {
-        el.classList.add("is-hovered");
-      });
-
-      el.addEventListener("mouseleave", () => {
-        if (hoveredPropertyId !== String(property.id)) {
-          el.classList.remove("is-hovered");
-        }
-      });
-
-      el.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        openPropertyPopup(map, property, property.coordinates);
-      });
-
-      const marker = new mapboxgl.Marker({
-        element: el,
-        anchor: "center",
-      })
-        .setLngLat(property.coordinates)
-        .addTo(map);
-
-      markerRefs.current.set(id, marker);
-    });
-
-    markerRefs.current.forEach((marker, id) => {
-      if (!visibleIds.has(id)) {
-        marker.remove();
-        markerRefs.current.delete(id);
+    el.addEventListener("mouseleave", () => {
+      if (hoveredPropertyId !== String(property.id)) {
+        el.classList.remove("is-hovered");
       }
     });
-  };
+
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      openPropertyPopup(map, property, property.coordinates);
+    });
+
+    const marker = new mapboxgl.Marker({
+      element: el,
+      anchor: "center",
+    })
+      .setLngLat(property.coordinates)
+      .addTo(map);
+
+    markerRefs.current.set(id, marker);
+  });
+
+  markerRefs.current.forEach((marker, id) => {
+    if (!visibleIds.has(id)) {
+      marker.remove();
+      markerRefs.current.delete(id);
+    }
+  });
+};
 
   const filteredProperties = properties.filter(
     (p) => p.dealType === dealType && p.propertyType === propertyType,
