@@ -7,6 +7,8 @@ type Props = {
   propertyType: "apartment" | "house" | "land";
   hoveredPropertyId: string | null;
   setHoveredPropertyId: (id: string | null) => void;
+  selectedPropertyId: string | null;
+  setSelectedPropertyId: (id: string | null) => void;
 };
 
 const Map = dynamic(() => import("./Map"), {
@@ -18,6 +20,8 @@ export default function MapWrapper({
   propertyType,
   hoveredPropertyId,
   setHoveredPropertyId,
+  selectedPropertyId,
+  setSelectedPropertyId,
 }: Props) {
   return (
     <Map
@@ -25,6 +29,8 @@ export default function MapWrapper({
       propertyType={propertyType}
       hoveredPropertyId={hoveredPropertyId}
       setHoveredPropertyId={setHoveredPropertyId}
+      selectedPropertyId={selectedPropertyId}
+      setSelectedPropertyId={setSelectedPropertyId}
     />
   );
 }

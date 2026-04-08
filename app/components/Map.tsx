@@ -15,6 +15,8 @@ type Props = {
   propertyType: "apartment" | "house" | "land";
   hoveredPropertyId: string | null;
   setHoveredPropertyId: (id: string | null) => void;
+  selectedPropertyId: string | null;
+  setSelectedPropertyId: (id: string | null) => void;
 };
 
 export default function Map({
@@ -22,6 +24,8 @@ export default function Map({
   propertyType,
   hoveredPropertyId,
   setHoveredPropertyId,
+  selectedPropertyId,
+  setSelectedPropertyId,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -198,6 +202,8 @@ export default function Map({
         e.preventDefault();
         e.stopPropagation();
 
+        setSelectedPropertyId(String(property.id));
+
         openPropertyPopup(map, property, property.coordinates);
       });
 
@@ -343,6 +349,21 @@ export default function Map({
         map.getCanvas().style.cursor = "";
       });
 
+      map.on("click", (e) => {
+        const clickedCluster = map.queryRenderedFeatures(e.point, {
+          layers: ["clusters"],
+        });
+
+        if (clickedCluster.length > 0) return;
+
+        setSelectedPropertyId(null);
+
+        if (popupRef.current) {
+          popupRef.current.remove();
+          popupRef.current = null;
+        }
+      });
+
       renderHtmlMarkers(map);
 
       map.on("moveend", () => {
@@ -399,16 +420,21 @@ export default function Map({
     markerRefs.current.forEach((marker, id) => {
       const el = marker.getElement();
 
-      if (hoveredPropertyId !== null && id === hoveredPropertyId) {
+      el.classList.remove("is-hovered");
+      el.classList.remove("is-selected");
+
+      if (selectedPropertyId === id) {
+        el.classList.add("is-selected");
+      } else if (hoveredPropertyId === id) {
         el.classList.add("is-hovered");
-      } else {
-        el.classList.remove("is-hovered");
       }
     });
-  }, [hoveredPropertyId]);
+  }, [hoveredPropertyId, selectedPropertyId]);
 
   const handleSelect = (p: Property) => {
     if (!mapRef.current) return;
+
+    setSelectedPropertyId(String(p.id));
 
     mapRef.current.flyTo({
       center: p.coordinates,
@@ -441,6 +467,7 @@ export default function Map({
           onSelect={handleSelect}
           onHover={setHoveredPropertyId}
           hoveredPropertyId={hoveredPropertyId}
+          selectedPropertyId={selectedPropertyId}
         />
       </div>
 

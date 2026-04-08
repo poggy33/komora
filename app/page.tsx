@@ -12,6 +12,9 @@ export default function HomePage() {
   const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(
     null,
   );
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
+    null,
+  );
 
   return (
     <>
@@ -47,6 +50,8 @@ export default function HomePage() {
             propertyType={propertyType}
             hoveredPropertyId={hoveredPropertyId}
             setHoveredPropertyId={setHoveredPropertyId}
+            selectedPropertyId={selectedPropertyId}
+            setSelectedPropertyId={setSelectedPropertyId}
           />
         </div>
       </main>

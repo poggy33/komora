@@ -64,3 +64,15 @@ body {
     height: 60vh;
   }
 }
+
+.marker-pill.is-selected {
+  transform: scale(1.08);
+  border-color: #111111;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  background: #111111;
+  color: #ffffff;
+}
+
+.marker-pill.is-selected .marker-pill__bottom {
+  color: rgba(255, 255, 255, 0.8);
+}

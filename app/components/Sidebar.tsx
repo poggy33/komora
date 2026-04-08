@@ -7,6 +7,7 @@ type Props = {
   onSelect: (p: Property) => void;
   onHover: (id: string | null) => void;
   hoveredPropertyId: string | null;
+  selectedPropertyId: string | null;
 };
 
 export default function Sidebar({
@@ -14,6 +15,7 @@ export default function Sidebar({
   onSelect,
   onHover,
   hoveredPropertyId,
+  selectedPropertyId,
 }: Props) {
   return (
     <div
@@ -44,6 +46,7 @@ export default function Sidebar({
       <div className="sidebar-scroll" style={{ padding: "12px" }}>
         {properties.map((p) => {
           const isHovered = hoveredPropertyId === String(p.id);
+          const isSelected = selectedPropertyId === String(p.id);
 
           return (
             <a
@@ -59,10 +62,23 @@ export default function Sidebar({
                 padding: "14px",
                 marginBottom: "12px",
                 borderRadius: "10px",
-                border: isHovered ? "2px solid #111" : "1px solid #eee",
-                background: isHovered ? "#f8f8f8" : "#fff",
+                border: isSelected
+                  ? "2px solid #111"
+                  : isHovered
+                    ? "2px solid #aaa"
+                    : "1px solid #eee",
+                background: isSelected
+                  ? "#f2f2f2"
+                  : isHovered
+                    ? "#f8f8f8"
+                    : "#fff",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
+                transform: isSelected
+                  ? "scale(1.01)"
+                  : isHovered
+                    ? "scale(1.005)"
+                    : "scale(1)",
               }}
             >
               <div style={{ fontWeight: 600, marginBottom: "6px" }}>
