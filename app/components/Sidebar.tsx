@@ -15,6 +15,7 @@ export default function Sidebar({ properties, onSelect, onHover }: Props) {
         width: "360px",
         maxWidth: "100%",
         height: "100%",
+        minHeight: 0,
         overflowY: "auto",
         background: "#fff",
         borderRight: "1px solid #eee",
@@ -34,7 +35,7 @@ export default function Sidebar({ properties, onSelect, onHover }: Props) {
         Знайдено: {properties.length}
       </div>
 
-      <div style={{ padding: "12px" }}>
+      <div className="sidebar-scroll" style={{ padding: "12px" }}>
         {properties.map((p) => (
           <a
             key={p.id}
@@ -44,8 +45,8 @@ export default function Sidebar({ properties, onSelect, onHover }: Props) {
             onClick={() => onSelect(p)}
             style={{
               display: "block",
-              padding: "12px",
-              marginBottom: "10px",
+              padding: "14px",
+              marginBottom: "12px",
               borderRadius: "10px",
               border: "1px solid #eee",
               cursor: "pointer",
@@ -53,7 +54,9 @@ export default function Sidebar({ properties, onSelect, onHover }: Props) {
               color: "inherit",
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: "6px" }}>{p.title}</div>
+            <div style={{ fontWeight: 600, marginBottom: "6px" }}>
+              {p.title}
+            </div>
 
             <div style={{ marginBottom: "6px" }}>
               💰 ${p.price.toLocaleString()}

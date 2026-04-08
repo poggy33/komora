@@ -31,6 +31,7 @@ export default function MainTopBar({
       }}
     >
       <div
+        className="main-topbar-inner"
         style={{
           maxWidth: "100%",
           padding: "12px 16px",
@@ -39,9 +40,11 @@ export default function MainTopBar({
           alignItems: "center",
           justifyContent: "space-between",
           gap: "12px",
+          position: "relative",
         }}
       >
         <div
+          className="main-topbar-logo"
           style={{
             fontSize: "20px",
             fontWeight: 700,
@@ -53,6 +56,7 @@ export default function MainTopBar({
         </div>
 
         <div
+          className="main-topbar-controls"
           style={{
             display: "flex",
             alignItems: "center",
@@ -63,10 +67,9 @@ export default function MainTopBar({
           }}
         >
           <select
+            className="main-topbar-select"
             value={propertyType}
-            onChange={(e) =>
-              setPropertyType(e.target.value as PropertyType)
-            }
+            onChange={(e) => setPropertyType(e.target.value as PropertyType)}
             style={selectStyle}
           >
             <option value="apartment">Квартири</option>
@@ -75,6 +78,7 @@ export default function MainTopBar({
           </select>
 
           <div
+            className="main-topbar-toggle"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -111,6 +115,7 @@ export default function MainTopBar({
 
           <button
             type="button"
+            className="main-topbar-filters"
             onClick={onOpenFilters}
             style={pillButtonStyle}
             aria-label="Відкрити розширені фільтри"
@@ -122,6 +127,7 @@ export default function MainTopBar({
 
         <button
           type="button"
+          className="main-topbar-user"
           onClick={onOpenUserMenu}
           style={userButtonStyle}
           aria-label="Відкрити меню користувача"
