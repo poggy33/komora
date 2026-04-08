@@ -13,17 +13,21 @@ import PopupCard from "./PopupCard";
 type Props = {
   dealType: "sale" | "rent";
   propertyType: "apartment" | "house" | "land";
+  hoveredPropertyId: string | null;
+  setHoveredPropertyId: (id: string | null) => void;
 };
 
-export default function Map({ dealType, propertyType }: Props) {
+export default function Map({
+  dealType,
+  propertyType,
+  hoveredPropertyId,
+  setHoveredPropertyId,
+}: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const markerRefs = useRef<globalThis.Map<string, mapboxgl.Marker>>(
     new globalThis.Map(),
-  );
-  const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(
-    null,
   );
 
   const formatToK = (num: number) => {
@@ -160,60 +164,60 @@ export default function Map({ dealType, propertyType }: Props) {
     popupRef.current = popup;
   };
 
-const renderHtmlMarkers = (map: mapboxgl.Map) => {
-  const features = map.queryRenderedFeatures({
-    layers: ["unclustered-helper"],
-  });
-
-  const visibleIds = new Set<string>();
-
-  features.forEach((feature) => {
-    const id = String(feature.properties?.id ?? "");
-    if (!id) return;
-
-    visibleIds.add(id);
-
-    if (markerRefs.current.has(id)) return;
-
-    const property = properties.find((p) => String(p.id) === id);
-    if (!property) return;
-
-    const el = createMarkerElement(property);
-
-    el.addEventListener("mouseenter", () => {
-      el.classList.add("is-hovered");
+  const renderHtmlMarkers = (map: mapboxgl.Map) => {
+    const features = map.queryRenderedFeatures({
+      layers: ["unclustered-helper"],
     });
 
-    el.addEventListener("mouseleave", () => {
-      if (hoveredPropertyId !== String(property.id)) {
+    const visibleIds = new Set<string>();
+
+    features.forEach((feature) => {
+      const id = String(feature.properties?.id ?? "");
+      if (!id) return;
+
+      visibleIds.add(id);
+
+      if (markerRefs.current.has(id)) return;
+
+      const property = properties.find((p) => String(p.id) === id);
+      if (!property) return;
+
+      const el = createMarkerElement(property);
+
+      el.addEventListener("mouseenter", () => {
+        el.classList.add("is-hovered");
+        setHoveredPropertyId(String(property.id));
+      });
+
+      el.addEventListener("mouseleave", () => {
         el.classList.remove("is-hovered");
+        setHoveredPropertyId(null);
+      });
+
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        openPropertyPopup(map, property, property.coordinates);
+      });
+
+      const marker = new mapboxgl.Marker({
+        element: el,
+        anchor: "center",
+      })
+        .setLngLat(property.coordinates)
+        .addTo(map);
+
+      markerRefs.current.set(id, marker);
+    });
+
+    markerRefs.current.forEach((marker, id) => {
+      if (!visibleIds.has(id)) {
+        marker.remove();
+        markerRefs.current.delete(id);
       }
     });
-
-    el.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      openPropertyPopup(map, property, property.coordinates);
-    });
-
-    const marker = new mapboxgl.Marker({
-      element: el,
-      anchor: "center",
-    })
-      .setLngLat(property.coordinates)
-      .addTo(map);
-
-    markerRefs.current.set(id, marker);
-  });
-
-  markerRefs.current.forEach((marker, id) => {
-    if (!visibleIds.has(id)) {
-      marker.remove();
-      markerRefs.current.delete(id);
-    }
-  });
-};
+  };
 
   const filteredProperties = properties.filter(
     (p) => p.dealType === dealType && p.propertyType === propertyType,
@@ -436,6 +440,7 @@ const renderHtmlMarkers = (map: mapboxgl.Map) => {
           properties={filteredProperties}
           onSelect={handleSelect}
           onHover={setHoveredPropertyId}
+          hoveredPropertyId={hoveredPropertyId}
         />
       </div>
 

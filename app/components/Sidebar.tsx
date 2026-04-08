@@ -6,9 +6,15 @@ type Props = {
   properties: Property[];
   onSelect: (p: Property) => void;
   onHover: (id: string | null) => void;
+  hoveredPropertyId: string | null;
 };
 
-export default function Sidebar({ properties, onSelect, onHover }: Props) {
+export default function Sidebar({
+  properties,
+  onSelect,
+  onHover,
+  hoveredPropertyId,
+}: Props) {
   return (
     <div
       style={{
@@ -36,47 +42,53 @@ export default function Sidebar({ properties, onSelect, onHover }: Props) {
       </div>
 
       <div className="sidebar-scroll" style={{ padding: "12px" }}>
-        {properties.map((p) => (
-          <a
-            key={p.id}
-            href={`/property/${p.id}`}
-            onMouseEnter={() => onHover(String(p.id))}
-            onMouseLeave={() => onHover(null)}
-            onClick={() => onSelect(p)}
-            style={{
-              display: "block",
-              padding: "14px",
-              marginBottom: "12px",
-              borderRadius: "10px",
-              border: "1px solid #eee",
-              cursor: "pointer",
-              textDecoration: "none",
-              color: "inherit",
-            }}
-          >
-            <div style={{ fontWeight: 600, marginBottom: "6px" }}>
-              {p.title}
-            </div>
+        {properties.map((p) => {
+          const isHovered = hoveredPropertyId === String(p.id);
 
-            <div style={{ marginBottom: "6px" }}>
-              💰 ${p.price.toLocaleString()}
-            </div>
-
-            {p.propertyType === "apartment" && (
-              <div>
-                📐 {p.area} м² • 🛏 {p.rooms}
+          return (
+            <a
+              key={p.id}
+              href={`/property/${p.id}`}
+              onMouseEnter={() => onHover(String(p.id))}
+              onMouseLeave={() => onHover(null)}
+              onClick={() => onSelect(p)}
+              style={{
+                display: "block",
+                textDecoration: "none",
+                color: "inherit",
+                padding: "14px",
+                marginBottom: "12px",
+                borderRadius: "10px",
+                border: isHovered ? "2px solid #111" : "1px solid #eee",
+                background: isHovered ? "#f8f8f8" : "#fff",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <div style={{ fontWeight: 600, marginBottom: "6px" }}>
+                {p.title}
               </div>
-            )}
 
-            {p.propertyType === "house" && (
-              <div>
-                🏠 {p.area} м² • 🛏 {p.rooms} • 🏢 {p.floors} пов.
+              <div style={{ marginBottom: "6px" }}>
+                💰 ${p.price.toLocaleString()}
               </div>
-            )}
 
-            {p.propertyType === "land" && <div>🌍 {p.area} сот.</div>}
-          </a>
-        ))}
+              {p.propertyType === "apartment" && (
+                <div>
+                  📐 {p.area} м² • 🛏 {p.rooms}
+                </div>
+              )}
+
+              {p.propertyType === "house" && (
+                <div>
+                  🏠 {p.area} м² • 🛏 {p.rooms} • 🏢 {p.floors} пов.
+                </div>
+              )}
+
+              {p.propertyType === "land" && <div>🌍 {p.area} сот.</div>}
+            </a>
+          );
+        })}
       </div>
     </div>
   );

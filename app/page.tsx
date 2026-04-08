@@ -9,6 +9,9 @@ export default function HomePage() {
   const [propertyType, setPropertyType] = useState<
     "apartment" | "house" | "land"
   >("apartment");
+  const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(
+    null,
+  );
 
   return (
     <>
@@ -39,7 +42,12 @@ export default function HomePage() {
             minHeight: 0,
           }}
         >
-          <MapWrapper dealType={dealType} propertyType={propertyType} />
+          <MapWrapper
+            dealType={dealType}
+            propertyType={propertyType}
+            hoveredPropertyId={hoveredPropertyId}
+            setHoveredPropertyId={setHoveredPropertyId}
+          />
         </div>
       </main>
 
