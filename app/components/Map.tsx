@@ -9,6 +9,7 @@ import type { Property } from "../types/property";
 import Sidebar from "./Sidebar";
 import { createRoot, type Root } from "react-dom/client";
 import PopupCard from "./PopupCard";
+import type { FiltersState } from "./FiltersDrawer";
 
 type Props = {
   dealType: "sale" | "rent";
@@ -17,6 +18,7 @@ type Props = {
   setHoveredPropertyId: (id: string | null) => void;
   selectedPropertyId: string | null;
   setSelectedPropertyId: (id: string | null) => void;
+  filters: FiltersState;
 };
 
 export default function Map({
@@ -26,6 +28,7 @@ export default function Map({
   setHoveredPropertyId,
   selectedPropertyId,
   setSelectedPropertyId,
+  filters,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -225,9 +228,28 @@ export default function Map({
     });
   };
 
-  const filteredProperties = properties.filter(
-    (p) => p.dealType === dealType && p.propertyType === propertyType,
-  );
+  const filteredProperties = properties.filter((p) => {
+    if (p.dealType !== dealType) return false;
+    if (p.propertyType !== propertyType) return false;
+
+    const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
+    const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
+    const rooms = filters.rooms ? Number(filters.rooms) : null;
+    const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
+
+    if (priceMin !== null && p.price < priceMin) return false;
+    if (priceMax !== null && p.price > priceMax) return false;
+    if (
+      rooms !== null &&
+      propertyType !== "land" &&
+      (p.rooms === undefined || p.rooms < rooms)
+    ) {
+      return false;
+    }
+    if (areaMin !== null && p.area < areaMin) return false;
+
+    return true;
+  });
 
   const buildGeoJSON = (): FeatureCollection<Point> => {
     return {
@@ -414,7 +436,7 @@ export default function Map({
     requestAnimationFrame(() => {
       renderHtmlMarkers(map);
     });
-  }, [dealType, propertyType]);
+  }, [dealType, propertyType, filters]);
 
   useEffect(() => {
     markerRefs.current.forEach((marker, id) => {

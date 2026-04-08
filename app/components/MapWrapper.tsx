@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { FiltersState } from "./FiltersDrawer";
 
 type Props = {
   dealType: "sale" | "rent";
@@ -9,6 +10,7 @@ type Props = {
   setHoveredPropertyId: (id: string | null) => void;
   selectedPropertyId: string | null;
   setSelectedPropertyId: (id: string | null) => void;
+  filters: FiltersState;
 };
 
 const Map = dynamic(() => import("./Map"), {
@@ -22,6 +24,7 @@ export default function MapWrapper({
   setHoveredPropertyId,
   selectedPropertyId,
   setSelectedPropertyId,
+  filters,
 }: Props) {
   return (
     <Map
@@ -31,6 +34,7 @@ export default function MapWrapper({
       setHoveredPropertyId={setHoveredPropertyId}
       selectedPropertyId={selectedPropertyId}
       setSelectedPropertyId={setSelectedPropertyId}
+      filters={filters}
     />
   );
 }

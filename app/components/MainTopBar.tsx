@@ -10,6 +10,7 @@ type Props = {
   setDealType: (value: DealType) => void;
   onOpenFilters?: () => void;
   onOpenUserMenu?: () => void;
+  hasActiveFilters?: boolean;
 };
 
 export default function MainTopBar({
@@ -19,6 +20,7 @@ export default function MainTopBar({
   setDealType,
   onOpenFilters,
   onOpenUserMenu,
+  hasActiveFilters = false,
 }: Props) {
   return (
     <header
@@ -117,10 +119,15 @@ export default function MainTopBar({
             type="button"
             className="main-topbar-filters"
             onClick={onOpenFilters}
-            style={pillButtonStyle}
+            style={{
+              ...pillButtonStyle,
+              border: hasActiveFilters ? "1px solid #111" : "1px solid #ddd",
+              background: hasActiveFilters ? "#111" : "#fff",
+              color: hasActiveFilters ? "#fff" : "#111",
+            }}
             aria-label="Відкрити розширені фільтри"
           >
-            <span style={{ fontSize: "16px", lineHeight: 1 }}>⚙</span>
+            <span style={{ fontSize: "16px", lineHeight: 1 }}>☰</span>
             <span>Фільтри</span>
           </button>
         </div>
@@ -166,7 +173,6 @@ const pillButtonStyle: React.CSSProperties = {
   height: "44px",
   padding: "0 16px",
   borderRadius: "999px",
-  border: "1px solid #ddd",
   background: "#fff",
   color: "#111",
   fontSize: "14px",

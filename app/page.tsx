@@ -3,18 +3,35 @@
 import { useState } from "react";
 import MainTopBar from "./components/MainTopBar";
 import MapWrapper from "./components/MapWrapper";
+import FiltersDrawer, { type FiltersState } from "./components/FiltersDrawer";
 
 export default function HomePage() {
   const [dealType, setDealType] = useState<"sale" | "rent">("sale");
   const [propertyType, setPropertyType] = useState<
     "apartment" | "house" | "land"
   >("apartment");
+
   const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(
     null,
   );
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
     null,
   );
+
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+  const [filters, setFilters] = useState<FiltersState>({
+    priceMin: "",
+    priceMax: "",
+    rooms: "",
+    areaMin: "",
+  });
+
+  const hasActiveFilters =
+    !!filters.priceMin ||
+    !!filters.priceMax ||
+    !!filters.rooms ||
+    !!filters.areaMin;
 
   return (
     <>
@@ -31,12 +48,11 @@ export default function HomePage() {
           propertyType={propertyType}
           setDealType={setDealType}
           setPropertyType={setPropertyType}
-          onOpenFilters={() => {
-            console.log("open filters");
-          }}
+          onOpenFilters={() => setIsFiltersOpen(true)}
           onOpenUserMenu={() => {
             console.log("open user menu");
           }}
+          hasActiveFilters={hasActiveFilters}
         />
 
         <div
@@ -52,9 +68,25 @@ export default function HomePage() {
             setHoveredPropertyId={setHoveredPropertyId}
             selectedPropertyId={selectedPropertyId}
             setSelectedPropertyId={setSelectedPropertyId}
+            filters={filters}
           />
         </div>
       </main>
+
+      <FiltersDrawer
+        isOpen={isFiltersOpen}
+        onClose={() => setIsFiltersOpen(false)}
+        value={filters}
+        onApply={(next) => setFilters(next)}
+        onReset={() =>
+          setFilters({
+            priceMin: "",
+            priceMax: "",
+            rooms: "",
+            areaMin: "",
+          })
+        }
+      />
 
       <style jsx global>{`
         @media (max-width: 900px) {
@@ -128,6 +160,16 @@ export default function HomePage() {
             overscroll-behavior: contain;
             padding-bottom: 20px;
           }
+
+          .filters-drawer {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin-top: auto;
+            height: auto !important;
+            max-height: 78dvh;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+          }
         }
 
         @media (max-width: 640px) {
@@ -165,7 +207,9 @@ export default function HomePage() {
           transition:
             transform 0.15s ease,
             box-shadow 0.15s ease,
-            border-color 0.15s ease;
+            border-color 0.15s ease,
+            background 0.15s ease,
+            color 0.15s ease;
           font-family: Arial, sans-serif;
         }
 
@@ -174,6 +218,14 @@ export default function HomePage() {
           transform: scale(1.04);
           border-color: #111111;
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+        }
+
+        .marker-pill.is-selected {
+          transform: scale(1.08);
+          border-color: #111111;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+          background: #111111;
+          color: #ffffff;
         }
 
         .marker-pill__top {
@@ -191,6 +243,10 @@ export default function HomePage() {
           line-height: 1.1;
           color: #555555;
           white-space: nowrap;
+        }
+
+        .marker-pill.is-selected .marker-pill__bottom {
+          color: rgba(255, 255, 255, 0.8);
         }
 
         @media (max-width: 900px) {
