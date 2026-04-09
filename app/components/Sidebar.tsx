@@ -11,6 +11,7 @@ type Props = {
   selectedPropertyId: string | null;
   favoriteIds: string[];
   toggleFavorite: (id: string) => void;
+  showFavoritesOnly: boolean;
 };
 
 export default function Sidebar({
@@ -21,6 +22,7 @@ export default function Sidebar({
   selectedPropertyId,
   favoriteIds,
   toggleFavorite,
+  showFavoritesOnly,
 }: Props) {
   return (
     <div
@@ -53,17 +55,19 @@ export default function Sidebar({
             marginBottom: "4px",
           }}
         >
-          {properties.length} оголошень
+          {showFavoritesOnly ? "Обране" : `${properties.length} оголошень`}
         </div>
 
-        <div
-          style={{
-            fontSize: "12px",
-            color: "#666",
-          }}
-        >
-          {getTypeLabel(properties)} • {getDealLabel(properties)}
-        </div>
+        {!showFavoritesOnly && (
+          <div
+            style={{
+              fontSize: "12px",
+              color: "#666",
+            }}
+          >
+            {getTypeLabel(properties)} • {getDealLabel(properties)}
+          </div>
+        )}
       </div>
 
       <div
@@ -75,7 +79,7 @@ export default function Sidebar({
         }}
       >
         {properties.length === 0 ? (
-          <EmptyState />
+          <EmptyState isFavorites={showFavoritesOnly} />
         ) : (
           properties.map((property) => {
             const isHovered = hoveredPropertyId === String(property.id);
@@ -120,7 +124,7 @@ function getDealLabel(properties: Property[]) {
   return deal === "sale" ? "Продаж" : "Оренда";
 }
 
-function EmptyState() {
+function EmptyState({ isFavorites }: { isFavorites: boolean }) {
   return (
     <div
       style={{
@@ -136,7 +140,7 @@ function EmptyState() {
           marginBottom: "8px",
         }}
       >
-        Нічого не знайдено
+        {isFavorites ? "У вас ще немає обраних" : "Нічого не знайдено"}
       </div>
 
       <div
@@ -146,22 +150,26 @@ function EmptyState() {
           marginBottom: "16px",
         }}
       >
-        Спробуйте змінити фільтри або скинути їх
+        {isFavorites
+          ? "Натисніть ♥ щоб зберегти оголошення"
+          : "Спробуйте змінити фільтри або скинути їх"}
       </div>
 
-      <button
-        onClick={() => window.location.reload()}
-        style={{
-          border: "1px solid #ddd",
-          background: "#fff",
-          borderRadius: "999px",
-          padding: "10px 16px",
-          fontSize: "13px",
-          cursor: "pointer",
-        }}
-      >
-        Скинути фільтри
-      </button>
+      {!isFavorites && (
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            border: "1px solid #ddd",
+            background: "#fff",
+            borderRadius: "999px",
+            padding: "10px 16px",
+            fontSize: "13px",
+            cursor: "pointer",
+          }}
+        >
+          Скинути фільтри
+        </button>
+      )}
     </div>
   );
 }

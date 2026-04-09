@@ -13,6 +13,7 @@ type Props = {
   filters: FiltersState;
   favoriteIds: string[];
   toggleFavorite: (id: string) => void;
+  showFavoritesOnly: boolean;
 };
 
 const Map = dynamic(() => import("./Map"), {
@@ -29,6 +30,7 @@ export default function MapWrapper({
   filters,
   favoriteIds,
   toggleFavorite,
+  showFavoritesOnly,
 }: Props) {
   return (
     <Map
@@ -41,6 +43,7 @@ export default function MapWrapper({
       filters={filters}
       favoriteIds={favoriteIds}
       toggleFavorite={toggleFavorite}
+      showFavoritesOnly={showFavoritesOnly}
     />
   );
 }

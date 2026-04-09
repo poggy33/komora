@@ -21,6 +21,7 @@ type Props = {
   filters: FiltersState;
   favoriteIds: string[];
   toggleFavorite: (id: string) => void;
+  showFavoritesOnly: boolean;
 };
 
 export default function Map({
@@ -33,6 +34,7 @@ export default function Map({
   filters,
   favoriteIds,
   toggleFavorite,
+  showFavoritesOnly,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -234,28 +236,32 @@ export default function Map({
     });
   };
 
-  const filteredProperties = properties.filter((p) => {
-    if (p.dealType !== dealType) return false;
-    if (p.propertyType !== propertyType) return false;
+  const filteredProperties = showFavoritesOnly
+    ? properties.filter((p) => favoriteIds.includes(String(p.id)))
+    : properties.filter((p) => {
+        if (p.dealType !== dealType) return false;
+        if (p.propertyType !== propertyType) return false;
 
-    const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
-    const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
-    const rooms = filters.rooms ? Number(filters.rooms) : null;
-    const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
+        const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
+        const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
+        const rooms = filters.rooms ? Number(filters.rooms) : null;
+        const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
 
-    if (priceMin !== null && p.price < priceMin) return false;
-    if (priceMax !== null && p.price > priceMax) return false;
-    if (
-      rooms !== null &&
-      propertyType !== "land" &&
-      (p.rooms === undefined || p.rooms < rooms)
-    ) {
-      return false;
-    }
-    if (areaMin !== null && p.area < areaMin) return false;
+        if (priceMin !== null && p.price < priceMin) return false;
+        if (priceMax !== null && p.price > priceMax) return false;
 
-    return true;
-  });
+        if (
+          rooms !== null &&
+          p.propertyType !== "land" &&
+          (p.rooms === undefined || p.rooms < rooms)
+        ) {
+          return false;
+        }
+
+        if (areaMin !== null && p.area < areaMin) return false;
+
+        return true;
+      });
 
   const buildGeoJSON = (): FeatureCollection<Point> => {
     return {
@@ -422,6 +428,28 @@ export default function Map({
     };
   }, []);
 
+  // useEffect(() => {
+  //   if (!mapRef.current) return;
+
+  //   const map = mapRef.current;
+  //   const source = map.getSource("points") as
+  //     | mapboxgl.GeoJSONSource
+  //     | undefined;
+
+  //   if (!source) return;
+
+  //   source.setData(buildGeoJSON());
+
+  //   if (popupRef.current) {
+  //     popupRef.current.remove();
+  //     popupRef.current = null;
+  //   }
+
+  //   requestAnimationFrame(() => {
+  //     renderHtmlMarkers(map);
+  //   });
+  // }, [dealType, propertyType, filters]);
+
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -442,7 +470,7 @@ export default function Map({
     requestAnimationFrame(() => {
       renderHtmlMarkers(map);
     });
-  }, [dealType, propertyType, filters]);
+  }, [dealType, propertyType, filters, showFavoritesOnly, favoriteIds]);
 
   useEffect(() => {
     markerRefs.current.forEach((marker, id) => {
@@ -490,15 +518,16 @@ export default function Map({
         }}
         className="main-search-sidebar"
       >
-<Sidebar
-  properties={filteredProperties}
-  onSelect={handleSelect}
-  onHover={setHoveredPropertyId}
-  hoveredPropertyId={hoveredPropertyId}
-  selectedPropertyId={selectedPropertyId}
-  favoriteIds={favoriteIds}
-  toggleFavorite={toggleFavorite}
-/>
+        <Sidebar
+          properties={filteredProperties}
+          onSelect={handleSelect}
+          onHover={setHoveredPropertyId}
+          hoveredPropertyId={hoveredPropertyId}
+          selectedPropertyId={selectedPropertyId}
+          favoriteIds={favoriteIds}
+          toggleFavorite={toggleFavorite}
+          showFavoritesOnly={showFavoritesOnly}
+        />
       </div>
 
       <div

@@ -86,6 +86,8 @@ export default function HomePage() {
 
   const { isFavorite, toggleFavorite, favoriteIds } = useFavorites();
 
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
   return (
     <>
       <main
@@ -97,15 +99,15 @@ export default function HomePage() {
         }}
       >
         <MainTopBar
-          dealType={dealType}
           propertyType={propertyType}
-          setDealType={setDealType}
+          dealType={dealType}
           setPropertyType={setPropertyType}
+          setDealType={setDealType}
           onOpenFilters={() => setIsFiltersOpen(true)}
-          onOpenUserMenu={() => {
-            console.log("open user menu");
-          }}
-          hasActiveFilters={hasActiveFilters}
+          onOpenUserMenu={() => {}}
+          showFavoritesOnly={showFavoritesOnly}
+          onToggleFavorites={() => setShowFavoritesOnly((prev) => !prev)}
+          favoritesCount={favoriteIds.length}
           activeFiltersCount={activeFiltersCount}
         />
 
@@ -130,6 +132,7 @@ export default function HomePage() {
             filters={filters}
             favoriteIds={favoriteIds}
             toggleFavorite={toggleFavorite}
+            showFavoritesOnly={showFavoritesOnly}
           />
         </div>
       </main>
@@ -250,59 +253,74 @@ export default function HomePage() {
             border-top-left-radius: 20px;
             border-top-right-radius: 20px;
           }
+
+          .main-topbar-favorites {
+            order: 4;
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+          }
         }
 
-        @media (max-width: 640px) {
-          .main-search-layout {
-            grid-template-rows: 36dvh minmax(0, 1fr) !important;
-          }
+@media (max-width: 640px) {
+  .main-search-layout {
+    grid-template-rows: 36dvh minmax(0, 1fr) !important;
+  }
 
-          .main-topbar-controls {
-            display: grid !important;
-            grid-template-columns: auto auto;
-            grid-template-areas:
-              "select filters"
-              "toggle toggle";
-            justify-content: flex-start !important;
-            align-items: center;
-            gap: 8px !important;
-            overflow: visible;
-            width: 100%;
-          }
+  .main-topbar-controls {
+    display: grid !important;
+    grid-template-columns: auto auto auto;
+    grid-template-areas:
+      "select filters favorites"
+      "toggle toggle toggle";
+    justify-content: flex-start !important;
+    align-items: center;
+    gap: 8px !important;
+    overflow: visible;
+    width: 100%;
+  }
 
-          .main-topbar-select {
-            grid-area: select;
-            width: auto !important;
-            min-width: 136px !important;
-            max-width: 180px;
-            flex: unset !important;
-          }
+  .main-topbar-select {
+    grid-area: select;
+    width: auto !important;
+    min-width: 136px !important;
+    max-width: 180px;
+    flex: unset !important;
+  }
 
-          .main-topbar-filters {
-            grid-area: filters;
-            width: auto !important;
-            flex: unset !important;
-            justify-self: start;
-            align-self: center;
-          }
+  .main-topbar-filters {
+    grid-area: filters;
+    width: auto !important;
+    flex: unset !important;
+    justify-self: start;
+    align-self: center;
+  }
 
-          .main-topbar-toggle {
-            grid-area: toggle;
-            display: inline-flex !important;
-            width: auto !important;
-            justify-content: flex-start;
-            align-items: center;
-            flex: unset !important;
-            justify-self: start;
-          }
+  .main-topbar-favorites {
+    grid-area: favorites;
+    width: auto !important;
+    flex: unset !important;
+    justify-self: start;
+    align-self: center;
+  }
 
-          .main-topbar-toggle button {
-            flex: 0 0 auto !important;
-            width: auto !important;
-            min-width: 0 !important;
-            white-space: nowrap;
-          }
-        }
+  .main-topbar-toggle {
+    grid-area: toggle;
+    display: inline-flex !important;
+    width: auto !important;
+    justify-content: flex-start;
+    align-items: center;
+    flex: unset !important;
+    justify-self: start;
+  }
+
+  .main-topbar-toggle button {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    white-space: nowrap;
+  }
+}
 
         /* Sidebar */
         .sidebar-cards {

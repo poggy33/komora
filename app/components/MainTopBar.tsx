@@ -12,6 +12,9 @@ type Props = {
   onOpenUserMenu?: () => void;
   hasActiveFilters?: boolean;
   activeFiltersCount?: number;
+  showFavoritesOnly: boolean;
+  onToggleFavorites: () => void;
+  favoritesCount: number;
 };
 
 export default function MainTopBar({
@@ -23,6 +26,9 @@ export default function MainTopBar({
   onOpenUserMenu,
   hasActiveFilters = false,
   activeFiltersCount = 0,
+  showFavoritesOnly,
+  onToggleFavorites,
+  favoritesCount,
 }: Props) {
   return (
     <header
@@ -133,6 +139,7 @@ export default function MainTopBar({
                 border: hasActiveFilters ? "1px solid #111" : "1px solid #ddd",
                 background: "#fff",
                 color: "#111",
+                position: "relative",
               }}
               aria-label="Відкрити розширені фільтри"
             >
@@ -159,9 +166,56 @@ export default function MainTopBar({
                   border: "2px solid #fff",
                   boxSizing: "border-box",
                   pointerEvents: "none",
+                  zIndex: 2,
                 }}
               >
                 {activeFiltersCount > 9 ? "9+" : activeFiltersCount}
+              </span>
+            )}
+          </div>
+
+          <div
+            className="main-topbar-favorites"
+            style={{
+              position: "relative",
+              display: "inline-flex",
+              flex: "0 0 auto",
+            }}
+          >
+            <button
+              type="button"
+              onClick={onToggleFavorites}
+              style={{
+                ...pillButtonStyle,
+                position: "relative",
+                border: showFavoritesOnly ? "1px solid #111" : "1px solid #ddd",
+                background: showFavoritesOnly ? "#111" : "#fff",
+                color: showFavoritesOnly ? "#fff" : "#111",
+              }}
+            >
+              <span style={{ fontSize: "16px" }}>
+                {showFavoritesOnly ? "♥" : "♡"}
+              </span>
+              <span>Обране</span>
+            </button>
+
+            {favoritesCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: "-6px",
+                  right: "-6px",
+                  background: "#e11d48",
+                  color: "#fff",
+                  borderRadius: "999px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  padding: "2px 6px",
+                  lineHeight: 1,
+                  zIndex: 2,
+                }}
+              >
+                {favoritesCount}
               </span>
             )}
           </div>
