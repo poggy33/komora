@@ -5,78 +5,31 @@
   --foreground: #171717;
 }
 
-
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
+  margin: 0;
+  padding: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* 🔥 BASE LAYOUT */
-.layout {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
+* {
+  box-sizing: border-box;
 }
 
-/* 📱 MOBILE */
-@media (max-width: 768px) {
-  .layout {
-    flex-direction: column;
-  }
+a {
+  color: inherit;
 }
 
-.sidebar {
-  width: 360px;
-  min-width: 360px;
-  height: 100%;
-  overflow-y: auto;
-  border-right: 1px solid #e5e7eb;
-  background: #fff;
-  color: #4b5563;
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
-/* 📱 MOBILE */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
-    height: 40vh;
-  }
-}
-
-.map-wrapper {
-  flex: 1;
-  position: relative;
-  height: 100%;
-}
-
-/* 📱 MOBILE */
-@media (max-width: 768px) {
-  .map-wrapper {
-    height: 60vh;
-  }
-}
-
-.marker-pill.is-selected {
-  transform: scale(1.08);
-  border-color: #111111;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  background: #111111;
-  color: #ffffff;
-}
-
-.marker-pill.is-selected .marker-pill__bottom {
-  color: rgba(255, 255, 255, 0.8);
-}
-
+/* Mapbox popup */
 .mapboxgl-popup-content {
   padding: 0 !important;
   border-radius: 18px !important;
@@ -91,6 +44,13 @@ body {
   top: 8px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.95);
+  color: #111;
+  font-size: 18px;
+  line-height: 30px;
+}
+
+.mapboxgl-popup-close-button:hover {
+  background: #fff;
 }
 
 .mapboxgl-popup-tip {
