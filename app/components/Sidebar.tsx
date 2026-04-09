@@ -34,9 +34,6 @@ export default function Sidebar({
         style={{
           padding: "14px 16px",
           borderBottom: "1px solid #eee",
-          fontSize: "14px",
-          color: "#666",
-          fontWeight: 600,
           background: "#fff",
           position: "sticky",
           top: 0,
@@ -44,7 +41,25 @@ export default function Sidebar({
           flexShrink: 0,
         }}
       >
-        Знайдено: {properties.length}
+        <div
+          style={{
+            fontSize: "14px",
+            fontWeight: 700,
+            color: "#111",
+            marginBottom: "4px",
+          }}
+        >
+          {properties.length} оголошень
+        </div>
+
+        <div
+          style={{
+            fontSize: "12px",
+            color: "#666",
+          }}
+        >
+          {getTypeLabel(properties)} • {getDealLabel(properties)}
+        </div>
       </div>
 
       <div
@@ -55,23 +70,91 @@ export default function Sidebar({
           flex: 1,
         }}
       >
-        {properties.map((property) => {
-          const isHovered = hoveredPropertyId === String(property.id);
-          const isSelected = selectedPropertyId === String(property.id);
+        {properties.length === 0 ? (
+          <EmptyState />
+        ) : (
+          properties.map((property) => {
+            const isHovered = hoveredPropertyId === String(property.id);
+            const isSelected = selectedPropertyId === String(property.id);
 
-          return (
-            <div key={property.id} style={{ marginBottom: "14px" }}>
-              <PropertyListCard
-                property={property}
-                isHovered={isHovered}
-                isSelected={isSelected}
-                onHover={onHover}
-                onSelect={onSelect}
-              />
-            </div>
-          );
-        })}
+            return (
+              <div key={property.id} style={{ marginBottom: "14px" }}>
+                <PropertyListCard
+                  property={property}
+                  isHovered={isHovered}
+                  isSelected={isSelected}
+                  onHover={onHover}
+                  onSelect={onSelect}
+                />
+              </div>
+            );
+          })
+        )}
       </div>
+    </div>
+  );
+}
+
+function getTypeLabel(properties: Property[]) {
+  if (!properties.length) return "";
+
+  const type = properties[0].propertyType;
+
+  if (type === "apartment") return "Квартири";
+  if (type === "house") return "Будинки";
+  return "Земля";
+}
+
+function getDealLabel(properties: Property[]) {
+  if (!properties.length) return "";
+
+  const deal = properties[0].dealType;
+
+  return deal === "sale" ? "Продаж" : "Оренда";
+}
+
+function EmptyState() {
+  return (
+    <div
+      style={{
+        padding: "40px 20px",
+        textAlign: "center",
+        color: "#555",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "16px",
+          fontWeight: 600,
+          marginBottom: "8px",
+        }}
+      >
+        Нічого не знайдено
+      </div>
+
+      <div
+        style={{
+          fontSize: "13px",
+          color: "#777",
+          marginBottom: "16px",
+        }}
+      >
+        Спробуйте змінити фільтри або скинути їх
+      </div>
+
+      <button
+        onClick={() => window.location.reload()}
+        style={{
+          border: "1px solid #ddd",
+          background: "#fff",
+          borderRadius: "999px",
+          padding: "10px 16px",
+          fontSize: "13px",
+          cursor: "pointer",
+        }}
+      >
+        Скинути фільтри
+      </button>
     </div>
   );
 }
