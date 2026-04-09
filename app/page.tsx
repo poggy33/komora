@@ -34,6 +34,13 @@ export default function HomePage() {
     !!filters.rooms ||
     !!filters.areaMin;
 
+  const activeFiltersCount = [
+    filters.priceMin,
+    filters.priceMax,
+    filters.rooms,
+    filters.areaMin,
+  ].filter(Boolean).length;
+
   return (
     <>
       <main
@@ -54,6 +61,7 @@ export default function HomePage() {
             console.log("open user menu");
           }}
           hasActiveFilters={hasActiveFilters}
+          activeFiltersCount={activeFiltersCount}
         />
 
         <ActiveFiltersBar
@@ -93,7 +101,6 @@ export default function HomePage() {
           })
         }
       />
-
       <style jsx global>{`
         @media (max-width: 900px) {
           .main-search-layout {
@@ -128,10 +135,13 @@ export default function HomePage() {
           .main-topbar-controls {
             width: 100%;
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             justify-content: flex-start !important;
             align-items: center;
             gap: 8px !important;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
           }
 
           .main-topbar-controls > * {
@@ -144,21 +154,36 @@ export default function HomePage() {
             right: 16px;
           }
 
+          /* 640–900 px: один рядок */
           .main-topbar-select {
             order: 1;
-            flex: 1 1 auto;
+            flex: 0 1 auto;
             min-width: 140px !important;
             max-width: 200px;
-          }
-
-          .main-topbar-filters {
-            order: 1;
-            flex: 0 0 auto;
           }
 
           .main-topbar-toggle {
             order: 2;
             width: auto;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: flex-start;
+            flex: 0 0 auto !important;
+            max-width: 100%;
+          }
+
+          .main-topbar-toggle button {
+            flex: 0 0 auto !important;
+            width: auto !important;
+            min-width: 0 !important;
+            white-space: nowrap;
+          }
+
+          .main-topbar-filters {
+            order: 3;
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
           }
 
           .sidebar-scroll {
@@ -183,17 +208,51 @@ export default function HomePage() {
             grid-template-rows: 36dvh minmax(0, 1fr) !important;
           }
 
-          .main-topbar-select {
-            min-width: 136px !important;
-            max-width: 180px;
+          /* <640 px: компактно, без розтягування */
+          .main-topbar-controls {
+            display: grid !important;
+            grid-template-columns: auto auto;
+            grid-template-areas:
+              "select filters"
+              "toggle toggle";
+            justify-content: flex-start !important;
+            align-items: center;
+            gap: 8px !important;
+            overflow: visible;
+            width: 100%;
           }
 
-          .main-topbar-toggle {
-            width: auto;
+          .main-topbar-select {
+            grid-area: select;
+            width: auto !important;
+            min-width: 136px !important;
+            max-width: 180px;
+            flex: unset !important;
           }
 
           .main-topbar-filters {
-            flex: 0 0 auto;
+            grid-area: filters;
+            width: auto !important;
+            flex: unset !important;
+            justify-self: start;
+            align-self: center;
+          }
+
+          .main-topbar-toggle {
+            grid-area: toggle;
+            display: inline-flex !important;
+            width: auto !important;
+            justify-content: flex-start;
+            align-items: center;
+            flex: unset !important;
+            justify-self: start;
+          }
+
+          .main-topbar-toggle button {
+            flex: 0 0 auto !important;
+            width: auto !important;
+            min-width: 0 !important;
+            white-space: nowrap;
           }
         }
 

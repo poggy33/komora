@@ -11,6 +11,7 @@ type Props = {
   onOpenFilters?: () => void;
   onOpenUserMenu?: () => void;
   hasActiveFilters?: boolean;
+  activeFiltersCount?: number;
 };
 
 export default function MainTopBar({
@@ -21,6 +22,7 @@ export default function MainTopBar({
   onOpenFilters,
   onOpenUserMenu,
   hasActiveFilters = false,
+  activeFiltersCount = 0,
 }: Props) {
   return (
     <header
@@ -115,21 +117,54 @@ export default function MainTopBar({
             </button>
           </div>
 
-          <button
-            type="button"
+          <div
             className="main-topbar-filters"
-            onClick={onOpenFilters}
             style={{
-              ...pillButtonStyle,
-              border: hasActiveFilters ? "1px solid #111" : "1px solid #ddd",
-              background: hasActiveFilters ? "#111" : "#fff",
-              color: hasActiveFilters ? "#fff" : "#111",
+              position: "relative",
+              display: "inline-flex",
+              flex: "0 0 auto",
             }}
-            aria-label="Відкрити розширені фільтри"
           >
-            <span style={{ fontSize: "16px", lineHeight: 1 }}>☰</span>
-            <span>Фільтри</span>
-          </button>
+            <button
+              type="button"
+              onClick={onOpenFilters}
+              style={{
+                ...pillButtonStyle,
+                border: hasActiveFilters ? "1px solid #111" : "1px solid #ddd",
+                background: "#fff",
+                color: "#111",
+              }}
+              aria-label="Відкрити розширені фільтри"
+            >
+              <span style={{ fontSize: "16px", lineHeight: 1 }}>☰</span>
+              <span>Фільтри</span>
+            </button>
+
+            {activeFiltersCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: "-6px",
+                  right: "-6px",
+                  minWidth: "20px",
+                  height: "20px",
+                  padding: "0 6px",
+                  borderRadius: "999px",
+                  background: "#ef4444",
+                  color: "#fff",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  lineHeight: "20px",
+                  textAlign: "center",
+                  border: "2px solid #fff",
+                  boxSizing: "border-box",
+                  pointerEvents: "none",
+                }}
+              >
+                {activeFiltersCount > 9 ? "9+" : activeFiltersCount}
+              </span>
+            )}
+          </div>
         </div>
 
         <button
