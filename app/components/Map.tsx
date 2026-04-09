@@ -428,27 +428,6 @@ export default function Map({
     };
   }, []);
 
-  // useEffect(() => {
-  //   if (!mapRef.current) return;
-
-  //   const map = mapRef.current;
-  //   const source = map.getSource("points") as
-  //     | mapboxgl.GeoJSONSource
-  //     | undefined;
-
-  //   if (!source) return;
-
-  //   source.setData(buildGeoJSON());
-
-  //   if (popupRef.current) {
-  //     popupRef.current.remove();
-  //     popupRef.current = null;
-  //   }
-
-  //   requestAnimationFrame(() => {
-  //     renderHtmlMarkers(map);
-  //   });
-  // }, [dealType, propertyType, filters]);
 
   useEffect(() => {
     if (!mapRef.current) return;

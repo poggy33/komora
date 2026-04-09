@@ -63,13 +63,18 @@ export default function PropertyListCard({
         border: isSelected
           ? "2px solid #111"
           : isHovered
-            ? "1px solid #999"
+            ? "1px solid #bdbdbd"
             : "1px solid #ececec",
         boxShadow: isSelected
-          ? "0 8px 24px rgba(0,0,0,0.12)"
+          ? "0 10px 26px rgba(0,0,0,0.12)"
           : isHovered
-            ? "0 6px 18px rgba(0,0,0,0.08)"
+            ? "0 8px 20px rgba(0,0,0,0.08)"
             : "0 2px 8px rgba(0,0,0,0.04)",
+        transform: isSelected
+          ? "translateY(-2px)"
+          : isHovered
+            ? "translateY(-1px)"
+            : "translateY(0)",
         transition:
           "border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease",
       }}

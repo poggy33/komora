@@ -30,6 +30,29 @@ export default function MainTopBar({
   onToggleFavorites,
   favoritesCount,
 }: Props) {
+  const controlsDisabled = showFavoritesOnly;
+  const badgeStyle: React.CSSProperties = {
+    position: "absolute",
+    top: "-6px",
+    right: "-6px",
+    minWidth: "20px",
+    height: "20px",
+    padding: "0 6px",
+    borderRadius: "999px",
+    background: "#ef4444",
+    color: "#fff",
+    fontSize: "11px",
+    fontWeight: 700,
+    lineHeight: "20px",
+    textAlign: "center",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "2px solid #fff",
+    boxSizing: "border-box",
+    pointerEvents: "none",
+    zIndex: 3,
+  };
   return (
     <header
       style={{
@@ -80,7 +103,12 @@ export default function MainTopBar({
             className="main-topbar-select"
             value={propertyType}
             onChange={(e) => setPropertyType(e.target.value as PropertyType)}
-            style={selectStyle}
+            disabled={controlsDisabled}
+            style={{
+              ...selectStyle,
+              opacity: controlsDisabled ? 0.5 : 1,
+              cursor: controlsDisabled ? "not-allowed" : "pointer",
+            }}
           >
             <option value="apartment">Квартири</option>
             <option value="house">Будинки</option>
@@ -100,11 +128,17 @@ export default function MainTopBar({
           >
             <button
               type="button"
-              onClick={() => setDealType("sale")}
+              onClick={() => {
+                if (controlsDisabled) return;
+                setDealType("sale");
+              }}
+              disabled={controlsDisabled}
               style={{
                 ...toggleButtonStyle,
                 background: dealType === "sale" ? "#111" : "transparent",
                 color: dealType === "sale" ? "#fff" : "#111",
+                opacity: controlsDisabled ? 0.5 : 1,
+                cursor: controlsDisabled ? "not-allowed" : "pointer",
               }}
             >
               Продаж
@@ -112,11 +146,17 @@ export default function MainTopBar({
 
             <button
               type="button"
-              onClick={() => setDealType("rent")}
+              onClick={() => {
+                if (controlsDisabled) return;
+                setDealType("rent");
+              }}
+              disabled={controlsDisabled}
               style={{
                 ...toggleButtonStyle,
                 background: dealType === "rent" ? "#111" : "transparent",
                 color: dealType === "rent" ? "#fff" : "#111",
+                opacity: controlsDisabled ? 0.5 : 1,
+                cursor: controlsDisabled ? "not-allowed" : "pointer",
               }}
             >
               Оренда
@@ -129,16 +169,23 @@ export default function MainTopBar({
               position: "relative",
               display: "inline-flex",
               flex: "0 0 auto",
+              overflow: "visible", // 🔥 ключ
             }}
           >
             <button
               type="button"
-              onClick={onOpenFilters}
+              onClick={() => {
+                if (controlsDisabled) return;
+                onOpenFilters?.();
+              }}
+              disabled={controlsDisabled}
               style={{
                 ...pillButtonStyle,
                 border: hasActiveFilters ? "1px solid #111" : "1px solid #ddd",
                 background: "#fff",
                 color: "#111",
+                opacity: controlsDisabled ? 0.5 : 1,
+                cursor: controlsDisabled ? "not-allowed" : "pointer",
                 position: "relative",
               }}
               aria-label="Відкрити розширені фільтри"
@@ -148,27 +195,7 @@ export default function MainTopBar({
             </button>
 
             {activeFiltersCount > 0 && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: "-6px",
-                  right: "-6px",
-                  minWidth: "20px",
-                  height: "20px",
-                  padding: "0 6px",
-                  borderRadius: "999px",
-                  background: "#ef4444",
-                  color: "#fff",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  lineHeight: "20px",
-                  textAlign: "center",
-                  border: "2px solid #fff",
-                  boxSizing: "border-box",
-                  pointerEvents: "none",
-                  zIndex: 2,
-                }}
-              >
+              <span style={badgeStyle}>
                 {activeFiltersCount > 9 ? "9+" : activeFiltersCount}
               </span>
             )}
@@ -180,6 +207,7 @@ export default function MainTopBar({
               position: "relative",
               display: "inline-flex",
               flex: "0 0 auto",
+              overflow: "visible", // 🔥 ключ
             }}
           >
             <button
@@ -200,22 +228,8 @@ export default function MainTopBar({
             </button>
 
             {favoritesCount > 0 && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: "-6px",
-                  right: "-6px",
-                  background: "#e11d48",
-                  color: "#fff",
-                  borderRadius: "999px",
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  padding: "2px 6px",
-                  lineHeight: 1,
-                  zIndex: 2,
-                }}
-              >
-                {favoritesCount}
+              <span style={badgeStyle}>
+                {favoritesCount > 9 ? "9+" : favoritesCount}
               </span>
             )}
           </div>

@@ -40,7 +40,8 @@ export default function Sidebar({
         style={{
           padding: "14px 16px",
           borderBottom: "1px solid #eee",
-          background: "#fff",
+          background: "rgba(255,255,255,0.96)",
+          backdropFilter: "blur(8px)",
           position: "sticky",
           top: 0,
           zIndex: 2,
@@ -55,19 +56,21 @@ export default function Sidebar({
             marginBottom: "4px",
           }}
         >
-          {showFavoritesOnly ? "Обране" : `${properties.length} оголошень`}
+          {showFavoritesOnly
+            ? `${properties.length} в обраному`
+            : `${properties.length} оголошень`}
         </div>
 
-        {!showFavoritesOnly && (
-          <div
-            style={{
-              fontSize: "12px",
-              color: "#666",
-            }}
-          >
-            {getTypeLabel(properties)} • {getDealLabel(properties)}
-          </div>
-        )}
+        <div
+          style={{
+            fontSize: "12px",
+            color: "#666",
+          }}
+        >
+          {showFavoritesOnly
+            ? "Усі збережені об’єкти"
+            : `${getTypeLabel(properties)} • ${getDealLabel(properties)}`}
+        </div>
       </div>
 
       <div
@@ -124,11 +127,61 @@ function getDealLabel(properties: Property[]) {
   return deal === "sale" ? "Продаж" : "Оренда";
 }
 
+// function EmptyState({ isFavorites }: { isFavorites: boolean }) {
+//   return (
+//     <div
+//       style={{
+//         padding: "40px 20px",
+//         textAlign: "center",
+//         color: "#555",
+//       }}
+//     >
+//       <div
+//         style={{
+//           fontSize: "16px",
+//           fontWeight: 600,
+//           marginBottom: "8px",
+//         }}
+//       >
+//         {isFavorites ? "У вас ще немає обраних" : "Нічого не знайдено"}
+//       </div>
+
+//       <div
+//         style={{
+//           fontSize: "13px",
+//           color: "#777",
+//           marginBottom: "16px",
+//         }}
+//       >
+//         {isFavorites
+//           ? "Натисніть ♥ щоб зберегти оголошення"
+//           : "Спробуйте змінити фільтри або скинути їх"}
+//       </div>
+
+//       {!isFavorites && (
+//         <button
+//           onClick={() => window.location.reload()}
+//           style={{
+//             border: "1px solid #ddd",
+//             background: "#fff",
+//             borderRadius: "999px",
+//             padding: "10px 16px",
+//             fontSize: "13px",
+//             cursor: "pointer",
+//           }}
+//         >
+//           Скинути фільтри
+//         </button>
+//       )}
+//     </div>
+//   );
+// }
+
 function EmptyState({ isFavorites }: { isFavorites: boolean }) {
   return (
     <div
       style={{
-        padding: "40px 20px",
+        padding: "44px 20px",
         textAlign: "center",
         color: "#555",
       }}
@@ -136,8 +189,9 @@ function EmptyState({ isFavorites }: { isFavorites: boolean }) {
       <div
         style={{
           fontSize: "16px",
-          fontWeight: 600,
+          fontWeight: 700,
           marginBottom: "8px",
+          color: "#111",
         }}
       >
         {isFavorites ? "У вас ще немає обраних" : "Нічого не знайдено"}
@@ -147,29 +201,15 @@ function EmptyState({ isFavorites }: { isFavorites: boolean }) {
         style={{
           fontSize: "13px",
           color: "#777",
-          marginBottom: "16px",
+          lineHeight: 1.5,
+          maxWidth: "260px",
+          margin: "0 auto",
         }}
       >
         {isFavorites
-          ? "Натисніть ♥ щоб зберегти оголошення"
-          : "Спробуйте змінити фільтри або скинути їх"}
+          ? "Натисніть ♥ на картці або на мапі, щоб зберегти оголошення."
+          : "Спробуйте змінити тип нерухомості, режим угоди або параметри фільтрів."}
       </div>
-
-      {!isFavorites && (
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            border: "1px solid #ddd",
-            background: "#fff",
-            borderRadius: "999px",
-            padding: "10px 16px",
-            fontSize: "13px",
-            cursor: "pointer",
-          }}
-        >
-          Скинути фільтри
-        </button>
-      )}
     </div>
   );
 }

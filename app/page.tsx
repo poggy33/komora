@@ -191,8 +191,8 @@ export default function HomePage() {
             justify-content: flex-start !important;
             align-items: center;
             gap: 8px !important;
-            overflow-x: auto;
-            overflow-y: hidden;
+            overflow-x: visible;
+            overflow-y: visible;
             -webkit-overflow-scrolling: touch;
           }
 
@@ -262,65 +262,65 @@ export default function HomePage() {
           }
         }
 
-@media (max-width: 640px) {
-  .main-search-layout {
-    grid-template-rows: 36dvh minmax(0, 1fr) !important;
-  }
+        @media (max-width: 640px) {
+          .main-search-layout {
+            grid-template-rows: 36dvh minmax(0, 1fr) !important;
+          }
 
-  .main-topbar-controls {
-    display: grid !important;
-    grid-template-columns: auto auto auto;
-    grid-template-areas:
-      "select filters favorites"
-      "toggle toggle toggle";
-    justify-content: flex-start !important;
-    align-items: center;
-    gap: 8px !important;
-    overflow: visible;
-    width: 100%;
-  }
+          .main-topbar-controls {
+            display: grid !important;
+            grid-template-columns: auto auto auto;
+            grid-template-areas:
+              "select filters favorites"
+              "toggle toggle toggle";
+            justify-content: flex-start !important;
+            align-items: center;
+            gap: 8px !important;
+            overflow: visible;
+            width: 100%;
+          }
 
-  .main-topbar-select {
-    grid-area: select;
-    width: auto !important;
-    min-width: 136px !important;
-    max-width: 180px;
-    flex: unset !important;
-  }
+          .main-topbar-select {
+            grid-area: select;
+            width: auto !important;
+            min-width: 136px !important;
+            max-width: 180px;
+            flex: unset !important;
+          }
 
-  .main-topbar-filters {
-    grid-area: filters;
-    width: auto !important;
-    flex: unset !important;
-    justify-self: start;
-    align-self: center;
-  }
+          .main-topbar-filters {
+            grid-area: filters;
+            width: auto !important;
+            flex: unset !important;
+            justify-self: start;
+            align-self: center;
+          }
 
-  .main-topbar-favorites {
-    grid-area: favorites;
-    width: auto !important;
-    flex: unset !important;
-    justify-self: start;
-    align-self: center;
-  }
+          .main-topbar-favorites {
+            grid-area: favorites;
+            width: auto !important;
+            flex: unset !important;
+            justify-self: start;
+            align-self: center;
+          }
 
-  .main-topbar-toggle {
-    grid-area: toggle;
-    display: inline-flex !important;
-    width: auto !important;
-    justify-content: flex-start;
-    align-items: center;
-    flex: unset !important;
-    justify-self: start;
-  }
+          .main-topbar-toggle {
+            grid-area: toggle;
+            display: inline-flex !important;
+            width: auto !important;
+            justify-content: flex-start;
+            align-items: center;
+            flex: unset !important;
+            justify-self: start;
+          }
 
-  .main-topbar-toggle button {
-    flex: 0 0 auto !important;
-    width: auto !important;
-    min-width: 0 !important;
-    white-space: nowrap;
-  }
-}
+          .main-topbar-toggle button {
+            flex: 0 0 auto !important;
+            width: auto !important;
+            min-width: 0 !important;
+            white-space: nowrap;
+          }
+        }
 
         /* Sidebar */
         .sidebar-cards {
@@ -395,28 +395,28 @@ export default function HomePage() {
           border-radius: 999px;
           background: #ffffff;
           color: #111111;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
           cursor: pointer;
           transition:
-            transform 0.15s ease,
-            box-shadow 0.15s ease,
-            border-color 0.15s ease,
-            background 0.15s ease,
-            color 0.15s ease;
+            transform 0.18s ease,
+            box-shadow 0.18s ease,
+            border-color 0.18s ease,
+            background 0.18s ease,
+            color 0.18s ease;
           font-family: Arial, sans-serif;
         }
 
         .marker-pill:hover,
         .marker-pill.is-hovered {
-          transform: scale(1.04);
+          transform: scale(1.05);
           border-color: #111111;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
         }
 
         .marker-pill.is-selected {
           transform: scale(1.08);
           border-color: #111111;
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
           background: #111111;
           color: #ffffff;
         }
