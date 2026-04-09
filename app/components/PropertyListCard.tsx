@@ -8,12 +8,16 @@ type Props = {
   isSelected: boolean;
   onHover: (id: string | null) => void;
   onSelect: (property: Property) => void;
+  isFavorite: boolean;
+  onToggleFavorite: (id: string) => void;
 };
 
 export default function PropertyListCard({
   property,
   isHovered,
   isSelected,
+  isFavorite,
+  onToggleFavorite,
   onHover,
   onSelect,
 }: Props) {
@@ -24,8 +28,8 @@ export default function PropertyListCard({
     property.propertyType === "apartment"
       ? "Квартира"
       : property.propertyType === "house"
-      ? "Будинок"
-      : "Земля";
+        ? "Будинок"
+        : "Земля";
 
   const dealLabel = property.dealType === "sale" ? "Продаж" : "Оренда";
 
@@ -33,10 +37,10 @@ export default function PropertyListCard({
     property.propertyType === "land"
       ? `${property.area} сот.`
       : property.propertyType === "house"
-      ? `${property.rooms ?? "—"} кімн. • ${property.area} м² • ${
-          property.floors ?? "—"
-        } пов.`
-      : `${property.rooms ?? "—"} кімн. • ${property.area} м²`;
+        ? `${property.rooms ?? "—"} кімн. • ${property.area} м² • ${
+            property.floors ?? "—"
+          } пов.`
+        : `${property.rooms ?? "—"} кімн. • ${property.area} м²`;
 
   const description =
     property.description?.trim() ||
@@ -59,13 +63,13 @@ export default function PropertyListCard({
         border: isSelected
           ? "2px solid #111"
           : isHovered
-          ? "1px solid #999"
-          : "1px solid #ececec",
+            ? "1px solid #999"
+            : "1px solid #ececec",
         boxShadow: isSelected
           ? "0 8px 24px rgba(0,0,0,0.12)"
           : isHovered
-          ? "0 6px 18px rgba(0,0,0,0.08)"
-          : "0 2px 8px rgba(0,0,0,0.04)",
+            ? "0 6px 18px rgba(0,0,0,0.08)"
+            : "0 2px 8px rgba(0,0,0,0.04)",
         transition:
           "border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease",
       }}
@@ -106,6 +110,34 @@ export default function PropertyListCard({
         >
           {dealLabel}
         </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleFavorite(String(property.id));
+          }}
+          aria-label="Додати в обране"
+          style={{
+            position: "absolute",
+            top: "10px",
+            right: "10px",
+            width: "34px",
+            height: "34px",
+            borderRadius: "999px",
+            border: "none",
+            background: "rgba(255,255,255,0.92)",
+            color: isFavorite ? "#e11d48" : "#111",
+            fontSize: "18px",
+            lineHeight: 1,
+            cursor: "pointer",
+            display: "grid",
+            placeItems: "center",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
+          }}
+        >
+          {isFavorite ? "♥" : "♡"}
+        </button>
       </div>
 
       <div

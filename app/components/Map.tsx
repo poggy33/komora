@@ -19,6 +19,8 @@ type Props = {
   selectedPropertyId: string | null;
   setSelectedPropertyId: (id: string | null) => void;
   filters: FiltersState;
+  favoriteIds: string[];
+  toggleFavorite: (id: string) => void;
 };
 
 export default function Map({
@@ -29,6 +31,8 @@ export default function Map({
   selectedPropertyId,
   setSelectedPropertyId,
   filters,
+  favoriteIds,
+  toggleFavorite,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -486,13 +490,15 @@ export default function Map({
         }}
         className="main-search-sidebar"
       >
-        <Sidebar
-          properties={filteredProperties}
-          onSelect={handleSelect}
-          onHover={setHoveredPropertyId}
-          hoveredPropertyId={hoveredPropertyId}
-          selectedPropertyId={selectedPropertyId}
-        />
+<Sidebar
+  properties={filteredProperties}
+  onSelect={handleSelect}
+  onHover={setHoveredPropertyId}
+  hoveredPropertyId={hoveredPropertyId}
+  selectedPropertyId={selectedPropertyId}
+  favoriteIds={favoriteIds}
+  toggleFavorite={toggleFavorite}
+/>
       </div>
 
       <div

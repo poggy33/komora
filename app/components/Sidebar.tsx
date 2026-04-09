@@ -9,6 +9,8 @@ type Props = {
   onHover: (id: string | null) => void;
   hoveredPropertyId: string | null;
   selectedPropertyId: string | null;
+  favoriteIds: string[];
+  toggleFavorite: (id: string) => void;
 };
 
 export default function Sidebar({
@@ -17,6 +19,8 @@ export default function Sidebar({
   onHover,
   hoveredPropertyId,
   selectedPropertyId,
+  favoriteIds,
+  toggleFavorite,
 }: Props) {
   return (
     <div
@@ -80,9 +84,12 @@ export default function Sidebar({
             return (
               <div key={property.id} style={{ marginBottom: "14px" }}>
                 <PropertyListCard
+                  key={property.id}
                   property={property}
                   isHovered={isHovered}
                   isSelected={isSelected}
+                  isFavorite={favoriteIds.includes(String(property.id))}
+                  onToggleFavorite={toggleFavorite}
                   onHover={onHover}
                   onSelect={onSelect}
                 />

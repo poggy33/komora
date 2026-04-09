@@ -11,6 +11,8 @@ type Props = {
   selectedPropertyId: string | null;
   setSelectedPropertyId: (id: string | null) => void;
   filters: FiltersState;
+  favoriteIds: string[];
+  toggleFavorite: (id: string) => void;
 };
 
 const Map = dynamic(() => import("./Map"), {
@@ -25,6 +27,8 @@ export default function MapWrapper({
   selectedPropertyId,
   setSelectedPropertyId,
   filters,
+  favoriteIds,
+  toggleFavorite,
 }: Props) {
   return (
     <Map
@@ -35,6 +39,8 @@ export default function MapWrapper({
       selectedPropertyId={selectedPropertyId}
       setSelectedPropertyId={setSelectedPropertyId}
       filters={filters}
+      favoriteIds={favoriteIds}
+      toggleFavorite={toggleFavorite}
     />
   );
 }
