@@ -4,6 +4,7 @@ import { useState } from "react";
 import MainTopBar from "./components/MainTopBar";
 import MapWrapper from "./components/MapWrapper";
 import FiltersDrawer, { type FiltersState } from "./components/FiltersDrawer";
+import ActiveFiltersBar from "./components/ActiveFiltersBar";
 
 export default function HomePage() {
   const [dealType, setDealType] = useState<"sale" | "rent">("sale");
@@ -53,6 +54,11 @@ export default function HomePage() {
             console.log("open user menu");
           }}
           hasActiveFilters={hasActiveFilters}
+        />
+
+        <ActiveFiltersBar
+          filters={filters}
+          onChange={(next) => setFilters(next)}
         />
 
         <div
