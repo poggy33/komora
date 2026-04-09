@@ -128,7 +128,8 @@ export default function Map({
     <span class="marker-pill__bottom">${bottomLine}</span>
   `;
 
-    el.className = "marker-pill";
+    // el.className = "marker-pill";
+    el.className = "marker-pill marker-pill--enter";
     return el;
   };
 
@@ -218,12 +219,17 @@ export default function Map({
         openPropertyPopup(map, property, property.coordinates);
       });
 
+      
       const marker = new mapboxgl.Marker({
         element: el,
         anchor: "center",
       })
         .setLngLat(property.coordinates)
         .addTo(map);
+
+      requestAnimationFrame(() => {
+        el.classList.remove("marker-pill--enter");
+      });
 
       markerRefs.current.set(id, marker);
     });
@@ -428,7 +434,6 @@ export default function Map({
     };
   }, []);
 
-
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -473,8 +478,10 @@ export default function Map({
 
     mapRef.current.flyTo({
       center: p.coordinates,
-      zoom: 15,
-      speed: 1.2,
+      zoom: Math.max(mapRef.current.getZoom(), 15),
+      speed: 1.1,
+      curve: 1.2,
+      essential: true,
     });
   };
 

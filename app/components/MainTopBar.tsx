@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 
 type PropertyType = "apartment" | "house" | "land";
 type DealType = "sale" | "rent";
@@ -52,7 +53,36 @@ export default function MainTopBar({
     boxSizing: "border-box",
     pointerEvents: "none",
     zIndex: 3,
+    transform: "scale(1)",
+    transition: "transform 0.15s ease",
   };
+  const [filtersBadgePop, setFiltersBadgePop] = useState(false);
+  const [favoritesBadgePop, setFavoritesBadgePop] = useState(false);
+
+  useEffect(() => {
+    if (activeFiltersCount <= 0) return;
+
+    setFiltersBadgePop(true);
+
+    const timer = setTimeout(() => {
+      setFiltersBadgePop(false);
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [activeFiltersCount]);
+
+  useEffect(() => {
+    if (favoritesCount <= 0) return;
+
+    setFavoritesBadgePop(true);
+
+    const timer = setTimeout(() => {
+      setFavoritesBadgePop(false);
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [favoritesCount]);
+
   return (
     <header
       style={{
@@ -169,7 +199,8 @@ export default function MainTopBar({
               position: "relative",
               display: "inline-flex",
               flex: "0 0 auto",
-              overflow: "visible", // 🔥 ключ
+              overflow: "visible",
+              paddingTop: "2px",
             }}
           >
             <button
@@ -195,7 +226,12 @@ export default function MainTopBar({
             </button>
 
             {activeFiltersCount > 0 && (
-              <span style={badgeStyle}>
+              <span
+                style={{
+                  ...badgeStyle,
+                  transform: filtersBadgePop ? "scale(1.12)" : "scale(1)",
+                }}
+              >
                 {activeFiltersCount > 9 ? "9+" : activeFiltersCount}
               </span>
             )}
@@ -207,7 +243,8 @@ export default function MainTopBar({
               position: "relative",
               display: "inline-flex",
               flex: "0 0 auto",
-              overflow: "visible", // 🔥 ключ
+              overflow: "visible",
+              paddingTop: "2px",
             }}
           >
             <button
@@ -228,7 +265,12 @@ export default function MainTopBar({
             </button>
 
             {favoritesCount > 0 && (
-              <span style={badgeStyle}>
+              <span
+                style={{
+                  ...badgeStyle,
+                  transform: favoritesBadgePop ? "scale(1.12)" : "scale(1)",
+                }}
+              >
                 {favoritesCount > 9 ? "9+" : favoritesCount}
               </span>
             )}

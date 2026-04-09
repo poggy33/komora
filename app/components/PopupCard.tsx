@@ -22,11 +22,11 @@ export default function PopupCard({
   propertyType,
 }: Props) {
   const safeImages =
-    images?.length > 0
-      ? images
-      : ["https://via.placeholder.com/400x260"];
+    images?.length > 0 ? images : ["https://via.placeholder.com/400x260"];
 
   const [index, setIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
   const next = () => {
     setIndex((prev) => (prev + 1) % safeImages.length);
@@ -34,6 +34,24 @@ export default function PopupCard({
 
   const prev = () => {
     setIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX === null || touchEndX === null) return;
+
+    const distance = touchStartX - touchEndX;
+
+    if (distance > 40) next();
+    if (distance < -40) prev();
   };
 
   const typeLabel =
@@ -50,24 +68,28 @@ export default function PopupCard({
       href={`/property/${id}`}
       style={{
         display: "block",
-        width: "270px",
+        width: "280px",
         textDecoration: "none",
         color: "#111",
         fontFamily: "Arial, sans-serif",
+        background: "#fff",
       }}
     >
       <div
         style={{
           background: "#fff",
-          borderRadius: "18px",
+          borderRadius: "20px",
           overflow: "hidden",
         }}
       >
-        {/* IMAGE */}
         <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           style={{
             position: "relative",
-            height: "160px",
+            height: "176px",
+            background: "#f3f3f3",
           }}
         >
           <img
@@ -77,102 +99,130 @@ export default function PopupCard({
               width: "100%",
               height: "100%",
               objectFit: "cover",
+              display: "block",
             }}
           />
 
-          {/* BADGE */}
           <div
             style={{
               position: "absolute",
-              top: "10px",
-              left: "10px",
-              background: "#111",
+              top: "12px",
+              left: "12px",
+              background: "rgba(17,17,17,0.92)",
               color: "#fff",
-              padding: "4px 8px",
+              padding: "6px 10px",
               borderRadius: "999px",
               fontSize: "11px",
-              fontWeight: 600,
+              fontWeight: 700,
+              lineHeight: 1,
             }}
           >
             {dealLabel}
           </div>
 
-          {/* NAV */}
           {safeImages.length > 1 && (
             <>
               <button
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   prev();
                 }}
-                style={navLeft}
+                aria-label="Попереднє фото"
+                style={{
+                  ...navButtonStyle,
+                  left: "10px",
+                }}
               >
-                ‹
+                &#8249;
               </button>
 
               <button
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   next();
                 }}
-                style={navRight}
+                aria-label="Наступне фото"
+                style={{
+                  ...navButtonStyle,
+                  right: "44px",
+                }}
               >
-                ›
+                &#8250;
               </button>
 
-              <div style={counterStyle}>
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "10px",
+                  left: "10px",
+                  background: "rgba(17,17,17,0.7)",
+                  color: "#fff",
+                  borderRadius: "999px",
+                  padding: "5px 9px",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  lineHeight: 1,
+                }}
+              >
                 {index + 1} / {safeImages.length}
               </div>
             </>
           )}
         </div>
 
-        {/* CONTENT */}
-        <div style={{ padding: "12px" }}>
-          {/* PRICE */}
+        <div
+          style={{
+            padding: "14px 14px 16px",
+          }}
+        >
           <div
             style={{
               fontSize: "18px",
               fontWeight: 700,
+              lineHeight: 1.2,
               marginBottom: "4px",
+              color: "#111",
             }}
           >
             ${price.toLocaleString()}
+            {dealType === "rent" ? " / міс." : ""}
           </div>
 
-          {/* TYPE */}
           <div
             style={{
               fontSize: "13px",
               color: "#666",
               marginBottom: "4px",
+              lineHeight: 1.35,
             }}
           >
             {typeLabel}
           </div>
 
-          {/* DETAILS */}
           <div
             style={{
               fontSize: "13px",
               color: "#444",
+              lineHeight: 1.4,
             }}
           >
             {rooms ? `${rooms} кімн. • ` : ""}
             {area} м²
           </div>
 
-          {/* ADDRESS (fake for now) */}
           <div
             style={{
               fontSize: "12px",
               color: "#888",
-              marginTop: "6px",
+              marginTop: "7px",
+              lineHeight: 1.4,
             }}
           >
-            Івано-Франківськ
+            Натисніть, щоб відкрити оголошення
           </div>
         </div>
       </div>
@@ -180,7 +230,7 @@ export default function PopupCard({
   );
 }
 
-const navBase: React.CSSProperties = {
+const navButtonStyle: React.CSSProperties = {
   position: "absolute",
   top: "50%",
   transform: "translateY(-50%)",
@@ -188,28 +238,15 @@ const navBase: React.CSSProperties = {
   height: "32px",
   borderRadius: "999px",
   border: "none",
-  background: "rgba(255,255,255,0.9)",
+  outline: "none",
+  background: "rgba(255,255,255,0.94)",
+  color: "#111",
   cursor: "pointer",
-  fontSize: "20px",
-};
-
-const navLeft = {
-  ...navBase,
-  left: "8px",
-};
-
-const navRight = {
-  ...navBase,
-  right: "8px",
-};
-
-const counterStyle: React.CSSProperties = {
-  position: "absolute",
-  bottom: "8px",
-  right: "8px",
-  background: "rgba(0,0,0,0.6)",
-  color: "#fff",
-  borderRadius: "999px",
-  padding: "4px 8px",
-  fontSize: "11px",
+  fontSize: "22px",
+  lineHeight: 1,
+  display: "grid",
+  placeItems: "center",
+  boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
+  appearance: "none",
+  WebkitAppearance: "none",
 };

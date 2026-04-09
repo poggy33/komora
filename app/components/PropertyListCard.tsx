@@ -1,15 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import type { Property } from "../types/property";
 
 type Props = {
   property: Property;
   isHovered: boolean;
   isSelected: boolean;
-  onHover: (id: string | null) => void;
-  onSelect: (property: Property) => void;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
+  onHover: (id: string | null) => void;
+  onSelect: (property: Property) => void;
 };
 
 export default function PropertyListCard({
@@ -21,15 +22,47 @@ export default function PropertyListCard({
   onHover,
   onSelect,
 }: Props) {
-  const image =
-    property.images?.[0] || "https://via.placeholder.com/600x400?text=No+image";
+  const safeImages =
+    property.images?.length > 0
+      ? property.images
+      : ["https://via.placeholder.com/600x400?text=No+image"];
+
+  const [index, setIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
+  const next = () => {
+    setIndex((prev) => (prev + 1) % safeImages.length);
+  };
+
+  const prev = () => {
+    setIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX === null || touchEndX === null) return;
+
+    const distance = touchStartX - touchEndX;
+
+    if (distance > 40) next();
+    if (distance < -40) prev();
+  };
 
   const typeLabel =
     property.propertyType === "apartment"
       ? "Квартира"
       : property.propertyType === "house"
-        ? "Будинок"
-        : "Земля";
+      ? "Будинок"
+      : "Земля";
 
   const dealLabel = property.dealType === "sale" ? "Продаж" : "Оренда";
 
@@ -37,10 +70,10 @@ export default function PropertyListCard({
     property.propertyType === "land"
       ? `${property.area} сот.`
       : property.propertyType === "house"
-        ? `${property.rooms ?? "—"} кімн. • ${property.area} м² • ${
-            property.floors ?? "—"
-          } пов.`
-        : `${property.rooms ?? "—"} кімн. • ${property.area} м²`;
+      ? `${property.rooms ?? "—"} кімн. • ${property.area} м² • ${
+          property.floors ?? "—"
+        } пов.`
+      : `${property.rooms ?? "—"} кімн. • ${property.area} м²`;
 
   const description =
     property.description?.trim() ||
@@ -63,24 +96,22 @@ export default function PropertyListCard({
         border: isSelected
           ? "2px solid #111"
           : isHovered
-            ? "1px solid #bdbdbd"
-            : "1px solid #ececec",
+          ? "1px solid #999"
+          : "1px solid #ececec",
         boxShadow: isSelected
           ? "0 10px 26px rgba(0,0,0,0.12)"
           : isHovered
-            ? "0 8px 20px rgba(0,0,0,0.08)"
-            : "0 2px 8px rgba(0,0,0,0.04)",
-        transform: isSelected
-          ? "translateY(-2px)"
-          : isHovered
-            ? "translateY(-1px)"
-            : "translateY(0)",
+          ? "0 8px 20px rgba(0,0,0,0.08)"
+          : "0 2px 8px rgba(0,0,0,0.04)",
         transition:
           "border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease",
       }}
     >
       <div
         className="property-list-card__image-wrap"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         style={{
           position: "relative",
           width: "100%",
@@ -89,7 +120,7 @@ export default function PropertyListCard({
         }}
       >
         <img
-          src={image}
+          src={safeImages[index]}
           alt={property.title}
           style={{
             width: "100%",
@@ -115,6 +146,7 @@ export default function PropertyListCard({
         >
           {dealLabel}
         </div>
+
         <button
           type="button"
           onClick={(e) => {
@@ -131,7 +163,7 @@ export default function PropertyListCard({
             height: "34px",
             borderRadius: "999px",
             border: "none",
-            background: "rgba(255,255,255,0.92)",
+            background: "rgba(255,255,255,0.94)",
             color: isFavorite ? "#e11d48" : "#111",
             fontSize: "18px",
             lineHeight: 1,
@@ -143,6 +175,61 @@ export default function PropertyListCard({
         >
           {isFavorite ? "♥" : "♡"}
         </button>
+
+        {safeImages.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                prev();
+              }}
+              aria-label="Попереднє фото"
+              className="property-list-card__nav property-list-card__nav--left"
+              style={{
+                ...cardNavButtonStyle,
+                left: "10px",
+              }}
+            >
+              &#8249;
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                next();
+              }}
+              aria-label="Наступне фото"
+              className="property-list-card__nav property-list-card__nav--right"
+              style={{
+                ...cardNavButtonStyle,
+                right: "10px",
+              }}
+            >
+              &#8250;
+            </button>
+
+            <div
+              style={{
+                position: "absolute",
+                bottom: "10px",
+                right: "10px",
+                background: "rgba(17,17,17,0.7)",
+                color: "#fff",
+                borderRadius: "999px",
+                padding: "5px 9px",
+                fontSize: "11px",
+                fontWeight: 600,
+                lineHeight: 1,
+              }}
+            >
+              {index + 1} / {safeImages.length}
+            </div>
+          </>
+        )}
       </div>
 
       <div
@@ -213,3 +300,24 @@ export default function PropertyListCard({
     </a>
   );
 }
+
+const cardNavButtonStyle: React.CSSProperties = {
+  position: "absolute",
+  top: "50%",
+  transform: "translateY(-50%)",
+  width: "32px",
+  height: "32px",
+  borderRadius: "999px",
+  border: "none",
+  outline: "none",
+  background: "rgba(255,255,255,0.94)",
+  color: "#111",
+  cursor: "pointer",
+  fontSize: "22px",
+  lineHeight: 1,
+  display: "grid",
+  placeItems: "center",
+  boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
+  appearance: "none",
+  WebkitAppearance: "none",
+};

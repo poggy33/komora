@@ -127,55 +127,6 @@ function getDealLabel(properties: Property[]) {
   return deal === "sale" ? "Продаж" : "Оренда";
 }
 
-// function EmptyState({ isFavorites }: { isFavorites: boolean }) {
-//   return (
-//     <div
-//       style={{
-//         padding: "40px 20px",
-//         textAlign: "center",
-//         color: "#555",
-//       }}
-//     >
-//       <div
-//         style={{
-//           fontSize: "16px",
-//           fontWeight: 600,
-//           marginBottom: "8px",
-//         }}
-//       >
-//         {isFavorites ? "У вас ще немає обраних" : "Нічого не знайдено"}
-//       </div>
-
-//       <div
-//         style={{
-//           fontSize: "13px",
-//           color: "#777",
-//           marginBottom: "16px",
-//         }}
-//       >
-//         {isFavorites
-//           ? "Натисніть ♥ щоб зберегти оголошення"
-//           : "Спробуйте змінити фільтри або скинути їх"}
-//       </div>
-
-//       {!isFavorites && (
-//         <button
-//           onClick={() => window.location.reload()}
-//           style={{
-//             border: "1px solid #ddd",
-//             background: "#fff",
-//             borderRadius: "999px",
-//             padding: "10px 16px",
-//             fontSize: "13px",
-//             cursor: "pointer",
-//           }}
-//         >
-//           Скинути фільтри
-//         </button>
-//       )}
-//     </div>
-//   );
-// }
 
 function EmptyState({ isFavorites }: { isFavorites: boolean }) {
   return (
