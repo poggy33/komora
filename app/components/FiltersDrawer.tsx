@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { properties } from "../data/properties";
 
 export type FiltersState = {
   priceMin: string;
@@ -15,6 +16,8 @@ type Props = {
   value: FiltersState;
   onApply: (next: FiltersState) => void;
   onReset: () => void;
+  propertyType: "apartment" | "house" | "land";
+  dealType: "sale" | "rent";
 };
 
 export default function FiltersDrawer({
@@ -23,6 +26,8 @@ export default function FiltersDrawer({
   value,
   onApply,
   onReset,
+  propertyType,
+  dealType,
 }: Props) {
   const [draft, setDraft] = useState<FiltersState>(value);
 
@@ -47,6 +52,49 @@ export default function FiltersDrawer({
       document.body.style.overflow = "";
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (propertyType === "land") {
+      setDraft((prev) => ({
+        ...prev,
+        rooms: "",
+      }));
+    }
+  }, [propertyType]);
+
+  const previewFilters =
+    propertyType === "land" ? { ...draft, rooms: "" } : draft;
+
+  const previewCount = properties.filter((p) => {
+    if (p.dealType !== dealType) return false;
+    if (p.propertyType !== propertyType) return false;
+
+    const priceMin = previewFilters.priceMin
+      ? Number(previewFilters.priceMin)
+      : null;
+    const priceMax = previewFilters.priceMax
+      ? Number(previewFilters.priceMax)
+      : null;
+    const rooms = previewFilters.rooms ? Number(previewFilters.rooms) : null;
+    const areaMin = previewFilters.areaMin
+      ? Number(previewFilters.areaMin)
+      : null;
+
+    if (priceMin !== null && p.price < priceMin) return false;
+    if (priceMax !== null && p.price > priceMax) return false;
+
+    if (
+      rooms !== null &&
+      propertyType !== "land" &&
+      (p.rooms === undefined || p.rooms < rooms)
+    ) {
+      return false;
+    }
+
+    if (areaMin !== null && p.area < areaMin) return false;
+
+    return true;
+  }).length;
 
   if (!isOpen) return null;
 
@@ -140,29 +188,33 @@ export default function FiltersDrawer({
             />
           </div>
 
-          <div>
-            <div style={labelStyle}>Кімнати</div>
-            <select
-              value={draft.rooms}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, rooms: e.target.value }))
-              }
-              style={inputStyle}
-            >
-              <option value="">Будь-яка кількість</option>
-              <option value="1">1+</option>
-              <option value="2">2+</option>
-              <option value="3">3+</option>
-              <option value="4">4+</option>
-            </select>
-          </div>
+          {propertyType !== "land" && (
+            <div>
+              <div style={labelStyle}>Кімнати</div>
+              <select
+                value={draft.rooms}
+                onChange={(e) =>
+                  setDraft((prev) => ({ ...prev, rooms: e.target.value }))
+                }
+                style={inputStyle}
+              >
+                <option value="">Будь-яка кількість</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+              </select>
+            </div>
+          )}
 
           <div>
-            <div style={labelStyle}>Площа від</div>
+            <div style={labelStyle}>
+              {propertyType === "land" ? "Площа від, сот." : "Площа від, м²"}
+            </div>
             <input
               type="number"
               inputMode="numeric"
-              placeholder="Напр. 40"
+              placeholder={propertyType === "land" ? "Напр. 6" : "Напр. 40"}
               value={draft.areaMin}
               onChange={(e) =>
                 setDraft((prev) => ({ ...prev, areaMin: e.target.value }))
@@ -192,12 +244,12 @@ export default function FiltersDrawer({
           <button
             type="button"
             onClick={() => {
-              onApply(draft);
+              onApply(previewFilters);
               onClose();
             }}
             style={primaryButtonStyle}
           >
-            Застосувати
+            Показати {previewCount}
           </button>
         </div>
       </div>

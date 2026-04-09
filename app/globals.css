@@ -76,3 +76,23 @@ body {
 .marker-pill.is-selected .marker-pill__bottom {
   color: rgba(255, 255, 255, 0.8);
 }
+
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 18px !important;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18) !important;
+}
+
+.mapboxgl-popup-close-button {
+  width: 30px;
+  height: 30px;
+  right: 8px;
+  top: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: #fff !important;
+}

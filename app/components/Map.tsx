@@ -146,6 +146,8 @@ export default function Map({
         rooms={property.rooms}
         area={property.area}
         images={property.images}
+        dealType={property.dealType}
+        propertyType={property.propertyType}
       />,
     );
 

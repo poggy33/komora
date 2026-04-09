@@ -5,6 +5,42 @@ import MainTopBar from "./components/MainTopBar";
 import MapWrapper from "./components/MapWrapper";
 import FiltersDrawer, { type FiltersState } from "./components/FiltersDrawer";
 import ActiveFiltersBar from "./components/ActiveFiltersBar";
+import { properties } from "./data/properties";
+
+function allPropertiesCount({
+  dealType,
+  propertyType,
+  filters,
+}: {
+  dealType: "sale" | "rent";
+  propertyType: "apartment" | "house" | "land";
+  filters: FiltersState;
+}) {
+  return properties.filter((p) => {
+    if (p.dealType !== dealType) return false;
+    if (p.propertyType !== propertyType) return false;
+
+    const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
+    const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
+    const rooms = filters.rooms ? Number(filters.rooms) : null;
+    const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
+
+    if (priceMin !== null && p.price < priceMin) return false;
+    if (priceMax !== null && p.price > priceMax) return false;
+
+    if (
+      rooms !== null &&
+      propertyType !== "land" &&
+      (p.rooms === undefined || p.rooms < rooms)
+    ) {
+      return false;
+    }
+
+    if (areaMin !== null && p.area < areaMin) return false;
+
+    return true;
+  }).length;
+}
 
 export default function HomePage() {
   const [dealType, setDealType] = useState<"sale" | "rent">("sale");
@@ -40,6 +76,12 @@ export default function HomePage() {
     filters.rooms,
     filters.areaMin,
   ].filter(Boolean).length;
+
+  const resultsCount = allPropertiesCount({
+    dealType,
+    propertyType,
+    filters,
+  });
 
   return (
     <>
@@ -100,6 +142,8 @@ export default function HomePage() {
             areaMin: "",
           })
         }
+        propertyType={propertyType}
+        dealType={dealType}
       />
       <style jsx global>{`
         @media (max-width: 900px) {
