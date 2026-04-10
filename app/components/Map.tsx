@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection, Point } from "geojson";
-import { properties } from "../data/properties";
-import type { Property } from "../types/property";
 import Sidebar from "./Sidebar";
 import { createRoot, type Root } from "react-dom/client";
 import PopupCard from "./PopupCard";
 import type { FiltersState } from "./FiltersDrawer";
+import type { DealType, Property } from "@/types/property";
+
+type SupportedPropertyType = "apartment" | "house" | "land";
 
 type Props = {
-  dealType: "sale" | "rent";
-  propertyType: "apartment" | "house" | "land";
+  dealType: DealType;
+  propertyType: SupportedPropertyType;
   hoveredPropertyId: string | null;
   setHoveredPropertyId: (id: string | null) => void;
   selectedPropertyId: string | null;
@@ -22,6 +23,9 @@ type Props = {
   favoriteIds: string[];
   toggleFavorite: (id: string) => void;
   showFavoritesOnly: boolean;
+  properties: Property[];
+  isLoadingProperties: boolean;
+  propertiesError: string | null;
 };
 
 export default function Map({
@@ -35,6 +39,9 @@ export default function Map({
   favoriteIds,
   toggleFavorite,
   showFavoritesOnly,
+  properties,
+  isLoadingProperties,
+  propertiesError,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -42,20 +49,7 @@ export default function Map({
   const markerRefs = useRef<globalThis.Map<string, mapboxgl.Marker>>(
     new globalThis.Map(),
   );
-
-  const formatToK = (num: number) => {
-    if (num >= 1000) {
-      const value = num / 1000;
-
-      if (value % 1 === 0) {
-        return `$${value}k`;
-      }
-
-      return `$${value.toFixed(1)}k`;
-    }
-
-    return `$${num}`;
-  };
+  const filteredPropertiesRef = useRef<Property[]>([]);
 
   const formatCompactPrice = (num: number) => {
     if (num >= 1000000) {
@@ -124,11 +118,10 @@ export default function Map({
     }
 
     el.innerHTML = `
-    <span class="marker-pill__top">${topLine}</span>
-    <span class="marker-pill__bottom">${bottomLine}</span>
-  `;
+      <span class="marker-pill__top">${topLine}</span>
+      <span class="marker-pill__bottom">${bottomLine}</span>
+    `;
 
-    // el.className = "marker-pill";
     el.className = "marker-pill marker-pill--enter";
     return el;
   };
@@ -144,7 +137,7 @@ export default function Map({
     }
 
     const container = document.createElement("div");
-    const root = createRoot(container);
+    const root: Root = createRoot(container);
 
     root.render(
       <PopupCard
@@ -180,7 +173,9 @@ export default function Map({
     popupRef.current = popup;
   };
 
-  const renderHtmlMarkers = (map: mapboxgl.Map) => {
+  const renderHtmlMarkers = (map: mapboxgl.Map, list: Property[]) => {
+    if (!map.getLayer("unclustered-helper")) return;
+
     const features = map.queryRenderedFeatures({
       layers: ["unclustered-helper"],
     });
@@ -195,7 +190,7 @@ export default function Map({
 
       if (markerRefs.current.has(id)) return;
 
-      const property = properties.find((p) => String(p.id) === id);
+      const property = list.find((p) => String(p.id) === id);
       if (!property) return;
 
       const el = createMarkerElement(property);
@@ -215,11 +210,9 @@ export default function Map({
         e.stopPropagation();
 
         setSelectedPropertyId(String(property.id));
-
         openPropertyPopup(map, property, property.coordinates);
       });
 
-      
       const marker = new mapboxgl.Marker({
         element: el,
         anchor: "center",
@@ -242,51 +235,43 @@ export default function Map({
     });
   };
 
-  const filteredProperties = showFavoritesOnly
-    ? properties.filter((p) => favoriteIds.includes(String(p.id)))
-    : properties.filter((p) => {
-        if (p.dealType !== dealType) return false;
-        if (p.propertyType !== propertyType) return false;
+  const filteredProperties: Property[] = showFavoritesOnly
+    ? properties.filter((p: Property) => favoriteIds.includes(String(p.id)))
+    : properties;
 
-        const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
-        const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
-        const rooms = filters.rooms ? Number(filters.rooms) : null;
-        const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
+  filteredPropertiesRef.current = filteredProperties;
 
-        if (priceMin !== null && p.price < priceMin) return false;
-        if (priceMax !== null && p.price > priceMax) return false;
+  // const buildGeoJSON = (): FeatureCollection<Point> => {
+  //   return {
+  //     type: "FeatureCollection",
+  //     features: filteredProperties.map((p) => ({
+  //       type: "Feature",
+  //       properties: {
+  //         id: String(p.id),
+  //         label: buildMarkerLabel(p),
+  //       },
+  //       geometry: {
+  //         type: "Point",
+  //         coordinates: p.coordinates,
+  //       },
+  //     })),
+  //   };
+  // };
 
-        if (
-          rooms !== null &&
-          p.propertyType !== "land" &&
-          (p.rooms === undefined || p.rooms < rooms)
-        ) {
-          return false;
-        }
-
-        if (areaMin !== null && p.area < areaMin) return false;
-
-        return true;
-      });
-
-  const buildGeoJSON = (): FeatureCollection<Point> => {
+  const buildGeoJSONFromList = (list: Property[]): FeatureCollection<Point> => {
     return {
       type: "FeatureCollection",
-      features: filteredProperties.map((p) => {
-        const label = buildMarkerLabel(p);
-
-        return {
-          type: "Feature" as const,
-          properties: {
-            id: String(p.id),
-            label,
-          },
-          geometry: {
-            type: "Point" as const,
-            coordinates: p.coordinates,
-          },
-        };
-      }),
+      features: list.map((p) => ({
+        type: "Feature",
+        properties: {
+          id: String(p.id),
+          label: buildMarkerLabel(p),
+        },
+        geometry: {
+          type: "Point",
+          coordinates: p.coordinates,
+        },
+      })),
     };
   };
 
@@ -310,7 +295,8 @@ export default function Map({
 
       map.addSource("points", {
         type: "geojson",
-        data: buildGeoJSON(),
+        // data: buildGeoJSON(),
+        data: buildGeoJSONFromList(filteredPropertiesRef.current),
         cluster: true,
         clusterMaxZoom: 13,
         clusterRadius: 50,
@@ -353,6 +339,10 @@ export default function Map({
           "circle-opacity": 0,
           "circle-stroke-opacity": 0,
         },
+      });
+
+      map.once("idle", () => {
+        renderHtmlMarkers(map, filteredPropertiesRef.current);
       });
 
       map.on("click", "clusters", (e) => {
@@ -404,19 +394,19 @@ export default function Map({
         }
       });
 
-      renderHtmlMarkers(map);
+      // renderHtmlMarkers(map, filteredPropertiesRef.current);
 
       map.on("moveend", () => {
-        renderHtmlMarkers(map);
+        renderHtmlMarkers(map, filteredPropertiesRef.current);
       });
 
       map.on("zoomend", () => {
-        renderHtmlMarkers(map);
+        renderHtmlMarkers(map, filteredPropertiesRef.current);
       });
 
       map.on("data", () => {
         if (!map.getLayer("unclustered-helper")) return;
-        renderHtmlMarkers(map);
+        renderHtmlMarkers(map, filteredPropertiesRef.current);
       });
     });
 
@@ -444,17 +434,18 @@ export default function Map({
 
     if (!source) return;
 
-    source.setData(buildGeoJSON());
+    // source.setData(buildGeoJSON());
+    source.setData(buildGeoJSONFromList(filteredPropertiesRef.current));
 
     if (popupRef.current) {
       popupRef.current.remove();
       popupRef.current = null;
     }
 
-    requestAnimationFrame(() => {
-      renderHtmlMarkers(map);
+    map.once("idle", () => {
+      renderHtmlMarkers(map, filteredPropertiesRef.current);
     });
-  }, [dealType, propertyType, filters, showFavoritesOnly, favoriteIds]);
+  }, [properties, showFavoritesOnly, favoriteIds]);
 
   useEffect(() => {
     markerRefs.current.forEach((marker, id) => {
@@ -485,6 +476,77 @@ export default function Map({
     });
   };
 
+  // console.log("Map properties:", properties);
+  // console.log("Map loading:", isLoadingProperties);
+  // console.log("Map error:", propertiesError);
+
+  // if (propertiesError) {
+  //   return (
+  //     <div style={{ padding: "24px" }}>
+  //       <div style={{ color: "#b91c1c", fontWeight: 600 }}>{propertiesError}</div>
+  //     </div>
+  //   );
+  // }
+
+  // if (isLoadingProperties) {
+  //   return (
+  //     <div style={{ padding: "24px" }}>
+  //       <div>Завантаження оголошень...</div>
+  //     </div>
+  //   );
+  // }
+
+  // return (
+  //   <div
+  //     style={{
+  //       height: "100%",
+  //       display: "grid",
+  //       gridTemplateColumns: "380px minmax(0, 1fr)",
+  //       gridTemplateRows: "1fr",
+  //     }}
+  //     className="main-search-layout"
+  //   >
+  //     <div
+  //       style={{
+  //         minWidth: 0,
+  //         minHeight: 0,
+  //         background: "#fff",
+  //         borderRight: "1px solid #eee",
+  //       }}
+  //       className="main-search-sidebar"
+  //     >
+  //       <Sidebar
+  //         properties={filteredProperties}
+  //         onSelect={handleSelect}
+  //         onHover={setHoveredPropertyId}
+  //         hoveredPropertyId={hoveredPropertyId}
+  //         selectedPropertyId={selectedPropertyId}
+  //         favoriteIds={favoriteIds}
+  //         toggleFavorite={toggleFavorite}
+  //         showFavoritesOnly={showFavoritesOnly}
+  //       />
+  //     </div>
+
+  //     <div
+  //       style={{
+  //         position: "relative",
+  //         minWidth: 0,
+  //         minHeight: 0,
+  //         background: "#f8f8f8",
+  //       }}
+  //       className="main-search-map"
+  //     >
+  //       <div
+  //         ref={mapContainer}
+  //         style={{
+  //           position: "absolute",
+  //           inset: 0,
+  //         }}
+  //       />
+  //     </div>
+  //   </div>
+  // );
+
   return (
     <div
       style={{
@@ -492,6 +554,7 @@ export default function Map({
         display: "grid",
         gridTemplateColumns: "380px minmax(0, 1fr)",
         gridTemplateRows: "1fr",
+        position: "relative",
       }}
       className="main-search-layout"
     >
@@ -501,6 +564,7 @@ export default function Map({
           minHeight: 0,
           background: "#fff",
           borderRight: "1px solid #eee",
+          position: "relative",
         }}
         className="main-search-sidebar"
       >
@@ -514,6 +578,42 @@ export default function Map({
           toggleFavorite={toggleFavorite}
           showFavoritesOnly={showFavoritesOnly}
         />
+
+        {isLoadingProperties && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(255,255,255,0.85)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 600,
+              zIndex: 5,
+            }}
+          >
+            Завантаження оголошень...
+          </div>
+        )}
+
+        {propertiesError && (
+          <div
+            style={{
+              position: "absolute",
+              left: 16,
+              right: 16,
+              bottom: 16,
+              padding: "12px 14px",
+              borderRadius: "12px",
+              background: "#fee2e2",
+              color: "#991b1b",
+              fontWeight: 600,
+              zIndex: 6,
+            }}
+          >
+            {propertiesError}
+          </div>
+        )}
       </div>
 
       <div
@@ -532,6 +632,43 @@ export default function Map({
             inset: 0,
           }}
         />
+
+        {isLoadingProperties && (
+          <div
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              padding: "10px 14px",
+              borderRadius: "999px",
+              background: "#fff",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+              zIndex: 5,
+              fontWeight: 600,
+            }}
+          >
+            Завантаження...
+          </div>
+        )}
+
+        {propertiesError && (
+          <div
+            style={{
+              position: "absolute",
+              top: 16,
+              left: 16,
+              right: 16,
+              padding: "12px 14px",
+              borderRadius: "12px",
+              background: "#fee2e2",
+              color: "#991b1b",
+              fontWeight: 600,
+              zIndex: 6,
+            }}
+          >
+            {propertiesError}
+          </div>
+        )}
       </div>
     </div>
   );

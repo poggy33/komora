@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { properties } from "../data/properties";
+import type { DealType } from "@/types/property";
 
 export type FiltersState = {
   priceMin: string;
@@ -10,14 +11,16 @@ export type FiltersState = {
   areaMin: string;
 };
 
+type SupportedPropertyType = "apartment" | "house" | "land";
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   value: FiltersState;
   onApply: (next: FiltersState) => void;
   onReset: () => void;
-  propertyType: "apartment" | "house" | "land";
-  dealType: "sale" | "rent";
+  propertyType: SupportedPropertyType;
+  dealType: DealType;
 };
 
 export default function FiltersDrawer({
@@ -233,11 +236,7 @@ export default function FiltersDrawer({
             gap: "10px",
           }}
         >
-          <button
-            type="button"
-            onClick={onReset}
-            style={secondaryButtonStyle}
-          >
+          <button type="button" onClick={onReset} style={secondaryButtonStyle}>
             Скинути
           </button>
 

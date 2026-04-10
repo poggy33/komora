@@ -1,53 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MainTopBar from "./components/MainTopBar";
 import MapWrapper from "./components/MapWrapper";
 import FiltersDrawer, { type FiltersState } from "./components/FiltersDrawer";
 import ActiveFiltersBar from "./components/ActiveFiltersBar";
-import { properties } from "./data/properties";
 import { useFavorites } from "./hooks/useFavorites";
+import type { DealType, Property } from "@/types/property";
+import { getPropertiesFromSupabase } from "../lib/properties";
 
-function allPropertiesCount({
-  dealType,
-  propertyType,
-  filters,
-}: {
-  dealType: "sale" | "rent";
-  propertyType: "apartment" | "house" | "land";
-  filters: FiltersState;
-}) {
-  return properties.filter((p) => {
-    if (p.dealType !== dealType) return false;
-    if (p.propertyType !== propertyType) return false;
-
-    const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
-    const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
-    const rooms = filters.rooms ? Number(filters.rooms) : null;
-    const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
-
-    if (priceMin !== null && p.price < priceMin) return false;
-    if (priceMax !== null && p.price > priceMax) return false;
-
-    if (
-      rooms !== null &&
-      propertyType !== "land" &&
-      (p.rooms === undefined || p.rooms < rooms)
-    ) {
-      return false;
-    }
-
-    if (areaMin !== null && p.area < areaMin) return false;
-
-    return true;
-  }).length;
-}
+type SupportedPropertyType = "apartment" | "house" | "land";
 
 export default function HomePage() {
-  const [dealType, setDealType] = useState<"sale" | "rent">("sale");
-  const [propertyType, setPropertyType] = useState<
-    "apartment" | "house" | "land"
-  >("apartment");
+  const [dealType, setDealType] = useState<DealType>("sale");
+  const [propertyType, setPropertyType] =
+    useState<SupportedPropertyType>("apartment");
 
   const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(
     null,
@@ -65,11 +32,9 @@ export default function HomePage() {
     areaMin: "",
   });
 
-  const hasActiveFilters =
-    !!filters.priceMin ||
-    !!filters.priceMax ||
-    !!filters.rooms ||
-    !!filters.areaMin;
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [isLoadingProperties, setIsLoadingProperties] = useState(true);
+  const [propertiesError, setPropertiesError] = useState<string | null>(null);
 
   const activeFiltersCount = [
     filters.priceMin,
@@ -78,15 +43,34 @@ export default function HomePage() {
     filters.areaMin,
   ].filter(Boolean).length;
 
-  const resultsCount = allPropertiesCount({
-    dealType,
-    propertyType,
-    filters,
-  });
-
-  const { isFavorite, toggleFavorite, favoriteIds } = useFavorites();
-
+  const { favoriteIds, toggleFavorite } = useFavorites();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  useEffect(() => {
+    async function loadProperties() {
+      try {
+        setIsLoadingProperties(true);
+        setPropertiesError(null);
+
+        const data = showFavoritesOnly
+          ? await getPropertiesFromSupabase({})
+          : await getPropertiesFromSupabase({
+              dealType,
+              propertyType,
+              filters,
+            });
+
+        setProperties(data);
+      } catch (error) {
+        console.error(error);
+        setPropertiesError("Не вдалося завантажити оголошення");
+      } finally {
+        setIsLoadingProperties(false);
+      }
+    }
+
+    loadProperties();
+  }, [dealType, propertyType, filters, showFavoritesOnly]);
 
   return (
     <>
@@ -133,6 +117,9 @@ export default function HomePage() {
             favoriteIds={favoriteIds}
             toggleFavorite={toggleFavorite}
             showFavoritesOnly={showFavoritesOnly}
+            properties={properties}
+            isLoadingProperties={isLoadingProperties}
+            propertiesError={propertiesError}
           />
         </div>
       </main>

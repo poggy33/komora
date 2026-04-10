@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import type { DealType } from "@/types/property";
 
-type PropertyType = "apartment" | "house" | "land";
-type DealType = "sale" | "rent";
+type SupportedPropertyType = "apartment" | "house" | "land";
 
 type Props = {
-  propertyType: PropertyType;
+  propertyType: SupportedPropertyType;
   dealType: DealType;
-  setPropertyType: (value: PropertyType) => void;
+  setPropertyType: (value: SupportedPropertyType) => void;
   setDealType: (value: DealType) => void;
   onOpenFilters?: () => void;
   onOpenUserMenu?: () => void;
@@ -132,7 +132,9 @@ export default function MainTopBar({
           <select
             className="main-topbar-select"
             value={propertyType}
-            onChange={(e) => setPropertyType(e.target.value as PropertyType)}
+            onChange={(e) =>
+              setPropertyType(e.target.value as SupportedPropertyType)
+            }
             disabled={controlsDisabled}
             style={{
               ...selectStyle,

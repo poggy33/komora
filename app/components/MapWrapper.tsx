@@ -2,10 +2,13 @@
 
 import dynamic from "next/dynamic";
 import type { FiltersState } from "./FiltersDrawer";
+import type { DealType, Property } from "@/types/property";
+
+type SupportedPropertyType = "apartment" | "house" | "land";
 
 type Props = {
-  dealType: "sale" | "rent";
-  propertyType: "apartment" | "house" | "land";
+  dealType: DealType;
+  propertyType: SupportedPropertyType;
   hoveredPropertyId: string | null;
   setHoveredPropertyId: (id: string | null) => void;
   selectedPropertyId: string | null;
@@ -14,6 +17,9 @@ type Props = {
   favoriteIds: string[];
   toggleFavorite: (id: string) => void;
   showFavoritesOnly: boolean;
+  properties: Property[];
+  isLoadingProperties: boolean;
+  propertiesError: string | null;
 };
 
 const Map = dynamic(() => import("./Map"), {
@@ -31,6 +37,9 @@ export default function MapWrapper({
   favoriteIds,
   toggleFavorite,
   showFavoritesOnly,
+  properties,
+  isLoadingProperties,
+  propertiesError,
 }: Props) {
   return (
     <Map
@@ -44,6 +53,9 @@ export default function MapWrapper({
       favoriteIds={favoriteIds}
       toggleFavorite={toggleFavorite}
       showFavoritesOnly={showFavoritesOnly}
+      properties={properties}
+      isLoadingProperties={isLoadingProperties}
+      propertiesError={propertiesError}
     />
   );
 }

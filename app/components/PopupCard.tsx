@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { DealType, PropertyType } from "@/types/property";
 
 type Props = {
   id: string;
@@ -8,8 +9,8 @@ type Props = {
   rooms?: number;
   area: number;
   images: string[];
-  dealType: "sale" | "rent";
-  propertyType: "apartment" | "house" | "land";
+  dealType: DealType;
+  propertyType: PropertyType;
 };
 
 export default function PopupCard({
@@ -58,8 +59,8 @@ export default function PopupCard({
     propertyType === "apartment"
       ? "Квартира"
       : propertyType === "house"
-      ? "Будинок"
-      : "Земля";
+        ? "Будинок"
+        : "Земля";
 
   const dealLabel = dealType === "sale" ? "Продаж" : "Оренда";
 
