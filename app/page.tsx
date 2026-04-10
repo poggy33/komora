@@ -45,6 +45,7 @@ export default function HomePage() {
 
   const { favoriteIds, toggleFavorite } = useFavorites();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  // const [previewCount, setPreviewCount] = useState(0);
 
   useEffect(() => {
     async function loadProperties() {
@@ -61,6 +62,7 @@ export default function HomePage() {
             });
 
         setProperties(data);
+        // setPreviewCount(data.length);
       } catch (error) {
         console.error(error);
         setPropertiesError("Не вдалося завантажити оголошення");
@@ -139,6 +141,7 @@ export default function HomePage() {
         }
         propertyType={propertyType}
         dealType={dealType}
+        // previewCount={previewCount}
       />
     </>
   );

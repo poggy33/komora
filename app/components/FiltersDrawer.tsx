@@ -1,8 +1,10 @@
 "use client";
 
+"use client";
+
 import { useEffect, useState } from "react";
-import { properties } from "../data/properties";
 import type { DealType } from "@/types/property";
+import { getPropertiesCountFromSupabase } from "lib/properties";
 
 export type FiltersState = {
   priceMin: string;
@@ -31,8 +33,11 @@ export default function FiltersDrawer({
   onReset,
   propertyType,
   dealType,
+  // previewCount,
 }: Props) {
   const [draft, setDraft] = useState<FiltersState>(value);
+  const [previewCount, setPreviewCount] = useState(0);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -65,39 +70,49 @@ export default function FiltersDrawer({
     }
   }, [propertyType]);
 
-  const previewFilters =
-    propertyType === "land" ? { ...draft, rooms: "" } : draft;
+  useEffect(() => {
+    if (!isOpen) return;
 
-  const previewCount = properties.filter((p) => {
-    if (p.dealType !== dealType) return false;
-    if (p.propertyType !== propertyType) return false;
+    const previewFilters =
+      propertyType === "land" ? { ...draft, rooms: "" } : draft;
 
-    const priceMin = previewFilters.priceMin
-      ? Number(previewFilters.priceMin)
-      : null;
-    const priceMax = previewFilters.priceMax
-      ? Number(previewFilters.priceMax)
-      : null;
-    const rooms = previewFilters.rooms ? Number(previewFilters.rooms) : null;
-    const areaMin = previewFilters.areaMin
-      ? Number(previewFilters.areaMin)
-      : null;
+    let isCancelled = false;
 
-    if (priceMin !== null && p.price < priceMin) return false;
-    if (priceMax !== null && p.price > priceMax) return false;
+    async function loadPreviewCount() {
+      try {
+        setIsPreviewLoading(true);
 
-    if (
-      rooms !== null &&
-      propertyType !== "land" &&
-      (p.rooms === undefined || p.rooms < rooms)
-    ) {
-      return false;
+        const count = await getPropertiesCountFromSupabase({
+          dealType,
+          propertyType,
+          filters: previewFilters,
+        });
+
+        if (!isCancelled) {
+          setPreviewCount(count);
+        }
+      } catch (error) {
+        console.error("Failed to load preview count:", error);
+
+        if (!isCancelled) {
+          setPreviewCount(0);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsPreviewLoading(false);
+        }
+      }
     }
 
-    if (areaMin !== null && p.area < areaMin) return false;
+    loadPreviewCount();
 
-    return true;
-  }).length;
+    return () => {
+      isCancelled = true;
+    };
+  }, [isOpen, draft, propertyType, dealType]);
+
+  const previewFilters =
+    propertyType === "land" ? { ...draft, rooms: "" } : draft;
 
   if (!isOpen) return null;
 
@@ -247,8 +262,9 @@ export default function FiltersDrawer({
               onClose();
             }}
             style={primaryButtonStyle}
+            disabled={isPreviewLoading}
           >
-            Показати {previewCount}
+            {isPreviewLoading ? "Рахуємо..." : `Показати ${previewCount}`}
           </button>
         </div>
       </div>

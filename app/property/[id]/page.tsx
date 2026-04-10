@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { properties } from "@/data/properties";
+// import { getPropertyByIdFromSupabase } from "@/lib/properties";
+import { getPropertyByIdFromSupabase } from "lib/properties";
 import PropertyGallery from "@/components/PropertyGallery";
 import SellerCard from "@/components/SellerCard";
 import PropertySpecsCard from "@/components/PropertySpecsCard";
@@ -17,7 +18,7 @@ type PageProps = {
 export default async function PropertyPage({ params }: PageProps) {
   const { id } = await params;
 
-  const property = properties.find((p) => String(p.id) === id);
+  const property = await getPropertyByIdFromSupabase(id);
 
   if (!property) {
     notFound();
@@ -84,67 +85,7 @@ export default async function PropertyPage({ params }: PageProps) {
         >
           <SellerCard property={property} />
         </div>
-        
       </div>
     </main>
   );
 }
-
-const infoCardStyle: React.CSSProperties = {
-  border: "1px solid #eee",
-  borderRadius: "14px",
-  padding: "16px",
-  background: "#fff",
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: "13px",
-  color: "#777",
-  marginBottom: "6px",
-};
-
-const valueStyle: React.CSSProperties = {
-  fontSize: "16px",
-  fontWeight: 600,
-};
-
-const chipStyle: React.CSSProperties = {
-  padding: "10px 14px",
-  borderRadius: "999px",
-  border: "1px solid #e5e5e5",
-  background: "#fafafa",
-  fontSize: "14px",
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "13px 14px",
-  borderRadius: "12px",
-  border: "1px solid #ddd",
-  fontSize: "15px",
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const primaryButtonStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "14px",
-  borderRadius: "14px",
-  border: "none",
-  background: "#111",
-  color: "#fff",
-  fontSize: "16px",
-  fontWeight: 600,
-  cursor: "pointer",
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  padding: "11px 14px",
-  borderRadius: "12px",
-  border: "1px solid #ddd",
-  background: "#fff",
-  color: "#111",
-  fontSize: "14px",
-  fontWeight: 600,
-  cursor: "pointer",
-};
