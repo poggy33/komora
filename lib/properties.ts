@@ -321,7 +321,7 @@ export async function createPropertyInSupabase(
     owner_id: null,
   };
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("properties")
     .insert([payload])
     .select("id")
@@ -332,4 +332,78 @@ export async function createPropertyInSupabase(
   }
 
   return String(data.id);
+}
+
+export async function uploadPropertyImages(
+  propertyId: string,
+  files: File[],
+): Promise<{ path: string; publicUrl: string; position: number }[]> {
+  const supabase = createClient();
+
+  const uploaded: { path: string; publicUrl: string; position: number }[] = [];
+
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const fileName = `${propertyId}/${index + 1}-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("property-media")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw new Error(`Failed to upload image: ${uploadError.message}`);
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("property-media")
+      .getPublicUrl(fileName);
+
+    uploaded.push({
+      path: fileName,
+      publicUrl: publicUrlData.publicUrl,
+      position: index,
+    });
+  }
+
+  return uploaded;
+}
+
+export async function attachPropertyImages(
+  propertyId: string,
+  images: { path: string; publicUrl: string; position: number }[],
+): Promise<void> {
+  const supabase = createClient();
+
+  const rows = images.map((image) => ({
+    property_id: propertyId,
+    storage_path: image.path,
+    public_url: image.publicUrl,
+    alt_text: null,
+    position: image.position,
+  }));
+
+  const { error: mediaError } = await supabase
+    .from("property_media")
+    .insert(rows as any);
+
+  if (mediaError) {
+    throw new Error(`Failed to attach images: ${mediaError.message}`);
+  }
+
+  if (images[0]?.publicUrl) {
+    const { error: coverError } = await supabase
+      .from("properties")
+      .update({
+        cover_image_url: images[0].publicUrl,
+      } as any)
+      .eq("id", propertyId);
+
+    if (coverError) {
+      throw new Error(`Failed to update cover image: ${coverError.message}`);
+    }
+  }
 }

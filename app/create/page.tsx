@@ -4,14 +4,25 @@ export default function CreatePage() {
   return (
     <main
       style={{
-        maxWidth: "960px",
-        margin: "0 auto",
-        padding: "24px",
+        minHeight: "100vh",
+        background: "#f7f7f7",
+        padding: "32px 16px",
         fontFamily: "Arial, sans-serif",
-        color: "#111",
       }}
     >
-      <CreatePropertyForm />
+      <div
+        style={{
+          maxWidth: "960px",
+          margin: "0 auto",
+          background: "#fff",
+          border: "1px solid #ececec",
+          borderRadius: "24px",
+          padding: "28px",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
+        }}
+      >
+        <CreatePropertyForm />
+      </div>
     </main>
   );
 }

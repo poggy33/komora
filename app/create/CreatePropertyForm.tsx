@@ -2,8 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createPropertyInSupabase } from "lib/properties";
+import dynamic from "next/dynamic";
 import type { DealType } from "@/types/property";
+import {
+  attachPropertyImages,
+  createPropertyInSupabase,
+  uploadPropertyImages,
+} from "lib/properties";
+
+const LocationPickerMap = dynamic(() => import("./LocationPickerMap"), {
+  ssr: false,
+});
 
 type SupportedPropertyType = "apartment" | "house" | "land";
 
@@ -51,6 +60,7 @@ export default function CreatePropertyForm() {
   const router = useRouter();
 
   const [form, setForm] = useState<FormState>(initialState);
+  const [images, setImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,15 +71,59 @@ export default function CreatePropertyForm() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleImagesChange = (files: FileList | null) => {
+    if (!files) return;
+
+    const incoming = Array.from(files).filter((file) =>
+      file.type.startsWith("image/"),
+    );
+
+    const oversized = incoming.find((file) => file.size > 5 * 1024 * 1024);
+    if (oversized) {
+      setError(`Файл "${oversized.name}" більший за 5 MB`);
+      return;
+    }
+
+    setImages((prev) => {
+      const combined = [...prev, ...incoming];
+
+      const deduped = combined.filter((file, index, arr) => {
+        return (
+          arr.findIndex(
+            (item) =>
+              item.name === file.name &&
+              item.size === file.size &&
+              item.lastModified === file.lastModified,
+          ) === index
+        );
+      });
+
+      if (deduped.length > 10) {
+        setError("Можна додати максимум 10 фото");
+        return deduped.slice(0, 10);
+      }
+
+      setError(null);
+      return deduped;
+    });
+  };
+
+  const removeImage = (indexToRemove: number) => {
+    setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
   const validate = () => {
     if (!form.title.trim()) return "Вкажи назву оголошення";
     if (!form.price.trim()) return "Вкажи ціну";
     if (!form.area.trim()) return "Вкажи площу";
     if (!form.city.trim()) return "Вкажи місто";
-    if (!form.lat.trim()) return "Вкажи latitude";
-    if (!form.lng.trim()) return "Вкажи longitude";
+    if (!form.lat.trim()) return "Оберіть точку на мапі";
+    if (!form.lng.trim()) return "Оберіть точку на мапі";
     if (!form.sellerName.trim()) return "Вкажи ім’я продавця";
     if (!form.sellerPhone.trim()) return "Вкажи телефон продавця";
+
+    if (images.length < 1) return "Додай хоча б одне фото";
+    if (images.length > 10) return "Максимум 10 фото";
 
     if (!isLand && !form.totalFloors.trim()) {
       return "Вкажи кількість поверхів";
@@ -115,6 +169,9 @@ export default function CreatePropertyForm() {
         sellerPhone: form.sellerPhone.trim(),
       });
 
+      const uploadedImages = await uploadPropertyImages(id, images);
+      await attachPropertyImages(id, uploadedImages);
+
       router.push(`/property/${id}`);
     } catch (err) {
       console.error(err);
@@ -146,7 +203,10 @@ export default function CreatePropertyForm() {
           <select
             value={form.propertyType}
             onChange={(e) =>
-              updateField("propertyType", e.target.value as SupportedPropertyType)
+              updateField(
+                "propertyType",
+                e.target.value as SupportedPropertyType,
+              )
             }
             style={inputStyle}
           >
@@ -160,7 +220,9 @@ export default function CreatePropertyForm() {
           <label style={labelStyle}>Продаж / оренда</label>
           <select
             value={form.dealType}
-            onChange={(e) => updateField("dealType", e.target.value as DealType)}
+            onChange={(e) =>
+              updateField("dealType", e.target.value as DealType)
+            }
             style={inputStyle}
           >
             <option value="sale">Продаж</option>
@@ -270,26 +332,6 @@ export default function CreatePropertyForm() {
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>Latitude</label>
-          <input
-            value={form.lat}
-            onChange={(e) => updateField("lat", e.target.value)}
-            style={inputStyle}
-            placeholder="48.9226"
-          />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Longitude</label>
-          <input
-            value={form.lng}
-            onChange={(e) => updateField("lng", e.target.value)}
-            style={inputStyle}
-            placeholder="24.7111"
-          />
-        </div>
-
-        <div style={fieldStyle}>
           <label style={labelStyle}>Ім’я продавця</label>
           <input
             value={form.sellerName}
@@ -308,6 +350,89 @@ export default function CreatePropertyForm() {
             placeholder="+380671234567"
           />
         </div>
+      </div>
+
+      <div style={fieldStyle}>
+        <label style={labelStyle}>Точка на мапі</label>
+        <LocationPickerMap
+          lat={form.lat ? Number(form.lat) : null}
+          lng={form.lng ? Number(form.lng) : null}
+          onPick={({ lat, lng }) => {
+            updateField("lat", String(lat));
+            updateField("lng", String(lng));
+          }}
+        />
+        <div style={hintStyle}>Клікни на мапі, щоб вибрати точку об’єкта.</div>
+      </div>
+
+      <div style={gridStyle}>
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Latitude</label>
+          <input
+            value={form.lat}
+            readOnly
+            style={{ ...inputStyle, background: "#f8f8f8" }}
+            placeholder="Оберіть точку на мапі"
+          />
+        </div>
+
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Longitude</label>
+          <input
+            value={form.lng}
+            readOnly
+            style={{ ...inputStyle, background: "#f8f8f8" }}
+            placeholder="Оберіть точку на мапі"
+          />
+        </div>
+      </div>
+
+      <div style={fieldStyle}>
+        <label style={labelStyle}>Фото оголошення</label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(e) => {
+            handleImagesChange(e.target.files);
+            e.currentTarget.value = "";
+          }}
+          style={fileInputStyle}
+        />
+        <div style={hintStyle}>
+          Додай від 1 до 10 фото. Перше фото стане головним.
+        </div>
+
+        {images.length > 0 && (
+          <>
+            <div style={imagesMetaStyle}>Вибрано {images.length} з 10 фото</div>
+
+            <div style={imagesGridStyle}>
+              {images.map((file, index) => (
+                <div key={`${file.name}-${index}`} style={imageCardStyle}>
+                  <div style={imageCardHeaderStyle}>
+                    <div style={imageCardTitleStyle}>
+                      {index === 0 ? "Головне фото" : `Фото ${index + 1}`}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      style={removeImageButtonStyle}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div style={imageCardNameStyle}>{file.name}</div>
+                  <div style={imageCardSizeStyle}>
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div style={fieldStyle}>
@@ -337,13 +462,14 @@ export default function CreatePropertyForm() {
 
 const formStyle: React.CSSProperties = {
   display: "grid",
-  gap: "20px",
+  gap: "24px",
 };
 
 const titleStyle: React.CSSProperties = {
-  fontSize: "28px",
-  fontWeight: 700,
+  fontSize: "30px",
+  fontWeight: 800,
   color: "#111",
+  margin: 0,
 };
 
 const gridStyle: React.CSSProperties = {
@@ -359,14 +485,20 @@ const fieldStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   fontSize: "14px",
-  fontWeight: 600,
-  color: "#333",
+  fontWeight: 700,
+  color: "#222",
+};
+
+const hintStyle: React.CSSProperties = {
+  fontSize: "13px",
+  color: "#666",
+  lineHeight: 1.45,
 };
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  height: "44px",
-  borderRadius: "12px",
+  height: "46px",
+  borderRadius: "14px",
   border: "1px solid #ddd",
   padding: "0 14px",
   fontSize: "14px",
@@ -375,10 +507,21 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
+const fileInputStyle: React.CSSProperties = {
+  width: "100%",
+  borderRadius: "14px",
+  border: "1px solid #ddd",
+  padding: "12px 14px",
+  fontSize: "14px",
+  outline: "none",
+  background: "#fff",
+  boxSizing: "border-box",
+};
+
 const textareaStyle: React.CSSProperties = {
   width: "100%",
-  minHeight: "120px",
-  borderRadius: "12px",
+  minHeight: "140px",
+  borderRadius: "14px",
   border: "1px solid #ddd",
   padding: "14px",
   fontSize: "14px",
@@ -386,12 +529,13 @@ const textareaStyle: React.CSSProperties = {
   background: "#fff",
   resize: "vertical",
   boxSizing: "border-box",
+  lineHeight: 1.5,
 };
 
 const submitButtonStyle: React.CSSProperties = {
-  height: "48px",
+  height: "50px",
   border: "none",
-  borderRadius: "12px",
+  borderRadius: "14px",
   background: "#111",
   color: "#fff",
   fontSize: "15px",
@@ -400,9 +544,68 @@ const submitButtonStyle: React.CSSProperties = {
 
 const errorStyle: React.CSSProperties = {
   padding: "12px 14px",
-  borderRadius: "12px",
+  borderRadius: "14px",
   background: "#fee2e2",
   color: "#991b1b",
   fontSize: "14px",
   fontWeight: 600,
+};
+
+const imagesMetaStyle: React.CSSProperties = {
+  fontSize: "13px",
+  color: "#444",
+  fontWeight: 600,
+};
+
+const imagesGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+  gap: "12px",
+};
+
+const imageCardStyle: React.CSSProperties = {
+  border: "1px solid #ececec",
+  borderRadius: "14px",
+  padding: "12px",
+  fontSize: "12px",
+  color: "#444",
+  background: "#fafafa",
+  display: "grid",
+  gap: "8px",
+};
+
+const imageCardHeaderStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "8px",
+};
+
+const imageCardTitleStyle: React.CSSProperties = {
+  fontWeight: 700,
+  color: "#111",
+  fontSize: "12px",
+};
+
+const imageCardNameStyle: React.CSSProperties = {
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  color: "#333",
+};
+
+const imageCardSizeStyle: React.CSSProperties = {
+  fontSize: "11px",
+  color: "#777",
+};
+
+const removeImageButtonStyle: React.CSSProperties = {
+  width: "28px",
+  height: "28px",
+  borderRadius: "999px",
+  border: "1px solid #ddd",
+  background: "#fff",
+  color: "#111",
+  cursor: "pointer",
+  flexShrink: 0,
 };
