@@ -1,6 +1,7 @@
 // підключаємо Supabase до списку
 import type { Property } from "@/types/property";
 import { createClient } from "../lib/supabase/client";
+import type { Database } from "@/types/database.types";
 
 function buildFullAddress(row: {
   address_line: string | null;
@@ -263,4 +264,72 @@ export async function getPropertiesCountFromSupabase({
   }
 
   return count ?? 0;
+}
+
+export type CreatePropertyInput = {
+  title: string;
+  description: string;
+  propertyType: "apartment" | "house" | "land";
+  dealType: "sale" | "rent";
+  price: number;
+  area: number;
+  rooms?: number;
+  floor?: number;
+  totalFloors?: number;
+  city: string;
+  region?: string;
+  district?: string;
+  addressLine?: string;
+  lat: number;
+  lng: number;
+  sellerName: string;
+  sellerPhone: string;
+};
+
+type PropertyInsert = Database["public"]["Tables"]["properties"]["Insert"];
+
+export async function createPropertyInSupabase(
+  input: CreatePropertyInput,
+): Promise<string> {
+  const supabase = createClient();
+
+  const payload: PropertyInsert = {
+    title: input.title,
+    description: input.description || null,
+    property_type: input.propertyType,
+    listing_type: input.dealType,
+    status: "published",
+    price: input.price,
+    currency: "USD",
+    area_total_m2: input.area,
+    rooms_count:
+      input.propertyType === "land" ? null : (input.rooms ?? null),
+    floor:
+      input.propertyType === "apartment" ? (input.floor ?? null) : null,
+    total_floors:
+      input.propertyType === "land" ? null : (input.totalFloors ?? null),
+    address_line: input.addressLine || null,
+    city: input.city,
+    region: input.region || null,
+    district: input.district || null,
+    lat: input.lat,
+    lng: input.lng,
+    seller_name: input.sellerName,
+    seller_phone: input.sellerPhone,
+    cover_image_url: null,
+    is_published: true,
+    owner_id: null,
+  };
+
+  const { data, error } = await (supabase as any)
+    .from("properties")
+    .insert([payload])
+    .select("id")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create property: ${error.message}`);
+  }
+
+  return String(data.id);
 }
