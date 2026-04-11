@@ -657,3 +657,201 @@ export async function restorePropertyInSupabase(id: string): Promise<void> {
     throw new Error(`Failed to restore property: ${error.message}`);
   }
 }
+
+export type EditablePropertyMediaItem = {
+  id: string;
+  propertyId: string;
+  publicUrl: string;
+  storagePath: string | null;
+  position: number;
+};
+
+export async function uploadAdditionalPropertyImages(
+  propertyId: string,
+  files: File[],
+  startPosition: number,
+): Promise<EditablePropertyMediaItem[]> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const uploadedRows: Database["public"]["Tables"]["property_media"]["Insert"][] = [];
+
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const fileName = `${propertyId}/${crypto.randomUUID()}-${index}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("property-media")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw new Error(`Failed to upload image: ${uploadError.message}`);
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("property-media")
+      .getPublicUrl(fileName);
+
+    uploadedRows.push({
+      property_id: propertyId,
+      storage_path: fileName,
+      public_url: publicUrlData.publicUrl,
+      alt_text: null,
+      position: startPosition + index,
+    });
+  }
+
+  const { data, error } = await supabase
+    .from("property_media")
+    .insert(uploadedRows)
+    .select("id, property_id, public_url, storage_path, position");
+
+  if (error) {
+    throw new Error(`Failed to attach uploaded images: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    propertyId: String(row.property_id),
+    publicUrl: row.public_url ?? "",
+    storagePath: row.storage_path ?? null,
+    position: row.position ?? 0,
+  }));
+}
+
+export async function deletePropertyImageFromSupabase(
+  propertyId: string,
+  mediaId: string,
+): Promise<void> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const { data: mediaRow, error: mediaLoadError } = await supabase
+    .from("property_media")
+    .select("id, property_id, public_url, storage_path")
+    .eq("id", mediaId)
+    .eq("property_id", propertyId)
+    .single();
+
+  if (mediaLoadError) {
+    throw new Error(`Failed to load media row: ${mediaLoadError.message}`);
+  }
+
+  const { data: propertyRow, error: propertyLoadError } = await supabase
+    .from("properties")
+    .select("cover_image_url")
+    .eq("id", propertyId)
+    .eq("owner_id", user.id)
+    .single();
+
+  if (propertyLoadError) {
+    throw new Error(`Failed to load property: ${propertyLoadError.message}`);
+  }
+
+  const { error: deleteRowError } = await supabase
+    .from("property_media")
+    .delete()
+    .eq("id", mediaId)
+    .eq("property_id", propertyId);
+
+  if (deleteRowError) {
+    throw new Error(`Failed to delete media row: ${deleteRowError.message}`);
+  }
+
+  if (mediaRow.storage_path) {
+    const { error: storageDeleteError } = await supabase.storage
+      .from("property-media")
+      .remove([mediaRow.storage_path]);
+
+    if (storageDeleteError) {
+      console.error("Failed to delete file from storage:", storageDeleteError);
+    }
+  }
+
+  if (propertyRow.cover_image_url === mediaRow.public_url) {
+    const { data: remainingRows, error: remainingError } = await supabase
+      .from("property_media")
+      .select("public_url")
+      .eq("property_id", propertyId)
+      .order("position", { ascending: true })
+      .limit(1);
+
+    if (remainingError) {
+      throw new Error(`Failed to load remaining media: ${remainingError.message}`);
+    }
+
+    const nextCoverUrl = remainingRows?.[0]?.public_url ?? null;
+
+    const { error: coverUpdateError } = await supabase
+      .from("properties")
+      .update({
+        cover_image_url: nextCoverUrl,
+      })
+      .eq("id", propertyId)
+      .eq("owner_id", user.id);
+
+    if (coverUpdateError) {
+      throw new Error(`Failed to update cover image: ${coverUpdateError.message}`);
+    }
+  }
+}
+
+export async function setPropertyCoverImageInSupabase(
+  propertyId: string,
+  publicUrl: string,
+): Promise<void> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const { error } = await supabase
+    .from("properties")
+    .update({
+      cover_image_url: publicUrl,
+    })
+    .eq("id", propertyId)
+    .eq("owner_id", user.id);
+
+  if (error) {
+    throw new Error(`Failed to update cover image: ${error.message}`);
+  }
+}

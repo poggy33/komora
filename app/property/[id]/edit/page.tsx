@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "lib/supabase/server";
-import { getEditablePropertyByIdFromSupabase } from "lib/properties";
+import {
+  getEditablePropertyByIdFromSupabase,
+  type EditablePropertyMediaItem,
+} from "lib/properties";
 import EditPropertyForm from "./EditPropertyForm";
 
 type PageProps = {
@@ -92,6 +95,35 @@ export default async function EditPropertyPage({ params }: PageProps) {
     notFound();
   }
 
+  const { data: mediaRows, error: mediaError } = await supabase
+    .from("property_media")
+    .select("id, property_id, public_url, storage_path, position")
+    .eq("property_id", id)
+    .order("position", { ascending: true });
+
+  if (mediaError) {
+    throw new Error(`Failed to load property media: ${mediaError.message}`);
+  }
+
+  const { data: propertyMeta, error: propertyMetaError } = await supabase
+    .from("properties")
+    .select("cover_image_url")
+    .eq("id", id)
+    .eq("owner_id", user.id)
+    .single();
+
+  if (propertyMetaError) {
+    throw new Error(`Failed to load property meta: ${propertyMetaError.message}`);
+  }
+
+  const media: EditablePropertyMediaItem[] = (mediaRows ?? []).map((row) => ({
+    id: String(row.id),
+    propertyId: String(row.property_id),
+    publicUrl: row.public_url ?? "",
+    storagePath: row.storage_path ?? null,
+    position: row.position ?? 0,
+  }));
+
   return (
     <main
       style={{
@@ -112,7 +144,11 @@ export default async function EditPropertyPage({ params }: PageProps) {
           boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
         }}
       >
-        <EditPropertyForm property={property} />
+        <EditPropertyForm
+          property={property}
+          media={media}
+          coverImageUrl={propertyMeta.cover_image_url ?? null}
+        />
       </div>
     </main>
   );

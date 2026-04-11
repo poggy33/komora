@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { DealType, Property } from "@/types/property";
 import { updatePropertyInSupabase } from "lib/properties";
+import type { EditablePropertyMediaItem } from "lib/properties";
+import PropertyPhotoManager from "./PropertyPhotoManager";
 
 const LocationPickerMap = dynamic(
   () => import("app/create/LocationPickerMap"),
@@ -15,6 +17,8 @@ type SupportedPropertyType = "apartment" | "house" | "land";
 
 type Props = {
   property: Property;
+  media: EditablePropertyMediaItem[];
+  coverImageUrl: string | null;
 };
 
 type FormState = {
@@ -47,7 +51,11 @@ function toSupportedPropertyType(
   return "apartment";
 }
 
-export default function EditPropertyForm({ property }: Props) {
+export default function EditPropertyForm({
+  property,
+  media,
+  coverImageUrl,
+}: Props) {
   const router = useRouter();
 
   const [form, setForm] = useState<FormState>({
@@ -351,6 +359,12 @@ export default function EditPropertyForm({ property }: Props) {
         </div>
       </div>
 
+      <PropertyPhotoManager
+        propertyId={property.id}
+        initialMedia={media}
+        initialCoverImageUrl={coverImageUrl}
+      />
+      
       <div style={fieldStyle}>
         <label style={labelStyle}>Опис</label>
         <textarea
