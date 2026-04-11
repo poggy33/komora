@@ -12,6 +12,7 @@ type Props = {
   favoriteIds: string[];
   toggleFavorite: (id: string) => void;
   showFavoritesOnly: boolean;
+  onUserInteract?: () => void;
 };
 
 export default function Sidebar({
@@ -23,6 +24,7 @@ export default function Sidebar({
   favoriteIds,
   toggleFavorite,
   showFavoritesOnly,
+  onUserInteract,
 }: Props) {
   return (
     <div
@@ -73,6 +75,14 @@ export default function Sidebar({
         </div>
       </div>
 
+      {/* <div
+        className="sidebar-scroll sidebar-cards"
+        style={{
+          padding: "14px",
+          overflowY: "auto",
+          flex: 1,
+        }}
+      > */}
       <div
         className="sidebar-scroll sidebar-cards"
         style={{
@@ -80,6 +90,8 @@ export default function Sidebar({
           overflowY: "auto",
           flex: 1,
         }}
+        onScroll={() => onUserInteract?.()}
+        onTouchStart={() => onUserInteract?.()}
       >
         {properties.length === 0 ? (
           <EmptyState isFavorites={showFavoritesOnly} />
@@ -89,7 +101,13 @@ export default function Sidebar({
             const isSelected = selectedPropertyId === String(property.id);
 
             return (
-              <div key={property.id} style={{ marginBottom: "14px" }}>
+              // <div key={property.id} style={{ marginBottom: "14px" }}>
+                            <div
+                key={property.id}
+                style={{ marginBottom: "14px" }}
+                onMouseDown={() => onUserInteract?.()}
+                onTouchStart={() => onUserInteract?.()}
+              >
                 <PropertyListCard
                   key={property.id}
                   property={property}
@@ -126,7 +144,6 @@ function getDealLabel(properties: Property[]) {
 
   return deal === "sale" ? "Продаж" : "Оренда";
 }
-
 
 function EmptyState({ isFavorites }: { isFavorites: boolean }) {
   return (
