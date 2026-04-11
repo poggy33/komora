@@ -466,3 +466,49 @@ export async function attachPropertyImages(
     }
   }
 }
+
+export async function getMyPropertiesFromSupabase(
+  ownerId: string,
+): Promise<Property[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("properties")
+    .select(`
+      id,
+      owner_id,
+      title,
+      description,
+      property_type,
+      listing_type,
+      status,
+      price,
+      currency,
+      area_total_m2,
+      rooms_count,
+      floor,
+      total_floors,
+      address_line,
+      city,
+      region,
+      district,
+      lat,
+      lng,
+      seller_name,
+      seller_phone,
+      cover_image_url,
+      created_at,
+      property_media (
+        public_url,
+        position
+      )
+    `)
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to load my properties: ${error.message}`);
+  }
+
+  return (data ?? []).map(mapDbPropertyToUi);
+}
