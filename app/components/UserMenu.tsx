@@ -19,16 +19,13 @@ export default function UserMenu({ onClose }: Props) {
       if (error && error.name !== "AuthSessionMissingError") {
         console.error("Sign out error:", error);
       }
-
-      onClose?.();
-      window.location.href = "/";
     } catch (error: any) {
       if (error?.name !== "AuthSessionMissingError") {
         console.error("Failed to sign out:", error);
       }
-
+    } finally {
       onClose?.();
-      window.location.href = "/";
+      window.location.replace("/");
     }
   };
 
@@ -46,7 +43,8 @@ export default function UserMenu({ onClose }: Props) {
         <div style={sectionStyle}>
           <div style={menuTitleStyle}>Увійдіть</div>
           <div style={mutedTextStyle}>
-            Щоб створювати оголошення, керувати своїми об’єктами та мати збережені дані.
+            Щоб створювати оголошення, керувати своїми об’єктами та мати
+            збережені дані.
           </div>
         </div>
 

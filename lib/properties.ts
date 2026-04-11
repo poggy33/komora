@@ -288,12 +288,72 @@ export type CreatePropertyInput = {
 
 type PropertyInsert = Database["public"]["Tables"]["properties"]["Insert"];
 
+// export async function createPropertyInSupabase(
+//   input: CreatePropertyInput,
+// ): Promise<string> {
+//   const supabase = createClient();
+
+//   const payload: PropertyInsert = {
+//     title: input.title,
+//     description: input.description || null,
+//     property_type: input.propertyType,
+//     listing_type: input.dealType,
+//     status: "published",
+//     price: input.price,
+//     currency: "USD",
+//     area_total_m2: input.area,
+//     rooms_count:
+//       input.propertyType === "land" ? null : (input.rooms ?? null),
+//     floor:
+//       input.propertyType === "apartment" ? (input.floor ?? null) : null,
+//     total_floors:
+//       input.propertyType === "land" ? null : (input.totalFloors ?? null),
+//     address_line: input.addressLine || null,
+//     city: input.city,
+//     region: input.region || null,
+//     district: input.district || null,
+//     lat: input.lat,
+//     lng: input.lng,
+//     seller_name: input.sellerName,
+//     seller_phone: input.sellerPhone,
+//     cover_image_url: null,
+//     is_published: true,
+//     owner_id: null,
+//   };
+
+//   const { data, error } = await supabase
+//     .from("properties")
+//     .insert([payload])
+//     .select("id")
+//     .single();
+
+//   if (error) {
+//     throw new Error(`Failed to create property: ${error.message}`);
+//   }
+
+//   return String(data.id);
+// }
+
 export async function createPropertyInSupabase(
   input: CreatePropertyInput,
 ): Promise<string> {
   const supabase = createClient();
 
-  const payload: PropertyInsert = {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const payload: Database["public"]["Tables"]["properties"]["Insert"] = {
+    owner_id: user.id,
     title: input.title,
     description: input.description || null,
     property_type: input.propertyType,
@@ -318,7 +378,6 @@ export async function createPropertyInSupabase(
     seller_phone: input.sellerPhone,
     cover_image_url: null,
     is_published: true,
-    owner_id: null,
   };
 
   const { data, error } = await supabase

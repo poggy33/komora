@@ -69,14 +69,6 @@ export default function CreatePropertyForm() {
   const isApartment = form.propertyType === "apartment";
   const [user, setUser] = useState<any>(null);
 
-  //   useEffect(() => {
-  //     const supabase = createClient();
-
-  //     supabase.auth.getUser().then(({ data }) => {
-  //       setUser(data.user ?? null);
-  //     });
-  //   }, []);
-
   const updateField = (key: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
@@ -148,11 +140,7 @@ export default function CreatePropertyForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      setError("Увійди, щоб створити оголошення");
-      return;
-    }
-
+ 
     const validationError = validate();
     if (validationError) {
       setError(validationError);
