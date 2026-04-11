@@ -855,3 +855,88 @@ export async function setPropertyCoverImageInSupabase(
     throw new Error(`Failed to update cover image: ${error.message}`);
   }
 }
+
+export async function getSavedPropertyIdsFromSupabase(): Promise<string[]> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("saved_properties")
+    .select("property_id")
+    .eq("user_id", user.id);
+
+  if (error) {
+    throw new Error(`Failed to load saved properties: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => String(row.property_id));
+}
+
+export async function savePropertyInSupabase(propertyId: string): Promise<void> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const payload: Database["public"]["Tables"]["saved_properties"]["Insert"] = {
+    user_id: user.id,
+    property_id: propertyId,
+  };
+
+  const { error } = await supabase
+    .from("saved_properties")
+    .insert([payload]);
+
+  if (error && error.code !== "23505") {
+    throw new Error(`Failed to save property: ${error.message}`);
+  }
+}
+
+export async function unsavePropertyInSupabase(propertyId: string): Promise<void> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const { error } = await supabase
+    .from("saved_properties")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("property_id", propertyId);
+
+  if (error) {
+    throw new Error(`Failed to unsave property: ${error.message}`);
+  }
+}
