@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import type { DealType } from "@/types/property";
+import { useAuthUser } from "@/hooks/useAuthUser";
+import UserMenu from "@/components/UserMenu";
+import { useRef } from "react";
 
 type SupportedPropertyType = "apartment" | "house" | "land";
 
@@ -58,6 +61,9 @@ export default function MainTopBar({
   };
   const [filtersBadgePop, setFiltersBadgePop] = useState(false);
   const [favoritesBadgePop, setFavoritesBadgePop] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { user, isAuthenticated } = useAuthUser();
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (activeFiltersCount <= 0) return;
@@ -82,6 +88,24 @@ export default function MainTopBar({
 
     return () => clearTimeout(timer);
   }, [favoritesCount]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!menuRef.current) return;
+
+      if (!menuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
 
   return (
     <header
@@ -279,15 +303,33 @@ export default function MainTopBar({
           </div>
         </div>
 
-        <button
-          type="button"
-          className="main-topbar-user"
-          onClick={onOpenUserMenu}
-          style={userButtonStyle}
-          aria-label="Відкрити меню користувача"
-        >
-          👤
-        </button>
+        <div style={{ position: "relative" }} ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setIsUserMenuOpen((prev) => !prev)}
+            style={{
+              ...userButtonStyle,
+              background: isAuthenticated ? "#111" : "#fff",
+              color: isAuthenticated ? "#fff" : "#111",
+              border: isAuthenticated ? "1px solid #111" : "1px solid #ddd",
+            }}
+          >
+            {isAuthenticated ? user?.phone?.slice(-2) || "•" : "👤"}
+          </button>
+
+          {isUserMenuOpen && (
+            <div
+              style={{
+                position: "absolute",
+                top: "54px",
+                right: 0,
+                zIndex: 50,
+              }}
+            >
+              <UserMenu onClose={() => setIsUserMenuOpen(false)} />
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

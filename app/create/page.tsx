@@ -1,6 +1,14 @@
+import Link from "next/link";
+import { createClient } from "lib/supabase/server";
 import CreatePropertyForm from "./CreatePropertyForm";
 
-export default function CreatePage() {
+export default async function CreatePage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <main
       style={{
@@ -21,7 +29,60 @@ export default function CreatePage() {
           boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
         }}
       >
-        <CreatePropertyForm />
+        {!user ? (
+          <div
+            style={{
+              display: "grid",
+              gap: "18px",
+              justifyItems: "start",
+            }}
+          >
+            <h1
+              style={{
+                margin: 0,
+                fontSize: "30px",
+                fontWeight: 800,
+                color: "#111",
+              }}
+            >
+              Увійдіть, щоб створити оголошення
+            </h1>
+
+            <div
+              style={{
+                fontSize: "15px",
+                color: "#666",
+                lineHeight: 1.6,
+                maxWidth: "640px",
+              }}
+            >
+              Створення оголошень доступне лише авторизованим користувачам.
+              Після входу ти зможеш додавати об’єкти, завантажувати фото та
+              керувати своїми оголошеннями.
+            </div>
+
+            <Link
+              href="/auth"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "48px",
+                padding: "0 18px",
+                borderRadius: "14px",
+                background: "#111",
+                color: "#fff",
+                textDecoration: "none",
+                fontSize: "15px",
+                fontWeight: 700,
+              }}
+            >
+              Увійти
+            </Link>
+          </div>
+        ) : (
+          <CreatePropertyForm />
+        )}
       </div>
     </main>
   );
