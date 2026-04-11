@@ -310,6 +310,12 @@ export async function createPropertyInSupabase(
     throw new Error("Unauthorized");
   }
 
+  const { draftCount } = await getMyPropertyStatusCountsFromSupabase();
+
+  if (input.publicationStatus === "draft" && draftCount >= 3) {
+    throw new Error("Draft limit reached");
+  }
+
   const payload: Database["public"]["Tables"]["properties"]["Insert"] = {
     owner_id: user.id,
     title: input.title,
@@ -611,6 +617,12 @@ export async function archivePropertyInSupabase(id: string): Promise<void> {
 
   if (!user) {
     throw new Error("Unauthorized");
+  }
+
+  const { archivedCount } = await getMyPropertyStatusCountsFromSupabase();
+
+  if (archivedCount >= 10) {
+    throw new Error("Archived limit reached");
   }
 
   const payload: Database["public"]["Tables"]["properties"]["Update"] = {
@@ -1008,4 +1020,40 @@ export async function unpublishPropertyToDraftInSupabase(
   if (error) {
     throw new Error(`Failed to move property to draft: ${error.message}`);
   }
+}
+
+export async function getMyPropertyStatusCountsFromSupabase(): Promise<{
+  draftCount: number;
+  archivedCount: number;
+}> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const { data, error } = await supabase
+    .from("properties")
+    .select("status")
+    .eq("owner_id", user.id);
+
+  if (error) {
+    throw new Error(`Failed to load property counts: ${error.message}`);
+  }
+
+  const rows = data ?? [];
+
+  return {
+    draftCount: rows.filter((row) => row.status === "draft").length,
+    archivedCount: rows.filter((row) => row.status === "archived").length,
+  };
 }

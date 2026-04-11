@@ -24,8 +24,14 @@ export default function ArchivePropertyButton({
       setIsSubmitting(true);
       await archivePropertyInSupabase(propertyId);
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+
+      if (error?.message === "Archived limit reached") {
+        alert("Можна мати не більше 5 архівних оголошень");
+        return;
+      }
+
       alert("Не вдалося архівувати оголошення");
     } finally {
       setIsSubmitting(false);

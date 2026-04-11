@@ -127,8 +127,13 @@ export default function CreatePropertyForm() {
     if (!form.sellerName.trim()) return "Вкажи ім’я продавця";
     if (!form.sellerPhone.trim()) return "Вкажи телефон продавця";
 
-    if (images.length < 1) return "Додай хоча б одне фото";
-    if (images.length > 10) return "Максимум 10 фото";
+    if (submitMode === "published" && images.length < 1) {
+      return "Щоб опублікувати оголошення, додай хоча б одне фото";
+    }
+
+    if (images.length > 10) {
+      return "Максимум 10 фото";
+    }
 
     if (!isLand && !form.totalFloors.trim()) {
       return "Вкажи кількість поверхів";
@@ -175,12 +180,20 @@ export default function CreatePropertyForm() {
         publicationStatus: submitMode,
       });
 
-      const uploadedImages = await uploadPropertyImages(id, images);
-      await attachPropertyImages(id, uploadedImages);
+      if (images.length > 0) {
+        const uploadedImages = await uploadPropertyImages(id, images);
+        await attachPropertyImages(id, uploadedImages);
+      }
 
       router.push(`/property/${id}`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+
+      if (err?.message === "Draft limit reached") {
+        setError("Можна мати не більше 3 чернеток");
+        return;
+      }
+
       setError("Не вдалося створити оголошення");
     } finally {
       setIsSubmitting(false);
