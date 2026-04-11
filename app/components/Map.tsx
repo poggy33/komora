@@ -308,10 +308,10 @@ export default function Map({
         source: "points",
         filter: ["has", "point_count"],
         paint: {
-          "circle-color": "#2563eb",
-          "circle-radius": ["step", ["get", "point_count"], 20, 10, 25, 30, 30],
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#fff",
+          "circle-color": "#ffffff",
+          "circle-radius": ["step", ["get", "point_count"], 20, 10, 24, 30, 28],
+          "circle-stroke-width": 1.5,
+          "circle-stroke-color": "#d9d9d9",
         },
       });
 
@@ -325,7 +325,7 @@ export default function Map({
           "text-size": 14,
         },
         paint: {
-          "text-color": "#fff",
+          "text-color": "#111111",
         },
       });
 
