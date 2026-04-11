@@ -3,6 +3,8 @@ import { createClient } from "lib/supabase/server";
 import ArchivePropertyButton from "./ArchivePropertyButton";
 import RestorePropertyButton from "./RestorePropertyButton";
 import type { Property } from "@/types/property";
+import PublishPropertyButton from "./PublishPropertyButton";
+import MoveToDraftButton from "./MoveToDraftButton";
 
 function buildFullAddress(row: {
   address_line: string | null;
@@ -269,18 +271,28 @@ export default async function MyPropertiesPage() {
                         background:
                           property.status === "archived"
                             ? "#f3f4f6"
-                            : "#ecfdf3",
+                            : property.status === "draft"
+                              ? "#fff7ed"
+                              : "#ecfdf3",
                         border:
                           property.status === "archived"
                             ? "1px solid #d1d5db"
-                            : "1px solid #bbf7d0",
+                            : property.status === "draft"
+                              ? "1px solid #fed7aa"
+                              : "1px solid #bbf7d0",
                         color:
                           property.status === "archived"
                             ? "#374151"
-                            : "#166534",
+                            : property.status === "draft"
+                              ? "#9a3412"
+                              : "#166534",
                       }}
                     >
-                      {property.status === "archived" ? "Архів" : "Активне"}
+                      {property.status === "archived"
+                        ? "Архів"
+                        : property.status === "draft"
+                          ? "Чернетка"
+                          : "Активне"}
                     </span>
 
                     <span style={chipStyle}>
@@ -302,7 +314,7 @@ export default async function MyPropertiesPage() {
                     <span style={chipStyle}>{property.area} м²</span>
                   </div>
 
-                  <div
+                  {/* <div
                     style={{
                       display: "flex",
                       gap: "10px",
@@ -343,6 +355,55 @@ export default async function MyPropertiesPage() {
                       <RestorePropertyButton propertyId={property.id} />
                     ) : (
                       <ArchivePropertyButton propertyId={property.id} />
+                    )}
+                  </div> */}
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Link
+                      href={`/property/${property.id}`}
+                      style={primaryLinkStyle}
+                    >
+                      Відкрити
+                    </Link>
+
+                    <Link
+                      href={`/property/${property.id}/edit`}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "46px",
+                        padding: "0 16px",
+                        borderRadius: "14px",
+                        border: "1px solid #ddd",
+                        background: "#fff",
+                        color: "#111",
+                        textDecoration: "none",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        pointerEvents:
+                          property.status === "archived" ? "none" : "auto",
+                        opacity: property.status === "archived" ? 0.6 : 1,
+                      }}
+                    >
+                      Редагувати
+                    </Link>
+
+                    {property.status === "draft" ? (
+                      <PublishPropertyButton propertyId={property.id} />
+                    ) : property.status === "archived" ? (
+                      <RestorePropertyButton propertyId={property.id} />
+                    ) : (
+                      <>
+                        <MoveToDraftButton propertyId={property.id} />
+                        <ArchivePropertyButton propertyId={property.id} />
+                      </>
                     )}
                   </div>
                 </div>

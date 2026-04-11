@@ -285,6 +285,7 @@ export type CreatePropertyInput = {
   lng: number;
   sellerName: string;
   sellerPhone: string;
+  publicationStatus: "draft" | "published";
 };
 
 type PropertyInsert = Database["public"]["Tables"]["properties"]["Insert"];
@@ -315,7 +316,8 @@ export async function createPropertyInSupabase(
     description: input.description || null,
     property_type: input.propertyType,
     listing_type: input.dealType,
-    status: "published",
+    // status: "published",
+    status: input.publicationStatus,
     price: input.price,
     currency: "USD",
     area_total_m2: input.area,
@@ -334,7 +336,8 @@ export async function createPropertyInSupabase(
     seller_name: input.sellerName,
     seller_phone: input.sellerPhone,
     cover_image_url: null,
-    is_published: true,
+    // is_published: true,
+    is_published: input.publicationStatus === "published",
   };
 
   const { data, error } = await supabase
@@ -938,5 +941,71 @@ export async function unsavePropertyInSupabase(propertyId: string): Promise<void
 
   if (error) {
     throw new Error(`Failed to unsave property: ${error.message}`);
+  }
+}
+
+export async function publishPropertyInSupabase(id: string): Promise<void> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const payload: Database["public"]["Tables"]["properties"]["Update"] = {
+    status: "published",
+    is_published: true,
+  };
+
+  const { error } = await supabase
+    .from("properties")
+    .update(payload)
+    .eq("id", id)
+    .eq("owner_id", user.id);
+
+  if (error) {
+    throw new Error(`Failed to publish property: ${error.message}`);
+  }
+}
+
+export async function unpublishPropertyToDraftInSupabase(
+  id: string,
+): Promise<void> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const payload: Database["public"]["Tables"]["properties"]["Update"] = {
+    status: "draft",
+    is_published: false,
+  };
+
+  const { error } = await supabase
+    .from("properties")
+    .update(payload)
+    .eq("id", id)
+    .eq("owner_id", user.id);
+
+  if (error) {
+    throw new Error(`Failed to move property to draft: ${error.message}`);
   }
 }

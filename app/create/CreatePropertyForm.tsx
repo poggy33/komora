@@ -68,6 +68,9 @@ export default function CreatePropertyForm() {
   const isLand = form.propertyType === "land";
   const isApartment = form.propertyType === "apartment";
   const [user, setUser] = useState<any>(null);
+  const [submitMode, setSubmitMode] = useState<"draft" | "published">(
+    "published",
+  );
 
   const updateField = (key: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -140,7 +143,7 @@ export default function CreatePropertyForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
- 
+
     const validationError = validate();
     if (validationError) {
       setError(validationError);
@@ -169,6 +172,7 @@ export default function CreatePropertyForm() {
         lng: Number(form.lng),
         sellerName: form.sellerName.trim(),
         sellerPhone: form.sellerPhone.trim(),
+        publicationStatus: submitMode,
       });
 
       const uploadedImages = await uploadPropertyImages(id, images);
@@ -447,17 +451,43 @@ export default function CreatePropertyForm() {
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
+      <div
         style={{
-          ...submitButtonStyle,
-          opacity: isSubmitting ? 0.7 : 1,
-          cursor: isSubmitting ? "not-allowed" : "pointer",
+          display: "flex",
+          gap: "12px",
+          flexWrap: "wrap",
         }}
       >
-        {isSubmitting ? "Створюємо..." : "Створити оголошення"}
-      </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          onClick={() => setSubmitMode("draft")}
+          style={{
+            ...secondarySubmitButtonStyle,
+            opacity: isSubmitting ? 0.7 : 1,
+            cursor: isSubmitting ? "not-allowed" : "pointer",
+          }}
+        >
+          {isSubmitting && submitMode === "draft"
+            ? "Зберігаємо..."
+            : "Зберегти як чернетку"}
+        </button>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          onClick={() => setSubmitMode("published")}
+          style={{
+            ...submitButtonStyle,
+            opacity: isSubmitting ? 0.7 : 1,
+            cursor: isSubmitting ? "not-allowed" : "pointer",
+          }}
+        >
+          {isSubmitting && submitMode === "published"
+            ? "Публікуємо..."
+            : "Опублікувати"}
+        </button>
+      </div>
     </form>
   );
 }
@@ -610,4 +640,15 @@ const removeImageButtonStyle: React.CSSProperties = {
   color: "#111",
   cursor: "pointer",
   flexShrink: 0,
+};
+
+const secondarySubmitButtonStyle: React.CSSProperties = {
+  height: "50px",
+  border: "1px solid #ddd",
+  borderRadius: "14px",
+  background: "#fff",
+  color: "#111",
+  fontSize: "15px",
+  fontWeight: 700,
+  padding: "0 16px",
 };
