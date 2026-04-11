@@ -103,6 +103,7 @@ export async function getPropertiesFromSupabase({
       description,
       property_type,
       listing_type,
+      status,
       price,
       currency,
       area_total_m2,
@@ -288,51 +289,7 @@ export type CreatePropertyInput = {
 
 type PropertyInsert = Database["public"]["Tables"]["properties"]["Insert"];
 
-// export async function createPropertyInSupabase(
-//   input: CreatePropertyInput,
-// ): Promise<string> {
-//   const supabase = createClient();
 
-//   const payload: PropertyInsert = {
-//     title: input.title,
-//     description: input.description || null,
-//     property_type: input.propertyType,
-//     listing_type: input.dealType,
-//     status: "published",
-//     price: input.price,
-//     currency: "USD",
-//     area_total_m2: input.area,
-//     rooms_count:
-//       input.propertyType === "land" ? null : (input.rooms ?? null),
-//     floor:
-//       input.propertyType === "apartment" ? (input.floor ?? null) : null,
-//     total_floors:
-//       input.propertyType === "land" ? null : (input.totalFloors ?? null),
-//     address_line: input.addressLine || null,
-//     city: input.city,
-//     region: input.region || null,
-//     district: input.district || null,
-//     lat: input.lat,
-//     lng: input.lng,
-//     seller_name: input.sellerName,
-//     seller_phone: input.sellerPhone,
-//     cover_image_url: null,
-//     is_published: true,
-//     owner_id: null,
-//   };
-
-//   const { data, error } = await supabase
-//     .from("properties")
-//     .insert([payload])
-//     .select("id")
-//     .single();
-
-//   if (error) {
-//     throw new Error(`Failed to create property: ${error.message}`);
-//   }
-
-//   return String(data.id);
-// }
 
 export async function createPropertyInSupabase(
   input: CreatePropertyInput,
@@ -511,4 +468,192 @@ export async function getMyPropertiesFromSupabase(
   }
 
   return (data ?? []).map(mapDbPropertyToUi);
+}
+
+
+export async function getEditablePropertyByIdFromSupabase(
+  id: string,
+  ownerId: string,
+): Promise<Property | null> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("properties")
+    .select(`
+      id,
+      owner_id,
+      title,
+      description,
+      property_type,
+      listing_type,
+      status,
+      price,
+      currency,
+      area_total_m2,
+      rooms_count,
+      floor,
+      total_floors,
+      address_line,
+      city,
+      region,
+      district,
+      lat,
+      lng,
+      seller_name,
+      seller_phone,
+      cover_image_url,
+      created_at,
+      property_media (
+        public_url,
+        position
+      )
+    `)
+    .eq("id", id)
+    .eq("owner_id", ownerId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load editable property: ${error.message}`);
+  }
+
+  if (!data) return null;
+
+  return mapDbPropertyToUi(data);
+}
+
+export type UpdatePropertyInput = {
+  id: string;
+  title: string;
+  description: string;
+  propertyType: "apartment" | "house" | "land";
+  dealType: "sale" | "rent";
+  price: number;
+  area: number;
+  rooms?: number;
+  floor?: number;
+  totalFloors?: number;
+  city: string;
+  region?: string;
+  district?: string;
+  addressLine?: string;
+  lat: number;
+  lng: number;
+  sellerName: string;
+  sellerPhone: string;
+};
+
+export async function updatePropertyInSupabase(
+  input: UpdatePropertyInput,
+): Promise<void> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const payload: Database["public"]["Tables"]["properties"]["Update"] = {
+    title: input.title,
+    description: input.description || null,
+    property_type: input.propertyType,
+    listing_type: input.dealType,
+    price: input.price,
+    area_total_m2: input.area,
+    rooms_count:
+      input.propertyType === "land" ? null : (input.rooms ?? null),
+    floor:
+      input.propertyType === "apartment" ? (input.floor ?? null) : null,
+    total_floors:
+      input.propertyType === "land" ? null : (input.totalFloors ?? null),
+    address_line: input.addressLine || null,
+    city: input.city,
+    region: input.region || null,
+    district: input.district || null,
+    lat: input.lat,
+    lng: input.lng,
+    seller_name: input.sellerName,
+    seller_phone: input.sellerPhone,
+  };
+
+  const { error } = await supabase
+    .from("properties")
+    .update(payload)
+    .eq("id", input.id)
+    .eq("owner_id", user.id);
+
+  if (error) {
+    throw new Error(`Failed to update property: ${error.message}`);
+  }
+}
+
+export async function archivePropertyInSupabase(id: string): Promise<void> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const payload: Database["public"]["Tables"]["properties"]["Update"] = {
+    status: "archived",
+    is_published: false,
+  };
+
+  const { error } = await supabase
+    .from("properties")
+    .update(payload)
+    .eq("id", id)
+    .eq("owner_id", user.id);
+
+  if (error) {
+    throw new Error(`Failed to archive property: ${error.message}`);
+  }
+}
+
+export async function restorePropertyInSupabase(id: string): Promise<void> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const payload: Database["public"]["Tables"]["properties"]["Update"] = {
+    status: "published",
+    is_published: true,
+  };
+
+  const { error } = await supabase
+    .from("properties")
+    .update(payload)
+    .eq("id", id)
+    .eq("owner_id", user.id);
+
+  if (error) {
+    throw new Error(`Failed to restore property: ${error.message}`);
+  }
 }
