@@ -9,6 +9,7 @@ import { createRoot, type Root } from "react-dom/client";
 import PopupCard from "./PopupCard";
 import type { FiltersState } from "./FiltersDrawer";
 import type { DealType, Property } from "@/types/property";
+import MobilePropertyOverlay from "./MobilePropertyOverlay";
 
 type SupportedPropertyType = "apartment" | "house" | "land";
 
@@ -50,8 +51,9 @@ export default function Map({
     new globalThis.Map(),
   );
   const filteredPropertiesRef = useRef<Property[]>([]);
-  const [isMobileMapFocused, setIsMobileMapFocused] = useState(false);
+  // const [isMobileMapFocused, setIsMobileMapFocused] = useState(false);
 
+  const [mobileViewMode, setMobileViewMode] = useState<"map" | "list">("map");
   const formatCompactPrice = (num: number) => {
     if (num >= 1000000) {
       const value = num / 1000000;
@@ -227,10 +229,20 @@ export default function Map({
 
         //map sidebar interactive
         if (window.innerWidth <= 768) {
-          setIsMobileMapFocused(true);
+          // setIsMobileMapFocused(true);
+          setMobileViewMode("map");
         }
+
         setSelectedPropertyId(String(property.id));
-        openPropertyPopup(map, property, property.coordinates);
+
+        if (window.innerWidth <= 768) {
+          if (popupRef.current) {
+            popupRef.current.remove();
+            popupRef.current = null;
+          }
+        } else {
+          openPropertyPopup(map, property, property.coordinates);
+        }
       });
 
       const marker = new mapboxgl.Marker({
@@ -415,19 +427,22 @@ export default function Map({
 
       map.on("dragstart", () => {
         if (window.innerWidth <= 768) {
-          setIsMobileMapFocused(true);
+          // setIsMobileMapFocused(true);
+          setMobileViewMode("map");
         }
       });
 
       map.on("zoomstart", () => {
         if (window.innerWidth <= 768) {
-          setIsMobileMapFocused(true);
+          // setIsMobileMapFocused(true);
+          setMobileViewMode("map");
         }
       });
 
       map.on("touchstart", () => {
         if (window.innerWidth <= 768) {
-          setIsMobileMapFocused(true);
+          // setIsMobileMapFocused(true);
+          setMobileViewMode("map");
         }
       });
     });
@@ -485,16 +500,16 @@ export default function Map({
   }, [hoveredPropertyId, selectedPropertyId]);
 
   useEffect(() => {
-  if (!mapRef.current) return;
+    if (!mapRef.current) return;
 
-  const timer = window.setTimeout(() => {
-    mapRef.current?.resize();
-  }, 230);
+    const timer = window.setTimeout(() => {
+      mapRef.current?.resize();
+    }, 230);
 
-  return () => {
-    window.clearTimeout(timer);
-  };
-}, [isMobile, isMobileMapFocused]);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [isMobile, mobileViewMode]);
 
   const handleSelect = (p: Property) => {
     if (!mapRef.current) return;
@@ -510,8 +525,8 @@ export default function Map({
     });
   };
 
-  const mobileMapHeight = isMobileMapFocused ? "72%" : "58%";
-  const mobileListHeight = isMobileMapFocused ? "28%" : "42%";
+  const mobileMapHeight = mobileViewMode === "map" ? "88%" : "10%";
+  const mobileListHeight = mobileViewMode === "map" ? "12%" : "90%";
 
   if (isMobile === null) {
     return (
@@ -525,137 +540,6 @@ export default function Map({
     );
   }
 
-
-  // return (
-  //   <div
-  //     style={{
-  //       height: "100%",
-  //       display: "grid",
-  //       gridTemplateColumns: "380px minmax(0, 1fr)",
-  //       gridTemplateRows: "1fr",
-  //       position: "relative",
-  //     }}
-  //     className="main-search-layout"
-  //   >
-  //     <div
-  //       style={{
-  //         minWidth: 0,
-  //         minHeight: 0,
-  //         background: "#fff",
-  //         borderRight: "1px solid #eee",
-  //         position: "relative",
-  //       }}
-  //       className="main-search-sidebar"
-  //     >
-  //       <Sidebar
-  //         properties={filteredProperties}
-  //         onSelect={handleSelect}
-  //         onHover={setHoveredPropertyId}
-  //         hoveredPropertyId={hoveredPropertyId}
-  //         selectedPropertyId={selectedPropertyId}
-  //         favoriteIds={favoriteIds}
-  //         toggleFavorite={toggleFavorite}
-  //         showFavoritesOnly={showFavoritesOnly}
-  //         onUserInteract={() => {
-  //           if (window.innerWidth <= 768) {
-  //             setIsMobileMapFocused(false);
-  //           }
-  //         }}
-  //       />
-
-  //       {isLoadingProperties && (
-  //         <div
-  //           style={{
-  //             position: "absolute",
-  //             inset: 0,
-  //             background: "rgba(255,255,255,0.85)",
-  //             display: "flex",
-  //             alignItems: "center",
-  //             justifyContent: "center",
-  //             fontWeight: 600,
-  //             zIndex: 5,
-  //           }}
-  //         >
-  //           Завантаження оголошень...
-  //         </div>
-  //       )}
-
-  //       {propertiesError && (
-  //         <div
-  //           style={{
-  //             position: "absolute",
-  //             left: 16,
-  //             right: 16,
-  //             bottom: 16,
-  //             padding: "12px 14px",
-  //             borderRadius: "12px",
-  //             background: "#fee2e2",
-  //             color: "#991b1b",
-  //             fontWeight: 600,
-  //             zIndex: 6,
-  //           }}
-  //         >
-  //           {propertiesError}
-  //         </div>
-  //       )}
-  //     </div>
-
-  //     <div
-  //       style={{
-  //         position: "relative",
-  //         minWidth: 0,
-  //         minHeight: 0,
-  //         background: "#f8f8f8",
-  //       }}
-  //       className="main-search-map"
-  //     >
-  //       <div
-  //         ref={mapContainer}
-  //         style={{
-  //           position: "absolute",
-  //           inset: 0,
-  //         }}
-  //       />
-
-  //       {isLoadingProperties && (
-  //         <div
-  //           style={{
-  //             position: "absolute",
-  //             top: 16,
-  //             right: 16,
-  //             padding: "10px 14px",
-  //             borderRadius: "999px",
-  //             background: "#fff",
-  //             boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-  //             zIndex: 5,
-  //             fontWeight: 600,
-  //           }}
-  //         >
-  //           Завантаження...
-  //         </div>
-  //       )}
-
-  //       {propertiesError && (
-  //         <div
-  //           style={{
-  //             position: "absolute",
-  //             top: 16,
-  //             left: 16,
-  //             right: 16,
-  //             padding: "12px 14px",
-  //             borderRadius: "12px",
-  //             background: "#fee2e2",
-  //             color: "#991b1b",
-  //             fontWeight: 600,
-  //             zIndex: 6,
-  //           }}
-  //         >
-  //           {propertiesError}
-  //         </div>
-  //       )}
-  //     </div>
-  //   </div>
-  // );
   return isMobile ? (
     <div
       style={{
@@ -673,9 +557,15 @@ export default function Map({
           minHeight: 0,
           position: "relative",
           background: "#f8f8f8",
-          transition: "height 220ms ease",
+          transition: "height 260ms ease",
+          borderBottom: "1px solid #eee",
         }}
         className="main-search-map"
+        onClick={() => {
+          if (mobileViewMode === "list") {
+            setMobileViewMode("map");
+          }
+        }}
       >
         <div
           ref={mapContainer}
@@ -729,13 +619,12 @@ export default function Map({
           height: mobileListHeight,
           minHeight: 0,
           background: "#fff",
-          borderTop: "1px solid #eee",
           position: "relative",
-          transition: "height 220ms ease",
+          transition: "height 260ms ease",
           borderTopLeftRadius: "18px",
           borderTopRightRadius: "18px",
           overflow: "hidden",
-          boxShadow: "0 -6px 18px rgba(0,0,0,0.04)",
+          boxShadow: "0 -6px 18px rgba(0,0,0,0.05)",
         }}
         className="main-search-sidebar"
       >
@@ -751,9 +640,13 @@ export default function Map({
         />
 
         <div
+          onClick={() => {
+            if (mobileViewMode === "map") {
+              setMobileViewMode("list");
+            }
+          }}
           style={{
-            height: "calc(100% - 12px)",
-            minHeight: 0,
+            cursor: "pointer",
           }}
         >
           <Sidebar
@@ -766,8 +659,9 @@ export default function Map({
             toggleFavorite={toggleFavorite}
             showFavoritesOnly={showFavoritesOnly}
             onUserInteract={() => {
-              setIsMobileMapFocused(false);
+              setMobileViewMode("list");
             }}
+            compactHeaderOnly={mobileViewMode === "map"}
           />
         </div>
 
@@ -807,6 +701,17 @@ export default function Map({
           </div>
         )}
       </div>
+
+      {selectedPropertyId && (
+        <MobilePropertyOverlay
+          property={
+            filteredProperties.find(
+              (p) => String(p.id) === selectedPropertyId,
+            ) ?? null
+          }
+          onClose={() => setSelectedPropertyId(null)}
+        />
+      )}
     </div>
   ) : (
     <div

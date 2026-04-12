@@ -13,6 +13,7 @@ type Props = {
   toggleFavorite: (id: string) => void;
   showFavoritesOnly: boolean;
   onUserInteract?: () => void;
+  compactHeaderOnly?: boolean;
 };
 
 export default function Sidebar({
@@ -25,6 +26,7 @@ export default function Sidebar({
   toggleFavorite,
   showFavoritesOnly,
   onUserInteract,
+  compactHeaderOnly = false,
 }: Props) {
   return (
     <div
@@ -75,54 +77,47 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* <div
-        className="sidebar-scroll sidebar-cards"
-        style={{
-          padding: "14px",
-          overflowY: "auto",
-          flex: 1,
-        }}
-      > */}
-      <div
-        className="sidebar-scroll sidebar-cards"
-        style={{
-          padding: "14px",
-          overflowY: "auto",
-          flex: 1,
-        }}
-        onScroll={() => onUserInteract?.()}
-        onTouchStart={() => onUserInteract?.()}
-      >
-        {properties.length === 0 ? (
-          <EmptyState isFavorites={showFavoritesOnly} />
-        ) : (
-          properties.map((property) => {
-            const isHovered = hoveredPropertyId === String(property.id);
-            const isSelected = selectedPropertyId === String(property.id);
+      {compactHeaderOnly ? null : (
+        <div
+          className="sidebar-scroll sidebar-cards"
+          style={{
+            padding: "14px",
+            overflowY: "auto",
+            flex: 1,
+          }}
+          onScroll={() => onUserInteract?.()}
+          onTouchStart={() => onUserInteract?.()}
+        >
+          {properties.length === 0 ? (
+            <EmptyState isFavorites={showFavoritesOnly} />
+          ) : (
+            properties.map((property) => {
+              const isHovered = hoveredPropertyId === String(property.id);
+              const isSelected = selectedPropertyId === String(property.id);
 
-            return (
-              // <div key={property.id} style={{ marginBottom: "14px" }}>
-                            <div
-                key={property.id}
-                style={{ marginBottom: "14px" }}
-                onMouseDown={() => onUserInteract?.()}
-                onTouchStart={() => onUserInteract?.()}
-              >
-                <PropertyListCard
+              return (
+                <div
                   key={property.id}
-                  property={property}
-                  isHovered={isHovered}
-                  isSelected={isSelected}
-                  isFavorite={favoriteIds.includes(String(property.id))}
-                  onToggleFavorite={toggleFavorite}
-                  onHover={onHover}
-                  onSelect={onSelect}
-                />
-              </div>
-            );
-          })
-        )}
-      </div>
+                  style={{ marginBottom: "14px" }}
+                  onMouseDown={() => onUserInteract?.()}
+                  onTouchStart={() => onUserInteract?.()}
+                >
+                  <PropertyListCard
+                    key={property.id}
+                    property={property}
+                    isHovered={isHovered}
+                    isSelected={isSelected}
+                    isFavorite={favoriteIds.includes(String(property.id))}
+                    onToggleFavorite={toggleFavorite}
+                    onHover={onHover}
+                    onSelect={onSelect}
+                  />
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
     </div>
   );
 }
