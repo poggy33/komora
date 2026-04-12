@@ -99,6 +99,29 @@ export default function MobilePropertyOverlay({ property, onClose }: Props) {
           ${property.price.toLocaleString()}
         </div>
 
+        {property.images?.[0] && (
+          <div
+            style={{
+              width: "100%",
+              aspectRatio: "16 / 9",
+              borderRadius: "14px",
+              overflow: "hidden",
+              background: "#f3f3f3",
+            }}
+          >
+            <img
+              src={property.images[0]}
+              alt={property.title}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+              }}
+            />
+          </div>
+        )}
+
         <div
           style={{
             display: "flex",
@@ -118,7 +141,9 @@ export default function MobilePropertyOverlay({ property, onClose }: Props) {
                 : "Земля"}
           </span>
 
-          {property.rooms && <span style={chipStyle}>{property.rooms} кімн.</span>}
+          {property.rooms && (
+            <span style={chipStyle}>{property.rooms} кімн.</span>
+          )}
           <span style={chipStyle}>{property.area} м²</span>
         </div>
 

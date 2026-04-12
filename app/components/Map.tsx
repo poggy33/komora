@@ -639,7 +639,7 @@ export default function Map({
           }}
         />
 
-        <div
+        {/* <div
           onClick={() => {
             if (mobileViewMode === "map") {
               setMobileViewMode("list");
@@ -647,6 +647,28 @@ export default function Map({
           }}
           style={{
             cursor: "pointer",
+          }}
+        >
+          <Sidebar
+            properties={filteredProperties}
+            onSelect={handleSelect}
+            onHover={setHoveredPropertyId}
+            hoveredPropertyId={hoveredPropertyId}
+            selectedPropertyId={selectedPropertyId}
+            favoriteIds={favoriteIds}
+            toggleFavorite={toggleFavorite}
+            showFavoritesOnly={showFavoritesOnly}
+            onUserInteract={() => {
+              setMobileViewMode("list");
+            }}
+            compactHeaderOnly={mobileViewMode === "map"}
+          />
+        </div> */}
+
+        <div
+          style={{
+            height: "calc(100% - 12px)",
+            minHeight: 0,
           }}
         >
           <Sidebar

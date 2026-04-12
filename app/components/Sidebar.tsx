@@ -42,7 +42,7 @@ export default function Sidebar({
       <div
         className="sidebar-header"
         style={{
-          padding: "14px 16px",
+          padding: compactHeaderOnly ? "10px 16px 12px" : "14px 16px",
           borderBottom: "1px solid #eee",
           background: "rgba(255,255,255,0.96)",
           backdropFilter: "blur(8px)",
@@ -50,14 +50,24 @@ export default function Sidebar({
           top: 0,
           zIndex: 2,
           flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          minHeight: compactHeaderOnly ? "72px" : "auto",
+          boxSizing: "border-box",
+          cursor: compactHeaderOnly ? "pointer" : "default",
+        }}
+        onClick={() => {
+          if (compactHeaderOnly) onUserInteract?.();
         }}
       >
         <div
           style={{
-            fontSize: "14px",
+            fontSize: compactHeaderOnly ? "13px" : "14px",
             fontWeight: 700,
             color: "#111",
-            marginBottom: "4px",
+            marginBottom: "2px",
+            lineHeight: 1.25,
           }}
         >
           {showFavoritesOnly
@@ -67,8 +77,9 @@ export default function Sidebar({
 
         <div
           style={{
-            fontSize: "12px",
+            fontSize: compactHeaderOnly ? "11px" : "12px",
             color: "#666",
+            lineHeight: 1.25,
           }}
         >
           {showFavoritesOnly
