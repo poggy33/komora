@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { Property } from "../types/property";
-const [didSwipe, setDidSwipe] = useState(false);
+
 
 type Props = {
   property: Property;
@@ -32,6 +32,7 @@ export default function PropertyListCard({
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
+  const [didSwipe, setDidSwipe] = useState(false);
   const next = () => {
     setIndex((prev) => (prev + 1) % safeImages.length);
   };
