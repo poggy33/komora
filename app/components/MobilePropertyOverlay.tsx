@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { Property } from "@/types/property";
 
 type Props = {
@@ -11,6 +11,35 @@ type Props = {
 
 export default function MobilePropertyOverlay({ property, onClose }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchEndXRef = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchEndXRef.current = null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartXRef.current === null || touchEndXRef.current === null)
+      return;
+
+    const diff = touchStartXRef.current - touchEndXRef.current;
+
+    if (Math.abs(diff) < 40) return;
+
+    if (diff > 0) {
+      goNext();
+    } else {
+      goPrev();
+    }
+
+    touchStartXRef.current = null;
+    touchEndXRef.current = null;
+  };
 
   useEffect(() => {
     setCurrentIndex(0);
@@ -113,6 +142,9 @@ export default function MobilePropertyOverlay({ property, onClose }: Props) {
 
         {hasImages ? (
           <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             style={{
               position: "relative",
               width: "100%",
@@ -131,10 +163,6 @@ export default function MobilePropertyOverlay({ property, onClose }: Props) {
                 height: "100%",
                 objectFit: "cover",
                 display: "block",
-                // transition: "opacity 220ms ease, transform 220ms ease",
-                // transition: "opacity 320ms ease, transform 320ms ease"
-                // transition: "opacity 260ms cubic-bezier(0.22, 1, 0.36, 1), transform 260ms cubic-bezier(0.22, 1, 0.36, 1)"
-                // transition: "opacity 260ms ease-out, transform 260ms ease-out"
                 transition:
                   "opacity 260ms cubic-bezier(0.22, 1, 0.36, 1), transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
               }}
