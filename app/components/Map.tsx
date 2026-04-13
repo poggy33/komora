@@ -51,9 +51,13 @@ export default function Map({
     new globalThis.Map(),
   );
   const filteredPropertiesRef = useRef<Property[]>([]);
-  // const [isMobileMapFocused, setIsMobileMapFocused] = useState(false);
 
+  const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
   const [mobileViewMode, setMobileViewMode] = useState<"map" | "list">("map");
+  const [mobileSnapshotProperties, setMobileSnapshotProperties] = useState<
+    Property[]
+  >([]);
+
   const formatCompactPrice = (num: number) => {
     if (num >= 1000000) {
       const value = num / 1000000;
@@ -289,6 +293,23 @@ export default function Map({
       })),
     };
   };
+  const getPropertiesInView = (
+    map: mapboxgl.Map,
+    list: Property[],
+  ): Property[] => {
+    const bounds = map.getBounds();
+    if (!bounds) return list;
+
+    return list.filter((property) => {
+      const [lng, lat] = property.coordinates;
+      return bounds.contains([lng, lat]);
+    });
+  };
+
+  const updateVisibleProperties = (map: mapboxgl.Map, list: Property[]) => {
+    const next = getPropertiesInView(map, list);
+    setVisibleProperties(next);
+  };
 
   useEffect(() => {
     if (isMobile === null) return;
@@ -311,7 +332,6 @@ export default function Map({
 
       map.addSource("points", {
         type: "geojson",
-        // data: buildGeoJSON(),
         data: buildGeoJSONFromList(filteredPropertiesRef.current),
         cluster: true,
         clusterMaxZoom: 13,
@@ -359,6 +379,12 @@ export default function Map({
 
       map.once("idle", () => {
         renderHtmlMarkers(map, filteredPropertiesRef.current);
+        updateVisibleProperties(map, filteredPropertiesRef.current);
+
+        if (window.innerWidth <= 768) {
+          const next = getPropertiesInView(map, filteredPropertiesRef.current);
+          setMobileSnapshotProperties(next);
+        }
       });
 
       map.on("click", "clusters", (e) => {
@@ -412,12 +438,32 @@ export default function Map({
 
       // renderHtmlMarkers(map, filteredPropertiesRef.current);
 
+      // map.on("moveend", () => {
+      //   renderHtmlMarkers(map, filteredPropertiesRef.current);
+      // });
+
+      // map.on("zoomend", () => {
+      //   renderHtmlMarkers(map, filteredPropertiesRef.current);
+      // });
+
       map.on("moveend", () => {
         renderHtmlMarkers(map, filteredPropertiesRef.current);
+        updateVisibleProperties(map, filteredPropertiesRef.current);
+
+        if (window.innerWidth <= 768 && mobileViewMode === "map") {
+          const next = getPropertiesInView(map, filteredPropertiesRef.current);
+          setMobileSnapshotProperties(next);
+        }
       });
 
       map.on("zoomend", () => {
         renderHtmlMarkers(map, filteredPropertiesRef.current);
+        updateVisibleProperties(map, filteredPropertiesRef.current);
+
+        if (window.innerWidth <= 768 && mobileViewMode === "map") {
+          const next = getPropertiesInView(map, filteredPropertiesRef.current);
+          setMobileSnapshotProperties(next);
+        }
       });
 
       map.on("data", () => {
@@ -461,6 +507,34 @@ export default function Map({
     };
   }, [isMobile]);
 
+  // useEffect(() => {
+  //   if (!mapRef.current) return;
+
+  //   const map = mapRef.current;
+  //   const source = map.getSource("points") as
+  //     | mapboxgl.GeoJSONSource
+  //     | undefined;
+
+  //   if (!source) return;
+
+  //   // source.setData(buildGeoJSON());
+  //   source.setData(buildGeoJSONFromList(filteredPropertiesRef.current));
+
+  //   if (popupRef.current) {
+  //     popupRef.current.remove();
+  //     popupRef.current = null;
+  //   }
+
+  //   map.once("idle", () => {
+  //     renderHtmlMarkers(map, filteredPropertiesRef.current);
+  //   });
+
+  //   map.once("idle", () => {
+  //     renderHtmlMarkers(map, filteredPropertiesRef.current);
+  //     updateVisibleProperties(map, filteredPropertiesRef.current);
+  //   });
+  // }, [properties, showFavoritesOnly, favoriteIds]);
+
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -471,7 +545,6 @@ export default function Map({
 
     if (!source) return;
 
-    // source.setData(buildGeoJSON());
     source.setData(buildGeoJSONFromList(filteredPropertiesRef.current));
 
     if (popupRef.current) {
@@ -481,6 +554,12 @@ export default function Map({
 
     map.once("idle", () => {
       renderHtmlMarkers(map, filteredPropertiesRef.current);
+      updateVisibleProperties(map, filteredPropertiesRef.current);
+
+      if (window.innerWidth <= 768) {
+        const next = getPropertiesInView(map, filteredPropertiesRef.current);
+        setMobileSnapshotProperties(next);
+      }
     });
   }, [properties, showFavoritesOnly, favoriteIds]);
 
@@ -528,6 +607,14 @@ export default function Map({
   const mobileMapHeight = mobileViewMode === "map" ? "88%" : "10%";
   const mobileListHeight = mobileViewMode === "map" ? "12%" : "90%";
 
+  const sidebarProperties = isMobile
+    ? mobileViewMode === "list"
+      ? mobileSnapshotProperties
+      : visibleProperties
+    : visibleProperties.length > 0 || filteredProperties.length === 0
+      ? visibleProperties
+      : filteredProperties;
+
   if (isMobile === null) {
     return (
       <div
@@ -544,21 +631,18 @@ export default function Map({
     <div
       style={{
         height: "100%",
-        display: "flex",
-        flexDirection: "column",
         position: "relative",
         background: "#fff",
+        overflow: "hidden",
       }}
       className="main-search-layout mobile"
     >
+      {/* map fills all available space */}
       <div
         style={{
-          height: mobileMapHeight,
-          minHeight: 0,
-          position: "relative",
+          position: "absolute",
+          inset: 0,
           background: "#f8f8f8",
-          transition: "height 260ms ease",
-          borderBottom: "1px solid #eee",
         }}
         className="main-search-map"
         onClick={() => {
@@ -614,17 +698,24 @@ export default function Map({
         )}
       </div>
 
+      {/* bottom sheet overlay */}
       <div
         style={{
-          height: mobileListHeight,
-          minHeight: 0,
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          top: mobileViewMode === "map" ? "auto" : "0",
+          height: mobileViewMode === "map" ? "92px" : "100%",
           background: "#fff",
-          position: "relative",
-          transition: "height 260ms ease",
           borderTopLeftRadius: "18px",
           borderTopRightRadius: "18px",
+          boxShadow: "0 -8px 28px rgba(0,0,0,0.08)",
           overflow: "hidden",
-          boxShadow: "0 -6px 18px rgba(0,0,0,0.05)",
+          transition: "height 260ms ease, top 260ms ease",
+          zIndex: 20,
+          display: "flex",
+          flexDirection: "column",
         }}
         className="main-search-sidebar"
       >
@@ -639,53 +730,62 @@ export default function Map({
           }}
         />
 
-        {/* <div
-          onClick={() => {
+        <Sidebar
+          properties={sidebarProperties}
+          onSelect={handleSelect}
+          onHover={setHoveredPropertyId}
+          hoveredPropertyId={hoveredPropertyId}
+          selectedPropertyId={selectedPropertyId}
+          favoriteIds={favoriteIds}
+          toggleFavorite={toggleFavorite}
+          showFavoritesOnly={showFavoritesOnly}
+          onUserInteract={() => {
             if (mobileViewMode === "map") {
+              setMobileSnapshotProperties(visibleProperties);
               setMobileViewMode("list");
             }
           }}
-          style={{
-            cursor: "pointer",
-          }}
-        >
-          <Sidebar
-            properties={filteredProperties}
-            onSelect={handleSelect}
-            onHover={setHoveredPropertyId}
-            hoveredPropertyId={hoveredPropertyId}
-            selectedPropertyId={selectedPropertyId}
-            favoriteIds={favoriteIds}
-            toggleFavorite={toggleFavorite}
-            showFavoritesOnly={showFavoritesOnly}
-            onUserInteract={() => {
-              setMobileViewMode("list");
+          compactHeaderOnly={mobileViewMode === "map"}
+        />
+        {mobileViewMode === "list" && (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: "14px",
+              display: "flex",
+              justifyContent: "center",
+              pointerEvents: "none",
+              zIndex: 30,
             }}
-            compactHeaderOnly={mobileViewMode === "map"}
-          />
-        </div> */}
-
-        <div
-          style={{
-            height: "calc(100% - 12px)",
-            minHeight: 0,
-          }}
-        >
-          <Sidebar
-            properties={filteredProperties}
-            onSelect={handleSelect}
-            onHover={setHoveredPropertyId}
-            hoveredPropertyId={hoveredPropertyId}
-            selectedPropertyId={selectedPropertyId}
-            favoriteIds={favoriteIds}
-            toggleFavorite={toggleFavorite}
-            showFavoritesOnly={showFavoritesOnly}
-            onUserInteract={() => {
-              setMobileViewMode("list");
-            }}
-            compactHeaderOnly={mobileViewMode === "map"}
-          />
-        </div>
+          >
+            <button
+              type="button"
+              onClick={() => setMobileViewMode("map")}
+              style={{
+                pointerEvents: "auto",
+                height: "42px",
+                padding: "0 16px",
+                borderRadius: "999px",
+                border: "1px solid rgba(255,255,255,0.35)",
+                background: "rgba(17,17,17,0.82)",
+                color: "#fff",
+                fontSize: "13px",
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+                backdropFilter: "blur(8px)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <span style={{ fontSize: "14px", lineHeight: 1 }}>🗺</span>
+              <span>Показати карту</span>
+            </button>
+          </div>
+        )}
 
         {isLoadingProperties && (
           <div
@@ -757,7 +857,7 @@ export default function Map({
         className="main-search-sidebar"
       >
         <Sidebar
-          properties={filteredProperties}
+          properties={sidebarProperties}
           onSelect={handleSelect}
           onHover={setHoveredPropertyId}
           hoveredPropertyId={hoveredPropertyId}
