@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Property } from "../types/property";
+const [didSwipe, setDidSwipe] = useState(false);
 
 type Props = {
   property: Property;
@@ -40,6 +41,7 @@ export default function PropertyListCard({
   };
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setDidSwipe(false);
     setTouchEndX(null);
     setTouchStartX(e.targetTouches[0].clientX);
   };
@@ -53,16 +55,27 @@ export default function PropertyListCard({
 
     const distance = touchStartX - touchEndX;
 
-    if (distance > 40) next();
+    if (Math.abs(distance) < 40) {
+      setTouchStartX(null);
+      setTouchEndX(null);
+      return;
+    }
+
+    setDidSwipe(true);
+
+    if (distance > 0) next();
     if (distance < -40) prev();
+
+    setTouchStartX(null);
+    setTouchEndX(null);
   };
 
   const typeLabel =
     property.propertyType === "apartment"
       ? "Квартира"
       : property.propertyType === "house"
-      ? "Будинок"
-      : "Земля";
+        ? "Будинок"
+        : "Земля";
 
   const dealLabel = property.dealType === "sale" ? "Продаж" : "Оренда";
 
@@ -70,21 +83,33 @@ export default function PropertyListCard({
     property.propertyType === "land"
       ? `${property.area} сот.`
       : property.propertyType === "house"
-      ? `${property.rooms ?? "—"} кімн. • ${property.area} м² • ${
-          property.floors ?? "—"
-        } пов.`
-      : `${property.rooms ?? "—"} кімн. • ${property.area} м²`;
+        ? `${property.rooms ?? "—"} кімн. • ${property.area} м² • ${
+            property.floors ?? "—"
+          } пов.`
+        : `${property.rooms ?? "—"} кімн. • ${property.area} м²`;
 
   const description =
     property.description?.trim() ||
     "Зручна локація, хороше планування та приваблива ціна.";
 
+  useEffect(() => {
+    setIndex(0);
+  }, [property.id]);
   return (
     <a
       href={`/property/${property.id}`}
       onMouseEnter={() => onHover(String(property.id))}
       onMouseLeave={() => onHover(null)}
-      onClick={() => onSelect(property)}
+      onClick={(e) => {
+        if (didSwipe) {
+          e.preventDefault();
+          e.stopPropagation();
+          setDidSwipe(false);
+          return;
+        }
+
+        onSelect(property);
+      }}
       className="property-list-card"
       style={{
         display: "block",
@@ -96,13 +121,13 @@ export default function PropertyListCard({
         border: isSelected
           ? "2px solid #111"
           : isHovered
-          ? "1px solid #999"
-          : "1px solid #ececec",
+            ? "1px solid #999"
+            : "1px solid #ececec",
         boxShadow: isSelected
           ? "0 10px 26px rgba(0,0,0,0.12)"
           : isHovered
-          ? "0 8px 20px rgba(0,0,0,0.08)"
-          : "0 2px 8px rgba(0,0,0,0.04)",
+            ? "0 8px 20px rgba(0,0,0,0.08)"
+            : "0 2px 8px rgba(0,0,0,0.04)",
         transition:
           "border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease",
       }}
@@ -120,6 +145,7 @@ export default function PropertyListCard({
         }}
       >
         <img
+          key={index}
           src={safeImages[index]}
           alt={property.title}
           style={{
@@ -127,6 +153,8 @@ export default function PropertyListCard({
             height: "100%",
             objectFit: "cover",
             display: "block",
+            transition:
+              "opacity 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         />
 
