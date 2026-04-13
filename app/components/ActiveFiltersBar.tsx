@@ -38,7 +38,7 @@ export default function ActiveFiltersBar({ filters, onChange, isHiddenOnMobile =
               top: "0",
               left: "10px",
               right: "10px",
-              zIndex: 35,
+              zIndex: 2,
               pointerEvents: "none",
             }
           : {

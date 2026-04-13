@@ -63,6 +63,8 @@ export default function Map({
   const [mobileSnapshotProperties, setMobileSnapshotProperties] = useState<
     Property[]
   >([]);
+  const [desktopPopupProperty, setDesktopPopupProperty] =
+    useState<Property | null>(null);
 
   const formatCompactPrice = (num: number) => {
     if (num >= 1000000) {
@@ -251,7 +253,7 @@ export default function Map({
             popupRef.current = null;
           }
         } else {
-          openPropertyPopup(map, property, property.coordinates);
+          setDesktopPopupProperty(property);
         }
       });
 
@@ -437,6 +439,7 @@ export default function Map({
         if (clickedCluster.length > 0) return;
 
         setSelectedPropertyId(null);
+        setDesktopPopupProperty(null);
 
         if (popupRef.current) {
           popupRef.current.remove();
@@ -517,6 +520,7 @@ export default function Map({
 
     source.setData(buildGeoJSONFromList(filteredPropertiesRef.current));
 
+    setDesktopPopupProperty(null);
     if (popupRef.current) {
       popupRef.current.remove();
       popupRef.current = null;
@@ -581,15 +585,15 @@ export default function Map({
   // const mobileMapHeight = mobileViewMode === "map" ? "88%" : "10%";
   // const mobileListHeight = mobileViewMode === "map" ? "12%" : "90%";
 
-const sidebarProperties = showFavoritesOnly
-  ? filteredProperties
-  : isMobile
-    ? mobileViewMode === "list"
-      ? mobileSnapshotProperties
-      : visibleProperties
-    : visibleProperties.length > 0 || filteredProperties.length === 0
-      ? visibleProperties
-      : filteredProperties;
+  const sidebarProperties = showFavoritesOnly
+    ? filteredProperties
+    : isMobile
+      ? mobileViewMode === "list"
+        ? mobileSnapshotProperties
+        : visibleProperties
+      : visibleProperties.length > 0 || filteredProperties.length === 0
+        ? visibleProperties
+        : filteredProperties;
 
   if (isMobile === null) {
     return (
@@ -897,6 +901,66 @@ const sidebarProperties = showFavoritesOnly
             inset: 0,
           }}
         />
+
+        {desktopPopupProperty && (
+          <div
+            style={{
+              position: "absolute",
+              top: "16px",
+              right: "16px",
+              width: "300px",
+              maxWidth: "calc(100% - 32px)",
+              zIndex: 10,
+              pointerEvents: "auto",
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: "relative",
+                borderRadius: "20px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setDesktopPopupProperty(null);
+                  setSelectedPropertyId(null);
+                }}
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  right: "30px",
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "999px",
+                  border: "1px solid rgba(17,17,17,0.08)",
+                  background: "rgba(255,255,255,0.92)",
+                  fontSize: "15px",
+                  cursor: "pointer",
+                  zIndex: 3,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 4px 10px rgba(0,0,0,0.10)",
+                }}
+                aria-label="Закрити попап"
+              >
+                ✕
+              </button>
+
+              <PopupCard
+                id={String(desktopPopupProperty.id)}
+                price={desktopPopupProperty.price}
+                rooms={desktopPopupProperty.rooms}
+                area={desktopPopupProperty.area}
+                images={desktopPopupProperty.images}
+                dealType={desktopPopupProperty.dealType}
+                propertyType={desktopPopupProperty.propertyType}
+              />
+            </div>
+          </div>
+        )}
 
         {isLoadingProperties && (
           <div

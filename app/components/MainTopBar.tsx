@@ -508,9 +508,9 @@ export default function MainTopBar({
       <div
         style={{
           maxWidth: "100%",
-          padding: "8px 12px 10px",
+          padding: "10px 16px 12px",
           display: "grid",
-          gap: "8px",
+          gap: "10px",
           position: "relative",
         }}
       >
@@ -532,7 +532,7 @@ export default function MainTopBar({
               lineHeight: 1.1,
             }}
           >
-            HomeMap
+            KOMORA
           </div>
 
           <div style={{ position: "relative" }} ref={menuRef}>
@@ -569,7 +569,7 @@ export default function MainTopBar({
         </div>
 
         {/* row 2 */}
-        <div
+        {/* <div
           style={{
             display: "flex",
             alignItems: "center",
@@ -676,7 +676,7 @@ export default function MainTopBar({
         </div>
 
         {/* row 3 */}
-        <div
+        {/* <div
           style={{
             display: "flex",
             justifyContent: "flex-start",
@@ -734,6 +734,159 @@ export default function MainTopBar({
               Оренда
             </button>
           </div>
+        </div> */}
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            gap: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          <select
+            value={propertyType}
+            onChange={(e) =>
+              setPropertyType(e.target.value as SupportedPropertyType)
+            }
+            disabled={controlsDisabled}
+            style={{
+              ...selectStyle,
+              minWidth: "140px",
+              width: "auto",
+              opacity: controlsDisabled ? 0.5 : 1,
+              cursor: controlsDisabled ? "not-allowed" : "pointer",
+            }}
+          >
+            <option value="apartment">Квартири</option>
+            <option value="house">Будинки</option>
+            <option value="land">Земля</option>
+          </select>
+
+          <div
+            style={{
+              position: "relative",
+              display: "inline-flex",
+              overflow: "visible",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                if (controlsDisabled) return;
+                onOpenFilters?.();
+              }}
+              disabled={controlsDisabled}
+              style={{
+                ...pillButtonStyle,
+                border: hasActiveFilters ? "1px solid #111" : "1px solid #ddd",
+                background: "#fff",
+                color: "#111",
+                opacity: controlsDisabled ? 0.5 : 1,
+                cursor: controlsDisabled ? "not-allowed" : "pointer",
+                position: "relative",
+              }}
+              aria-label="Відкрити розширені фільтри"
+            >
+              <span style={{ fontSize: "15px", lineHeight: 1 }}>☰</span>
+              <span>Фільтри</span>
+            </button>
+
+            {activeFiltersCount > 0 && (
+              <span
+                style={{
+                  ...badgeStyle,
+                  transform: filtersBadgePop ? "scale(1.12)" : "scale(1)",
+                }}
+              >
+                {activeFiltersCount > 9 ? "9+" : activeFiltersCount}
+              </span>
+            )}
+          </div>
+
+          <div
+            style={{
+              position: "relative",
+              display: "inline-flex",
+              overflow: "visible",
+            }}
+          >
+            <button
+              type="button"
+              onClick={onToggleFavorites}
+              style={{
+                ...pillButtonStyle,
+                position: "relative",
+                border: showFavoritesOnly ? "1px solid #111" : "1px solid #ddd",
+                background: showFavoritesOnly ? "#111" : "#fff",
+                color: showFavoritesOnly ? "#fff" : "#111",
+              }}
+            >
+              <span style={{ fontSize: "15px" }}>
+                {showFavoritesOnly ? "♥" : "♡"}
+              </span>
+              <span>Обране</span>
+            </button>
+
+            {favoritesCount > 0 && (
+              <span
+                style={{
+                  ...badgeStyle,
+                  transform: favoritesBadgePop ? "scale(1.12)" : "scale(1)",
+                }}
+              >
+                {favoritesCount > 9 ? "9+" : favoritesCount}
+              </span>
+            )}
+          </div>
+
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              background: "#f3f3f3",
+              borderRadius: "999px",
+              padding: "3px",
+              gap: "3px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                if (controlsDisabled) return;
+                setDealType("sale");
+              }}
+              disabled={controlsDisabled}
+              style={{
+                ...toggleButtonStyle,
+                background: dealType === "sale" ? "#111" : "transparent",
+                color: dealType === "sale" ? "#fff" : "#111",
+                opacity: controlsDisabled ? 0.5 : 1,
+                cursor: controlsDisabled ? "not-allowed" : "pointer",
+              }}
+            >
+              Продаж
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (controlsDisabled) return;
+                setDealType("rent");
+              }}
+              disabled={controlsDisabled}
+              style={{
+                ...toggleButtonStyle,
+                background: dealType === "rent" ? "#111" : "transparent",
+                color: dealType === "rent" ? "#fff" : "#111",
+                opacity: controlsDisabled ? 0.5 : 1,
+                cursor: controlsDisabled ? "not-allowed" : "pointer",
+              }}
+            >
+              Оренда
+            </button>
+          </div>
         </div>
       </div>
     </header>
@@ -747,6 +900,7 @@ const selectStyle: React.CSSProperties = {
   border: "1px solid #ddd",
   background: "#fff",
   fontSize: "13px",
+  fontWeight: 600,
   color: "#111",
   outline: "none",
 };

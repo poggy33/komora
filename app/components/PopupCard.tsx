@@ -73,7 +73,9 @@ export default function PopupCard({
         textDecoration: "none",
         color: "#111",
         fontFamily: "Arial, sans-serif",
-        background: "#fff",
+        borderRadius: "20px",
+        overflow: "hidden",
+        background: "transparent",
       }}
     >
       <div
@@ -81,6 +83,8 @@ export default function PopupCard({
           background: "#fff",
           borderRadius: "20px",
           overflow: "hidden",
+          boxShadow: "0 12px 32px rgba(0,0,0,0.14)",
+          border: "1px solid rgba(17,17,17,0.06)",
         }}
       >
         <div
@@ -94,6 +98,7 @@ export default function PopupCard({
           }}
         >
           <img
+            key={index}
             src={safeImages[index]}
             alt=""
             style={{
@@ -101,6 +106,8 @@ export default function PopupCard({
               height: "100%",
               objectFit: "cover",
               display: "block",
+              transition:
+                "opacity 260ms cubic-bezier(0.22, 1, 0.36, 1), transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
             }}
           />
 
@@ -149,7 +156,7 @@ export default function PopupCard({
                 aria-label="Наступне фото"
                 style={{
                   ...navButtonStyle,
-                  right: "44px",
+                  right: "10px",
                 }}
               >
                 &#8250;
