@@ -20,6 +20,9 @@ type Props = {
   properties: Property[];
   isLoadingProperties: boolean;
   propertiesError: string | null;
+  onVisibleCountChange?: (count: number) => void;
+  onMobileListModeChange?: (isListMode: boolean) => void;
+  onVisiblePropertiesChange?: (properties: Property[]) => void;
 };
 
 const Map = dynamic(() => import("./Map"), {
@@ -40,6 +43,9 @@ export default function MapWrapper({
   properties,
   isLoadingProperties,
   propertiesError,
+  onVisibleCountChange,
+  onMobileListModeChange,
+  onVisiblePropertiesChange,
 }: Props) {
   return (
     <Map
@@ -56,6 +62,9 @@ export default function MapWrapper({
       properties={properties}
       isLoadingProperties={isLoadingProperties}
       propertiesError={propertiesError}
+      onVisibleCountChange={onVisibleCountChange}
+      onMobileListModeChange={onMobileListModeChange}
+      onVisiblePropertiesChange={onVisiblePropertiesChange}
     />
   );
 }

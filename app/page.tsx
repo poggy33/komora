@@ -46,6 +46,9 @@ export default function HomePage() {
   const { favoriteIds, toggleFavorite } = useFavorites();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   // const [previewCount, setPreviewCount] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(0);
+  const [isMobileListMode, setIsMobileListMode] = useState(false);
+  const [visiblePropertiesForDrawer, setVisiblePropertiesForDrawer] = useState<Property[]>([]);
 
   useEffect(() => {
     async function loadProperties() {
@@ -97,17 +100,19 @@ export default function HomePage() {
           activeFiltersCount={activeFiltersCount}
         />
 
-        <ActiveFiltersBar
-          filters={filters}
-          onChange={(next) => setFilters(next)}
-        />
-
         <div
           style={{
             flex: 1,
             minHeight: 0,
+            position: "relative",
           }}
         >
+          <ActiveFiltersBar
+            filters={filters}
+            onChange={(next) => setFilters(next)}
+            isHiddenOnMobile={isMobileListMode}
+          />
+
           <MapWrapper
             dealType={dealType}
             propertyType={propertyType}
@@ -122,27 +127,30 @@ export default function HomePage() {
             properties={properties}
             isLoadingProperties={isLoadingProperties}
             propertiesError={propertiesError}
+            onVisibleCountChange={setVisibleCount}
+            onMobileListModeChange={setIsMobileListMode}
+            onVisiblePropertiesChange={setVisiblePropertiesForDrawer}
           />
         </div>
       </main>
 
-      <FiltersDrawer
-        isOpen={isFiltersOpen}
-        onClose={() => setIsFiltersOpen(false)}
-        value={filters}
-        onApply={(next) => setFilters(next)}
-        onReset={() =>
-          setFilters({
-            priceMin: "",
-            priceMax: "",
-            rooms: "",
-            areaMin: "",
-          })
-        }
-        propertyType={propertyType}
-        dealType={dealType}
-        // previewCount={previewCount}
-      />
+<FiltersDrawer
+  isOpen={isFiltersOpen}
+  onClose={() => setIsFiltersOpen(false)}
+  value={filters}
+  onApply={(next) => setFilters(next)}
+  onReset={() =>
+    setFilters({
+      priceMin: "",
+      priceMax: "",
+      rooms: "",
+      areaMin: "",
+    })
+  }
+  propertyType={propertyType}
+  dealType={dealType}
+  visibleProperties={visiblePropertiesForDrawer}
+/>
     </>
   );
 }

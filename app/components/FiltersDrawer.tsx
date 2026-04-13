@@ -1,10 +1,7 @@
 "use client";
 
-"use client";
-
-import { useEffect, useState } from "react";
-import type { DealType } from "@/types/property";
-import { getPropertiesCountFromSupabase } from "lib/properties";
+import { useEffect, useState, useMemo } from "react";
+import type { DealType, Property } from "@/types/property";
 
 export type FiltersState = {
   priceMin: string;
@@ -23,7 +20,49 @@ type Props = {
   onReset: () => void;
   propertyType: SupportedPropertyType;
   dealType: DealType;
+  visibleProperties?: Array<
+    Pick<Property, "dealType" | "propertyType" | "price" | "area" | "rooms">
+  >;
 };
+
+function getPreviewCount({
+  properties,
+  dealType,
+  propertyType,
+  filters,
+}: {
+  properties: Array<
+    Pick<Property, "dealType" | "propertyType" | "price" | "area" | "rooms">
+  >;
+  dealType: "sale" | "rent";
+  propertyType: "apartment" | "house" | "land";
+  filters: FiltersState;
+}) {
+  const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
+  const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
+  const rooms = filters.rooms ? Number(filters.rooms) : null;
+  const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
+
+  return properties.filter((p) => {
+    if (p.dealType !== dealType) return false;
+    if (p.propertyType !== propertyType) return false;
+
+    if (priceMin !== null && p.price < priceMin) return false;
+    if (priceMax !== null && p.price > priceMax) return false;
+
+    if (
+      rooms !== null &&
+      propertyType !== "land" &&
+      (p.rooms === undefined || p.rooms < rooms)
+    ) {
+      return false;
+    }
+
+    if (areaMin !== null && p.area < areaMin) return false;
+
+    return true;
+  }).length;
+}
 
 export default function FiltersDrawer({
   isOpen,
@@ -33,11 +72,9 @@ export default function FiltersDrawer({
   onReset,
   propertyType,
   dealType,
-  // previewCount,
+  visibleProperties = [],
 }: Props) {
   const [draft, setDraft] = useState<FiltersState>(value);
-  const [previewCount, setPreviewCount] = useState(0);
-  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -70,49 +107,17 @@ export default function FiltersDrawer({
     }
   }, [propertyType]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const previewFilters =
-      propertyType === "land" ? { ...draft, rooms: "" } : draft;
-
-    let isCancelled = false;
-
-    async function loadPreviewCount() {
-      try {
-        setIsPreviewLoading(true);
-
-        const count = await getPropertiesCountFromSupabase({
-          dealType,
-          propertyType,
-          filters: previewFilters,
-        });
-
-        if (!isCancelled) {
-          setPreviewCount(count);
-        }
-      } catch (error) {
-        console.error("Failed to load preview count:", error);
-
-        if (!isCancelled) {
-          setPreviewCount(0);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsPreviewLoading(false);
-        }
-      }
-    }
-
-    loadPreviewCount();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [isOpen, draft, propertyType, dealType]);
-
   const previewFilters =
     propertyType === "land" ? { ...draft, rooms: "" } : draft;
+
+  const previewCount = useMemo(() => {
+    return getPreviewCount({
+      properties: visibleProperties,
+      dealType,
+      propertyType,
+      filters: previewFilters,
+    });
+  }, [visibleProperties, dealType, propertyType, previewFilters]);
 
   if (!isOpen) return null;
 
@@ -262,9 +267,10 @@ export default function FiltersDrawer({
               onClose();
             }}
             style={primaryButtonStyle}
-            disabled={isPreviewLoading}
           >
-            {isPreviewLoading ? "Рахуємо..." : `Показати ${previewCount}`}
+            {previewCount > 0
+              ? `Показати ${previewCount} в цій області`
+              : "Нічого не знайдено в цій області"}
           </button>
         </div>
       </div>

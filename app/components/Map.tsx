@@ -27,6 +27,9 @@ type Props = {
   properties: Property[];
   isLoadingProperties: boolean;
   propertiesError: string | null;
+  onVisibleCountChange?: (count: number) => void;
+  onMobileListModeChange?: (isListMode: boolean) => void;
+  onVisiblePropertiesChange?: (properties: Property[]) => void;
 };
 
 export default function Map({
@@ -43,6 +46,9 @@ export default function Map({
   properties,
   isLoadingProperties,
   propertiesError,
+  onVisibleCountChange,
+  onMobileListModeChange,
+  onVisiblePropertiesChange,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -309,6 +315,8 @@ export default function Map({
   const updateVisibleProperties = (map: mapboxgl.Map, list: Property[]) => {
     const next = getPropertiesInView(map, list);
     setVisibleProperties(next);
+    onVisibleCountChange?.(next.length);
+    onVisiblePropertiesChange?.(next);
   };
 
   useEffect(() => {
@@ -436,16 +444,6 @@ export default function Map({
         }
       });
 
-      // renderHtmlMarkers(map, filteredPropertiesRef.current);
-
-      // map.on("moveend", () => {
-      //   renderHtmlMarkers(map, filteredPropertiesRef.current);
-      // });
-
-      // map.on("zoomend", () => {
-      //   renderHtmlMarkers(map, filteredPropertiesRef.current);
-      // });
-
       map.on("moveend", () => {
         renderHtmlMarkers(map, filteredPropertiesRef.current);
         updateVisibleProperties(map, filteredPropertiesRef.current);
@@ -507,34 +505,6 @@ export default function Map({
     };
   }, [isMobile]);
 
-  // useEffect(() => {
-  //   if (!mapRef.current) return;
-
-  //   const map = mapRef.current;
-  //   const source = map.getSource("points") as
-  //     | mapboxgl.GeoJSONSource
-  //     | undefined;
-
-  //   if (!source) return;
-
-  //   // source.setData(buildGeoJSON());
-  //   source.setData(buildGeoJSONFromList(filteredPropertiesRef.current));
-
-  //   if (popupRef.current) {
-  //     popupRef.current.remove();
-  //     popupRef.current = null;
-  //   }
-
-  //   map.once("idle", () => {
-  //     renderHtmlMarkers(map, filteredPropertiesRef.current);
-  //   });
-
-  //   map.once("idle", () => {
-  //     renderHtmlMarkers(map, filteredPropertiesRef.current);
-  //     updateVisibleProperties(map, filteredPropertiesRef.current);
-  //   });
-  // }, [properties, showFavoritesOnly, favoriteIds]);
-
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -589,6 +559,10 @@ export default function Map({
       window.clearTimeout(timer);
     };
   }, [isMobile, mobileViewMode]);
+
+  useEffect(() => {
+    onMobileListModeChange?.(isMobile === true && mobileViewMode === "list");
+  }, [isMobile, mobileViewMode, onMobileListModeChange]);
 
   const handleSelect = (p: Property) => {
     if (!mapRef.current) return;
