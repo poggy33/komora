@@ -1,0 +1,35 @@
+<svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="240" fill="black"/>
+  <rect x="6" y="6" width="888" height="228" rx="16" stroke="#E31B23" stroke-width="5"/>
+
+  <g>
+    <rect x="575" y="55" width="34" height="80" fill="#E31B23"/>
+    <rect x="615" y="75" width="28" height="60" fill="#E31B23"/>
+    <rect x="650" y="90" width="22" height="45" fill="#E31B23"/>
+
+    <path d="M500 150L560 105L620 145L665 130L720 160H500Z" fill="#E31B23"/>
+    <path d="M485 168C565 158 645 158 730 168"
+          stroke="#E31B23"
+          stroke-width="3"
+          stroke-linecap="round"/>
+  </g>
+
+  <text x="310" y="140"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="70"
+        font-weight="800"
+        letter-spacing="2"
+        fill="#E31B23">
+    KOMORA
+  </text>
+
+  <text x="310" y="168"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="18"
+        letter-spacing="2.5"
+        fill="white">
+    НЕРУХОМІСТЬ
+  </text>
+</svg>

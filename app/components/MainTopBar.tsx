@@ -532,7 +532,15 @@ export default function MainTopBar({
               lineHeight: 1.1,
             }}
           >
-            KOMORA
+            <img
+              src="/komora_logo_ultratight_more_rounded.svg"
+              alt="KOMORA"
+              style={{
+                height: "34px",
+                objectFit: "contain",
+                display: "block",
+              }}
+            />
           </div>
 
           <div style={{ position: "relative" }} ref={menuRef}>
@@ -545,12 +553,34 @@ export default function MainTopBar({
               style={{
                 ...userButtonStyle,
                 background: isAuthenticated ? "#111" : "#fff",
-                color: isAuthenticated ? "#fff" : "#111",
+                color: isAuthenticated ? "#E31B23" : "#111",
                 border: isAuthenticated ? "1px solid #111" : "1px solid #ddd",
               }}
               aria-label="Відкрити меню користувача"
             >
-              {isAuthenticated ? user?.phone?.slice(-2) || "•" : "👤"}
+              {isAuthenticated ? (
+                user?.phone?.slice(-2) || "•"
+              ) : (
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                  {/* фон */}
+                  <circle cx="20" cy="20" r="20" fill="#0B0B0B" />
+
+                  {/* обводка */}
+                  <circle
+                    cx="20"
+                    cy="20"
+                    r="19"
+                    stroke="#E31B23"
+                    strokeWidth="1.5"
+                  />
+
+                  {/* голова */}
+                  <circle cx="20" cy="15" r="5.5" fill="#E31B23" />
+
+                  {/* тіло */}
+                  <path d="M9 30c0-5.5 5.5-8 11-8s11 2.5 11 8" fill="#E31B23" />
+                </svg>
+              )}
             </button>
 
             {isUserMenuOpen && (
@@ -567,174 +597,6 @@ export default function MainTopBar({
             )}
           </div>
         </div>
-
-        {/* row 2 */}
-        {/* <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            flexWrap: "nowrap",
-            justifyContent: "flex-start",
-          }}
-        >
-          <select
-            value={propertyType}
-            onChange={(e) =>
-              setPropertyType(e.target.value as SupportedPropertyType)
-            }
-            disabled={controlsDisabled}
-            style={{
-              ...selectStyle,
-              minWidth: "140px",
-              width: "auto",
-              opacity: controlsDisabled ? 0.5 : 1,
-              cursor: controlsDisabled ? "not-allowed" : "pointer",
-            }}
-          >
-            <option value="apartment">Квартири</option>
-            <option value="house">Будинки</option>
-            <option value="land">Земля</option>
-          </select>
-
-          <div
-            style={{
-              position: "relative",
-              display: "inline-flex",
-              overflow: "visible",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                if (controlsDisabled) return;
-                onOpenFilters?.();
-              }}
-              disabled={controlsDisabled}
-              style={{
-                ...pillButtonStyle,
-                border: hasActiveFilters ? "1px solid #111" : "1px solid #ddd",
-                background: "#fff",
-                color: "#111",
-                opacity: controlsDisabled ? 0.5 : 1,
-                cursor: controlsDisabled ? "not-allowed" : "pointer",
-                position: "relative",
-              }}
-              aria-label="Відкрити розширені фільтри"
-            >
-              <span style={{ fontSize: "15px", lineHeight: 1 }}>☰</span>
-              <span>Фільтри</span>
-            </button>
-
-            {activeFiltersCount > 0 && (
-              <span
-                style={{
-                  ...badgeStyle,
-                  transform: filtersBadgePop ? "scale(1.12)" : "scale(1)",
-                }}
-              >
-                {activeFiltersCount > 9 ? "9+" : activeFiltersCount}
-              </span>
-            )}
-          </div>
-
-          <div
-            style={{
-              position: "relative",
-              display: "inline-flex",
-              overflow: "visible",
-            }}
-          >
-            <button
-              type="button"
-              onClick={onToggleFavorites}
-              style={{
-                ...pillButtonStyle,
-                position: "relative",
-                border: showFavoritesOnly ? "1px solid #111" : "1px solid #ddd",
-                background: showFavoritesOnly ? "#111" : "#fff",
-                color: showFavoritesOnly ? "#fff" : "#111",
-              }}
-            >
-              <span style={{ fontSize: "15px" }}>
-                {showFavoritesOnly ? "♥" : "♡"}
-              </span>
-              <span>Обране</span>
-            </button>
-
-            {favoritesCount > 0 && (
-              <span
-                style={{
-                  ...badgeStyle,
-                  transform: favoritesBadgePop ? "scale(1.12)" : "scale(1)",
-                }}
-              >
-                {favoritesCount > 9 ? "9+" : favoritesCount}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* row 3 */}
-        {/* <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-start",
-          }}
-        >
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              background: "#f3f3f3",
-              borderRadius: "999px",
-              padding: "3px",
-              gap: "3px",
-              // width: "100%",
-              // maxWidth: "320px",
-              width: "auto",
-              maxWidth: "none",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                if (controlsDisabled) return;
-                setDealType("sale");
-              }}
-              disabled={controlsDisabled}
-              style={{
-                ...toggleButtonStyle,
-                flex: 1,
-                background: dealType === "sale" ? "#111" : "transparent",
-                color: dealType === "sale" ? "#fff" : "#111",
-                opacity: controlsDisabled ? 0.5 : 1,
-                cursor: controlsDisabled ? "not-allowed" : "pointer",
-              }}
-            >
-              Продаж
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (controlsDisabled) return;
-                setDealType("rent");
-              }}
-              disabled={controlsDisabled}
-              style={{
-                ...toggleButtonStyle,
-                flex: 1,
-                background: dealType === "rent" ? "#111" : "transparent",
-                color: dealType === "rent" ? "#fff" : "#111",
-                opacity: controlsDisabled ? 0.5 : 1,
-                cursor: controlsDisabled ? "not-allowed" : "pointer",
-              }}
-            >
-              Оренда
-            </button>
-          </div>
-        </div> */}
 
         <div
           style={{

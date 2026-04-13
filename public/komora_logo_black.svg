@@ -1,0 +1,54 @@
+<svg width="1200" height="500" viewBox="0 0 1200 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="500" fill="black"/>
+
+  <!-- outer frame -->
+  <rect x="115" y="70" width="970" height="360" stroke="#E31B23" stroke-width="8"/>
+  <rect x="135" y="90" width="930" height="320" stroke="#E31B23" stroke-width="2" opacity="0.9"/>
+
+  <!-- icon group -->
+  <g transform="translate(0,-8)">
+    <!-- skyline -->
+    <rect x="655" y="118" width="46" height="114" fill="#E31B23"/>
+    <rect x="715" y="142" width="40" height="90" fill="#E31B23"/>
+    <rect x="772" y="160" width="34" height="72" fill="#E31B23"/>
+
+    <!-- windows -->
+    <g fill="black" opacity="0.28">
+      <rect x="722" y="150" width="26" height="4"/>
+      <rect x="722" y="162" width="26" height="4"/>
+      <rect x="722" y="174" width="26" height="4"/>
+      <rect x="722" y="186" width="26" height="4"/>
+      <rect x="779" y="169" width="20" height="4"/>
+      <rect x="779" y="181" width="20" height="4"/>
+      <rect x="779" y="193" width="20" height="4"/>
+      <rect x="662" y="130" width="32" height="4"/>
+      <rect x="662" y="142" width="32" height="4"/>
+      <rect x="662" y="154" width="32" height="4"/>
+    </g>
+
+    <!-- roof / house -->
+    <path d="M514 236L598 168L681 220L731 200L796 250H746L701 214L675 246L603 194L547 250H514V236Z" fill="#E31B23"/>
+    <path d="M573 247L612 207L651 247H640L612 220L584 247H573Z" fill="black" opacity="0.25"/>
+
+    <!-- windows house -->
+    <rect x="607" y="214" width="12" height="14" fill="black" opacity="0.24"/>
+    <rect x="625" y="214" width="12" height="14" fill="black" opacity="0.24"/>
+    <rect x="720" y="221" width="12" height="14" fill="black" opacity="0.24"/>
+    <rect x="738" y="221" width="12" height="14" fill="black" opacity="0.24"/>
+
+    <!-- land line -->
+    <path d="M468 266C533 255 596 252 658 254C718 256 778 252 838 264" stroke="#E31B23" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <!-- brand text -->
+  <text x="600" y="338" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="96" font-weight="800" letter-spacing="4"
+        fill="#E31B23">KOMORA</text>
+
+  <!-- subtitle -->
+  <text x="600" y="392" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="34" font-weight="500" letter-spacing="5"
+        fill="white">НЕРУХОМІСТЬ ТА ЗЕМЛЯ</text>
+</svg>
