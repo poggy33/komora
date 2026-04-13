@@ -578,10 +578,12 @@ export default function Map({
     });
   };
 
-  const mobileMapHeight = mobileViewMode === "map" ? "88%" : "10%";
-  const mobileListHeight = mobileViewMode === "map" ? "12%" : "90%";
+  // const mobileMapHeight = mobileViewMode === "map" ? "88%" : "10%";
+  // const mobileListHeight = mobileViewMode === "map" ? "12%" : "90%";
 
-  const sidebarProperties = isMobile
+const sidebarProperties = showFavoritesOnly
+  ? filteredProperties
+  : isMobile
     ? mobileViewMode === "list"
       ? mobileSnapshotProperties
       : visibleProperties
