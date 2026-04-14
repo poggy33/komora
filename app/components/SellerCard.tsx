@@ -102,7 +102,7 @@ export default function SellerCard({ property }: Props) {
             display: "flex",
             alignItems: "center",
             gap: "12px",
-            marginBottom: "14px",
+            marginBottom: "8px",
           }}
         >
           <div
@@ -205,7 +205,7 @@ export default function SellerCard({ property }: Props) {
           {displayedPhone}
         </button>
 
-        <button
+        {/* <button
           type="button"
           style={{
             width: "100%",
@@ -221,7 +221,7 @@ export default function SellerCard({ property }: Props) {
           }}
         >
           Написати
-        </button>
+        </button> */}
 
         <button
           type="button"
@@ -240,7 +240,7 @@ export default function SellerCard({ property }: Props) {
           Поскаржитися на оголошення
         </button>
 
-        <div
+        {/* <div
           style={{
             marginTop: "14px",
             paddingTop: "14px",
@@ -251,7 +251,7 @@ export default function SellerCard({ property }: Props) {
           }}
         >
           Розміщено через платформу
-        </div>
+        </div> */}
       </div>
     </aside>
   );
