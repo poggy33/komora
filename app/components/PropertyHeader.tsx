@@ -25,7 +25,7 @@ export default function PropertyHeader({ property }: Props) {
         <div style={{ minWidth: 0, flex: 1 }}>
           <h1
             style={{
-              fontSize: "34px",
+              fontSize: "28px",
               fontWeight: 700,
               lineHeight: 1.2,
               color: "#111",
@@ -38,10 +38,11 @@ export default function PropertyHeader({ property }: Props) {
 
           <div
             style={{
-              fontSize: "15px",
+              fontSize: "14px",
               color: "#666",
               marginBottom: "10px",
               lineHeight: 1.5,
+              opacity: 0.85,
             }}
           >
             {address}
@@ -50,7 +51,7 @@ export default function PropertyHeader({ property }: Props) {
           {meta && (
             <div
               style={{
-                fontSize: "15px",
+                fontSize: "13px",
                 color: "#333",
                 lineHeight: 1.5,
               }}
@@ -58,23 +59,6 @@ export default function PropertyHeader({ property }: Props) {
               {meta}
             </div>
           )}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-            flexShrink: 0,
-          }}
-        >
-          <button type="button" style={secondaryButtonStyle}>
-            Поділитися
-          </button>
-
-          <button type="button" style={secondaryButtonStyle}>
-            Зберегти
-          </button>
         </div>
       </div>
 
@@ -89,7 +73,7 @@ export default function PropertyHeader({ property }: Props) {
       >
         <div
           style={{
-            fontSize: "32px",
+            fontSize: "26px",
             fontWeight: 700,
             color: "#111",
             lineHeight: 1.2,
@@ -180,14 +164,3 @@ function capitalize(value: string) {
   if (!value) return value;
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
-
-const secondaryButtonStyle: React.CSSProperties = {
-  padding: "11px 14px",
-  borderRadius: "12px",
-  border: "1px solid #ddd",
-  background: "#fff",
-  color: "#111",
-  fontSize: "14px",
-  fontWeight: 600,
-  cursor: "pointer",
-};

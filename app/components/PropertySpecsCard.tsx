@@ -10,7 +10,7 @@ export default function PropertySpecsCard({ property }: Props) {
   const items = buildSpecs(property);
 
   return (
-    <section style={{ marginBottom: "32px" }}>
+    <section style={{ marginBottom: "24px" }}>
       <h2
         style={{
           fontSize: "24px",

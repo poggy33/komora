@@ -6,7 +6,7 @@ type Props = {
 
 export default function PropertyDescription({ description }: Props) {
   return (
-    <section style={{ marginBottom: "32px" }}>
+    <section style={{ marginBottom: "24px" }}>
       <h2
         style={{
           fontSize: "24px",

@@ -12,7 +12,7 @@ export default function PropertyAmenities({ property }: Props) {
   if (amenities.length === 0) return null;
 
   return (
-    <section style={{ marginBottom: "32px" }}>
+    <section style={{ marginBottom: "24px" }}>
       <h2
         style={{
           fontSize: "24px",

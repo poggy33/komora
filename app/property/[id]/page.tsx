@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-// import { getPropertyByIdFromSupabase } from "@/lib/properties";
 import { getPropertyByIdFromSupabase } from "lib/properties";
 import PropertyGallery from "@/components/PropertyGallery";
 import SellerCard from "@/components/SellerCard";
@@ -8,6 +7,7 @@ import PropertyHeader from "@/components/PropertyHeader";
 import PropertyDescription from "@/components/PropertyDescription";
 import PropertyAmenities from "@/components/PropertyAmenities";
 import PropertyLocationMapWrapper from "@/components/PropertyLocationMapWrapper";
+import PropertyPageActions from "@/components/PropertyPageActions";
 
 type PageProps = {
   params: Promise<{
@@ -29,16 +29,26 @@ export default async function PropertyPage({ params }: PageProps) {
       style={{
         maxWidth: "1280px",
         margin: "0 auto",
-        padding: "24px",
+        padding: "16px",
         fontFamily: "Arial, sans-serif",
         color: "#111",
+        lineHeight: 1.45,
       }}
     >
-      <div style={{ marginBottom: "12px", color: "#666", fontSize: "14px" }}>
+      <div
+        style={{
+          marginBottom: "10px",
+          color: "#666",
+          fontSize: "13px",
+          opacity: 0.7,
+        }}
+      >
         Головна / Нерухомість / {property.title}
       </div>
 
       <PropertyHeader property={property} />
+
+      <PropertyPageActions propertyId={String(property.id)} />
 
       <PropertyGallery images={property.images} title={property.title} />
 
@@ -46,7 +56,7 @@ export default async function PropertyPage({ params }: PageProps) {
         style={{
           display: "grid",
           gridTemplateColumns: "1fr",
-          gap: "32px",
+          gap: "24px",
         }}
       >
         <section>
@@ -56,10 +66,10 @@ export default async function PropertyPage({ params }: PageProps) {
 
           <PropertyAmenities property={property} />
 
-          <div style={{ marginBottom: "32px" }}>
+          <div style={{ marginBottom: "24px" }}>
             <h2
               style={{
-                fontSize: "24px",
+                fontSize: "20px",
                 fontWeight: 700,
                 marginBottom: "16px",
                 color: "#111",
@@ -78,7 +88,7 @@ export default async function PropertyPage({ params }: PageProps) {
 
         <div
           style={{
-            maxWidth: "420px",
+            maxWidth: "100%",
             width: "100%",
             margin: "0 auto",
           }}
@@ -89,3 +99,4 @@ export default async function PropertyPage({ params }: PageProps) {
     </main>
   );
 }
+
