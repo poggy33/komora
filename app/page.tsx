@@ -3,13 +3,17 @@
 import { useEffect, useState } from "react";
 import MainTopBar from "./components/MainTopBar";
 import MapWrapper from "./components/MapWrapper";
-import FiltersDrawer, { type FiltersState } from "./components/FiltersDrawer";
+import FiltersDrawer from "./components/FiltersDrawer";
 import ActiveFiltersBar from "./components/ActiveFiltersBar";
 import { useFavorites } from "./hooks/useFavorites";
 import type { DealType, Property } from "@/types/property";
 import { getPropertiesFromSupabase } from "../lib/properties";
+import {
+  DEFAULT_FILTERS_STATE,
+  type FiltersState,
+  type SupportedPropertyType,
+} from "./components/filters.types";
 
-type SupportedPropertyType = "apartment" | "house" | "land";
 
 export default function HomePage() {
   const [dealType, setDealType] = useState<DealType>("sale");
@@ -25,12 +29,7 @@ export default function HomePage() {
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  const [filters, setFilters] = useState<FiltersState>({
-    priceMin: "",
-    priceMax: "",
-    rooms: "",
-    areaMin: "",
-  });
+  const [filters, setFilters] = useState<FiltersState>(DEFAULT_FILTERS_STATE);
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoadingProperties, setIsLoadingProperties] = useState(true);
@@ -39,16 +38,36 @@ export default function HomePage() {
   const activeFiltersCount = [
     filters.priceMin,
     filters.priceMax,
-    filters.rooms,
     filters.areaMin,
+    filters.areaMax,
+    filters.pricePerSqmMin,
+    filters.pricePerSqmMax,
+    filters.lotAreaMin,
+    filters.lotAreaMax,
+    filters.floorsMin,
+    filters.floorsMax,
+    filters.yearBuiltFrom,
+    filters.yearBuiltTo,
+    filters.rooms.length > 0 ? "rooms" : "",
+    filters.notFirstFloor ? "notFirstFloor" : "",
+    filters.notLastFloor ? "notLastFloor" : "",
+    filters.marketType.length > 0 ? "marketType" : "",
+    filters.heating.length > 0 ? "heating" : "",
+    filters.parking.length > 0 ? "parking" : "",
+    filters.renovation.length > 0 ? "renovation" : "",
+    filters.documentsReady ? "documentsReady" : "",
+    filters.furnished ? "furnished" : "",
+    filters.petsAllowed ? "petsAllowed" : "",
+    filters.landPurpose.length > 0 ? "landPurpose" : "",
   ].filter(Boolean).length;
 
   const { favoriteIds, toggleFavorite } = useFavorites();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  // const [previewCount, setPreviewCount] = useState(0);
   const [visibleCount, setVisibleCount] = useState(0);
   const [isMobileListMode, setIsMobileListMode] = useState(false);
-  const [visiblePropertiesForDrawer, setVisiblePropertiesForDrawer] = useState<Property[]>([]);
+  const [visiblePropertiesForDrawer, setVisiblePropertiesForDrawer] = useState<
+    Property[]
+  >([]);
 
   useEffect(() => {
     async function loadProperties() {
@@ -65,7 +84,6 @@ export default function HomePage() {
             });
 
         setProperties(data);
-        // setPreviewCount(data.length);
       } catch (error) {
         console.error(error);
         setPropertiesError("Не вдалося завантажити оголошення");
@@ -134,23 +152,16 @@ export default function HomePage() {
         </div>
       </main>
 
-<FiltersDrawer
-  isOpen={isFiltersOpen}
-  onClose={() => setIsFiltersOpen(false)}
-  value={filters}
-  onApply={(next) => setFilters(next)}
-  onReset={() =>
-    setFilters({
-      priceMin: "",
-      priceMax: "",
-      rooms: "",
-      areaMin: "",
-    })
-  }
-  propertyType={propertyType}
-  dealType={dealType}
-  visibleProperties={visiblePropertiesForDrawer}
-/>
+      <FiltersDrawer
+        isOpen={isFiltersOpen}
+        onClose={() => setIsFiltersOpen(false)}
+        value={filters}
+        onApply={(next) => setFilters(next)}
+        onReset={() => setFilters(DEFAULT_FILTERS_STATE)}
+        propertyType={propertyType}
+        dealType={dealType}
+        visibleProperties={visiblePropertiesForDrawer}
+      />
     </>
   );
 }

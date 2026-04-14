@@ -1,7 +1,7 @@
-// підключаємо Supabase до списку
 import type { Property } from "@/types/property";
-import { createClient } from "../lib/supabase/client";
 import type { Database } from "@/types/database.types";
+import type { FiltersState } from "@/components/filters.types";
+import { createClient } from "../lib/supabase/client";
 
 function buildFullAddress(row: {
   address_line: string | null;
@@ -18,24 +18,19 @@ function mapDbPropertyToUi(row: any): Property {
   const images =
     row.property_media
       ?.slice()
-      ?.sort((a: any, b: any) => a.position - b.position)
+      ?.sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
       ?.map((img: any) => img.public_url)
       ?.filter(Boolean) ?? [];
-      console.log("DB house row:", row.property_type, row.floor, row.total_floors);
-        console.log("Mapped floors:", {
-  propertyType: row.property_type,
-  floors:
-    row.property_type === "house"
-      ? row.total_floors ?? row.floor ?? undefined
-      : undefined,
-});
-    return {
+
+  return {
     id: String(row.id),
     title: row.title,
+
     propertyType: row.property_type,
     dealType: row.listing_type,
-    price: row.price,
-    area: row.area_total_m2 ?? 0,
+
+    price: Number(row.price),
+    area: Number(row.area_total_m2 ?? 0),
 
     rooms: row.rooms_count ?? undefined,
 
@@ -43,22 +38,22 @@ function mapDbPropertyToUi(row: any): Property {
     totalFloors: row.total_floors ?? undefined,
 
     floors:
-        row.property_type === "house"
+      row.property_type === "house"
         ? row.total_floors ?? row.floor ?? undefined
         : undefined,
 
     ownerType: "owner",
+
     coordinates: [row.lng, row.lat],
 
     images,
     coverImage: row.cover_image_url ?? images[0] ?? null,
 
     location: {
-        city: row.city,
-        region: row.region ?? undefined,
-        district: row.district ?? undefined,
-        addressLine: row.address_line ?? undefined,
-        fullAddress: buildFullAddress(row),
+      city: row.city,
+      district: row.district ?? undefined,
+      street: row.address_line ?? undefined,
+      fullAddress: buildFullAddress(row),
     },
 
     description: row.description ?? undefined,
@@ -66,26 +61,154 @@ function mapDbPropertyToUi(row: any): Property {
     status: "active",
     currency: row.currency ?? "USD",
 
+    livingArea: row.living_area ?? undefined,
+    kitchenArea: row.kitchen_area ?? undefined,
+
+    yearBuilt: row.year_built ?? undefined,
+    marketType: row.market_type ?? undefined,
+    heating: row.heating_type ?? undefined,
+    parking: row.parking_type ?? undefined,
+    renovation: row.renovation_type ?? undefined,
+    documentsReady: row.documents_ready ?? false,
+    petsAllowed: row.pets_allowed ?? false,
+    isFurnished: row.is_furnished ?? false,
+    lotArea: row.lot_area ?? undefined,
+    landPurpose: row.land_purpose ?? undefined,
+
     owner: {
-        id: row.owner_id ? String(row.owner_id) : "",
-        type: "owner",
-        name: row.seller_name ?? "Власник",
-        isVerified: false,
-        phone: row.seller_phone ?? "",
+      id: row.owner_id ? String(row.owner_id) : "",
+      type: "owner",
+      name: row.seller_name ?? "Власник",
+      isVerified: false,
+      phone: row.seller_phone ?? "",
     },
-    };
+  };
 }
 
 export type GetPropertiesParams = {
   dealType?: "sale" | "rent";
-  propertyType?: "apartment" | "house" | "land";
-  filters?: {
-    priceMin: string;
-    priceMax: string;
-    rooms: string;
-    areaMin: string;
-  };
+  propertyType?: "apartment" | "house" | "land" | "commercial";
+  filters?: FiltersState;
 };
+
+function applyPropertyFilters(
+  query: any,
+  propertyType: GetPropertiesParams["propertyType"],
+  filters?: FiltersState,
+) {
+  const priceMin = filters?.priceMin ? Number(filters.priceMin) : null;
+  const priceMax = filters?.priceMax ? Number(filters.priceMax) : null;
+
+  const areaMin = filters?.areaMin ? Number(filters.areaMin) : null;
+  const areaMax = filters?.areaMax ? Number(filters.areaMax) : null;
+
+  const lotAreaMin = filters?.lotAreaMin ? Number(filters.lotAreaMin) : null;
+  const lotAreaMax = filters?.lotAreaMax ? Number(filters.lotAreaMax) : null;
+
+  const floorsMin = filters?.floorsMin ? Number(filters.floorsMin) : null;
+  const floorsMax = filters?.floorsMax ? Number(filters.floorsMax) : null;
+
+  const yearBuiltFrom = filters?.yearBuiltFrom
+    ? Number(filters.yearBuiltFrom)
+    : null;
+  const yearBuiltTo = filters?.yearBuiltTo ? Number(filters.yearBuiltTo) : null;
+
+  const rooms =
+    filters?.rooms && filters.rooms.length > 0
+      ? Math.min(
+          ...filters.rooms.map((value) => (value === "5+" ? 5 : Number(value))),
+        )
+      : null;
+
+  if (priceMin !== null) {
+    query = query.gte("price", priceMin);
+  }
+
+  if (priceMax !== null) {
+    query = query.lte("price", priceMax);
+  }
+
+  if (areaMin !== null) {
+    query = query.gte("area_total_m2", areaMin);
+  }
+
+  if (areaMax !== null) {
+    query = query.lte("area_total_m2", areaMax);
+  }
+
+  if (rooms !== null && propertyType !== "land") {
+    query = query.gte("rooms_count", rooms);
+  }
+
+  if (lotAreaMin !== null) {
+    query = query.gte("lot_area", lotAreaMin);
+  }
+
+  if (lotAreaMax !== null) {
+    query = query.lte("lot_area", lotAreaMax);
+  }
+
+  if (floorsMin !== null) {
+    query = query.gte("total_floors", floorsMin);
+  }
+
+  if (floorsMax !== null) {
+    query = query.lte("total_floors", floorsMax);
+  }
+
+  if (yearBuiltFrom !== null) {
+    query = query.gte("year_built", yearBuiltFrom);
+  }
+
+  if (yearBuiltTo !== null) {
+    query = query.lte("year_built", yearBuiltTo);
+  }
+
+  if (filters?.documentsReady) {
+    query = query.eq("documents_ready", true);
+  }
+
+  if (filters?.furnished) {
+    query = query.eq("is_furnished", true);
+  }
+
+  if (filters?.petsAllowed) {
+    query = query.eq("pets_allowed", true);
+  }
+
+  if (filters?.marketType && filters.marketType.length > 0) {
+    query = query.in("market_type", filters.marketType);
+  }
+
+  if (filters?.heating && filters.heating.length > 0) {
+    query = query.in("heating_type", filters.heating);
+  }
+
+  if (filters?.parking && filters.parking.length > 0) {
+    query = query.in("parking_type", filters.parking);
+  }
+
+  if (filters?.renovation && filters.renovation.length > 0) {
+    query = query.in("renovation_type", filters.renovation);
+  }
+
+  if (filters?.landPurpose && filters.landPurpose.length > 0) {
+    query = query.in("land_purpose", filters.landPurpose);
+  }
+
+  if (filters?.notFirstFloor) {
+    query = query.gt("floor", 1);
+  }
+
+  // Тимчасове наближення:
+  // беремо лише об’єкти, де є floor і total_floors,
+  // а реальне порівняння floor < total_floors зробимо пізніше через SQL/RPC/view.
+  if (filters?.notLastFloor) {
+    query = query.not("floor", "is", null).not("total_floors", "is", null);
+  }
+
+  return query;
+}
 
 export async function getPropertiesFromSupabase({
   dealType,
@@ -120,6 +243,19 @@ export async function getPropertiesFromSupabase({
       seller_phone,
       cover_image_url,
       created_at,
+      updated_at,
+      market_type,
+      year_built,
+      heating_type,
+      parking_type,
+      renovation_type,
+      documents_ready,
+      pets_allowed,
+      is_furnished,
+      land_purpose,
+      lot_area,
+      living_area,
+      kitchen_area,
       property_media (
         public_url,
         position
@@ -137,26 +273,7 @@ export async function getPropertiesFromSupabase({
     query = query.eq("property_type", propertyType);
   }
 
-  const priceMin = filters?.priceMin ? Number(filters.priceMin) : null;
-  const priceMax = filters?.priceMax ? Number(filters.priceMax) : null;
-  const rooms = filters?.rooms ? Number(filters.rooms) : null;
-  const areaMin = filters?.areaMin ? Number(filters.areaMin) : null;
-
-  if (priceMin !== null) {
-    query = query.gte("price", priceMin);
-  }
-
-  if (priceMax !== null) {
-    query = query.lte("price", priceMax);
-  }
-
-  if (rooms !== null && propertyType !== "land") {
-    query = query.gte("rooms_count", rooms);
-  }
-
-  if (areaMin !== null) {
-    query = query.gte("area_total_m2", areaMin);
-  }
+  query = applyPropertyFilters(query, propertyType, filters);
 
   const { data, error } = await query;
 
@@ -197,6 +314,19 @@ export async function getPropertyByIdFromSupabase(
       seller_phone,
       cover_image_url,
       created_at,
+      updated_at,
+      market_type,
+      year_built,
+      heating_type,
+      parking_type,
+      renovation_type,
+      documents_ready,
+      pets_allowed,
+      is_furnished,
+      land_purpose,
+      lot_area,
+      living_area,
+      kitchen_area,
       property_media (
         public_url,
         position
@@ -237,26 +367,7 @@ export async function getPropertiesCountFromSupabase({
     query = query.eq("property_type", propertyType);
   }
 
-  const priceMin = filters?.priceMin ? Number(filters.priceMin) : null;
-  const priceMax = filters?.priceMax ? Number(filters.priceMax) : null;
-  const rooms = filters?.rooms ? Number(filters.rooms) : null;
-  const areaMin = filters?.areaMin ? Number(filters.areaMin) : null;
-
-  if (priceMin !== null) {
-    query = query.gte("price", priceMin);
-  }
-
-  if (priceMax !== null) {
-    query = query.lte("price", priceMax);
-  }
-
-  if (rooms !== null && propertyType !== "land") {
-    query = query.gte("rooms_count", rooms);
-  }
-
-  if (areaMin !== null) {
-    query = query.gte("area_total_m2", areaMin);
-  }
+  query = applyPropertyFilters(query, propertyType, filters);
 
   const { count, error } = await query;
 
@@ -288,10 +399,6 @@ export type CreatePropertyInput = {
   publicationStatus: "draft" | "published";
 };
 
-type PropertyInsert = Database["public"]["Tables"]["properties"]["Insert"];
-
-
-
 export async function createPropertyInSupabase(
   input: CreatePropertyInput,
 ): Promise<string> {
@@ -322,15 +429,12 @@ export async function createPropertyInSupabase(
     description: input.description || null,
     property_type: input.propertyType,
     listing_type: input.dealType,
-    // status: "published",
     status: input.publicationStatus,
     price: input.price,
     currency: "USD",
     area_total_m2: input.area,
-    rooms_count:
-      input.propertyType === "land" ? null : (input.rooms ?? null),
-    floor:
-      input.propertyType === "apartment" ? (input.floor ?? null) : null,
+    rooms_count: input.propertyType === "land" ? null : (input.rooms ?? null),
+    floor: input.propertyType === "apartment" ? (input.floor ?? null) : null,
     total_floors:
       input.propertyType === "land" ? null : (input.totalFloors ?? null),
     address_line: input.addressLine || null,
@@ -342,11 +446,23 @@ export async function createPropertyInSupabase(
     seller_name: input.sellerName,
     seller_phone: input.sellerPhone,
     cover_image_url: null,
-    // is_published: true,
     is_published: input.publicationStatus === "published",
+
+    market_type: null,
+    year_built: null,
+    heating_type: null,
+    parking_type: null,
+    renovation_type: null,
+    documents_ready: false,
+    pets_allowed: false,
+    is_furnished: false,
+    land_purpose: null,
+    lot_area: null,
+    living_area: null,
+    kitchen_area: null,
   };
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("properties")
     .insert([payload])
     .select("id")
@@ -464,6 +580,19 @@ export async function getMyPropertiesFromSupabase(
       seller_phone,
       cover_image_url,
       created_at,
+      updated_at,
+      market_type,
+      year_built,
+      heating_type,
+      parking_type,
+      renovation_type,
+      documents_ready,
+      pets_allowed,
+      is_furnished,
+      land_purpose,
+      lot_area,
+      living_area,
+      kitchen_area,
       property_media (
         public_url,
         position
@@ -478,7 +607,6 @@ export async function getMyPropertiesFromSupabase(
 
   return (data ?? []).map(mapDbPropertyToUi);
 }
-
 
 export async function getEditablePropertyByIdFromSupabase(
   id: string,
@@ -512,6 +640,19 @@ export async function getEditablePropertyByIdFromSupabase(
       seller_phone,
       cover_image_url,
       created_at,
+      updated_at,
+      market_type,
+      year_built,
+      heating_type,
+      parking_type,
+      renovation_type,
+      documents_ready,
+      pets_allowed,
+      is_furnished,
+      land_purpose,
+      lot_area,
+      living_area,
+      kitchen_area,
       property_media (
         public_url,
         position
@@ -576,10 +717,8 @@ export async function updatePropertyInSupabase(
     listing_type: input.dealType,
     price: input.price,
     area_total_m2: input.area,
-    rooms_count:
-      input.propertyType === "land" ? null : (input.rooms ?? null),
-    floor:
-      input.propertyType === "apartment" ? (input.floor ?? null) : null,
+    rooms_count: input.propertyType === "land" ? null : (input.rooms ?? null),
+    floor: input.propertyType === "apartment" ? (input.floor ?? null) : null,
     total_floors:
       input.propertyType === "land" ? null : (input.totalFloors ?? null),
     address_line: input.addressLine || null,
@@ -701,7 +840,8 @@ export async function uploadAdditionalPropertyImages(
     throw new Error("Unauthorized");
   }
 
-  const uploadedRows: Database["public"]["Tables"]["property_media"]["Insert"][] = [];
+  const uploadedRows: Database["public"]["Tables"]["property_media"]["Insert"][] =
+    [];
 
   for (let index = 0; index < files.length; index += 1) {
     const file = files[index];
@@ -820,7 +960,9 @@ export async function deletePropertyImageFromSupabase(
       .limit(1);
 
     if (remainingError) {
-      throw new Error(`Failed to load remaining media: ${remainingError.message}`);
+      throw new Error(
+        `Failed to load remaining media: ${remainingError.message}`,
+      );
     }
 
     const nextCoverUrl = remainingRows?.[0]?.public_url ?? null;
@@ -834,7 +976,9 @@ export async function deletePropertyImageFromSupabase(
       .eq("owner_id", user.id);
 
     if (coverUpdateError) {
-      throw new Error(`Failed to update cover image: ${coverUpdateError.message}`);
+      throw new Error(
+        `Failed to update cover image: ${coverUpdateError.message}`,
+      );
     }
   }
 }
@@ -899,7 +1043,9 @@ export async function getSavedPropertyIdsFromSupabase(): Promise<string[]> {
   return (data ?? []).map((row) => String(row.property_id));
 }
 
-export async function savePropertyInSupabase(propertyId: string): Promise<void> {
+export async function savePropertyInSupabase(
+  propertyId: string,
+): Promise<void> {
   const supabase = createClient();
 
   const {
@@ -920,16 +1066,16 @@ export async function savePropertyInSupabase(propertyId: string): Promise<void> 
     property_id: propertyId,
   };
 
-  const { error } = await supabase
-    .from("saved_properties")
-    .insert([payload]);
+  const { error } = await supabase.from("saved_properties").insert([payload]);
 
   if (error && error.code !== "23505") {
     throw new Error(`Failed to save property: ${error.message}`);
   }
 }
 
-export async function unsavePropertyInSupabase(propertyId: string): Promise<void> {
+export async function unsavePropertyInSupabase(
+  propertyId: string,
+): Promise<void> {
   const supabase = createClient();
 
   const {

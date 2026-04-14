@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { FiltersState } from "./FiltersDrawer";
+import type { FiltersState } from "./filters.types";
 
 type Props = {
   filters: FiltersState;
@@ -9,7 +9,17 @@ type Props = {
   isHiddenOnMobile?: boolean;
 };
 
-export default function ActiveFiltersBar({ filters, onChange, isHiddenOnMobile = false, }: Props) {
+type FilterChip = {
+  key: string;
+  label: string;
+  next: FiltersState;
+};
+
+export default function ActiveFiltersBar({
+  filters,
+  onChange,
+  isHiddenOnMobile = false,
+}: Props) {
   const items = buildItems(filters);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -112,17 +122,13 @@ export default function ActiveFiltersBar({ filters, onChange, isHiddenOnMobile =
   );
 }
 
-function buildItems(filters: FiltersState) {
-  const items: Array<{
-    key: string;
-    label: string;
-    next: FiltersState;
-  }> = [];
+function buildItems(filters: FiltersState): FilterChip[] {
+  const items: FilterChip[] = [];
 
   if (filters.priceMin) {
     items.push({
       key: "priceMin",
-      label: `від $${Number(filters.priceMin).toLocaleString()}`,
+      label: `ціна від $${Number(filters.priceMin).toLocaleString()}`,
       next: { ...filters, priceMin: "" },
     });
   }
@@ -130,26 +136,251 @@ function buildItems(filters: FiltersState) {
   if (filters.priceMax) {
     items.push({
       key: "priceMax",
-      label: `до $${Number(filters.priceMax).toLocaleString()}`,
+      label: `ціна до $${Number(filters.priceMax).toLocaleString()}`,
       next: { ...filters, priceMax: "" },
     });
   }
 
-  if (filters.rooms) {
+  if (filters.pricePerSqmMin) {
     items.push({
-      key: "rooms",
-      label: `${filters.rooms}+ кімнати`,
-      next: { ...filters, rooms: "" },
+      key: "pricePerSqmMin",
+      label: `від $${Number(filters.pricePerSqmMin).toLocaleString()}/м²`,
+      next: { ...filters, pricePerSqmMin: "" },
+    });
+  }
+
+  if (filters.pricePerSqmMax) {
+    items.push({
+      key: "pricePerSqmMax",
+      label: `до $${Number(filters.pricePerSqmMax).toLocaleString()}/м²`,
+      next: { ...filters, pricePerSqmMax: "" },
     });
   }
 
   if (filters.areaMin) {
     items.push({
       key: "areaMin",
-      label: `від ${Number(filters.areaMin).toLocaleString()} м²`,
+      label: `площа від ${Number(filters.areaMin).toLocaleString()} м²`,
       next: { ...filters, areaMin: "" },
     });
   }
 
+  if (filters.areaMax) {
+    items.push({
+      key: "areaMax",
+      label: `площа до ${Number(filters.areaMax).toLocaleString()} м²`,
+      next: { ...filters, areaMax: "" },
+    });
+  }
+
+  if (filters.lotAreaMin) {
+    items.push({
+      key: "lotAreaMin",
+      label: `ділянка від ${Number(filters.lotAreaMin).toLocaleString()}`,
+      next: { ...filters, lotAreaMin: "" },
+    });
+  }
+
+  if (filters.lotAreaMax) {
+    items.push({
+      key: "lotAreaMax",
+      label: `ділянка до ${Number(filters.lotAreaMax).toLocaleString()}`,
+      next: { ...filters, lotAreaMax: "" },
+    });
+  }
+
+  if (filters.floorsMin) {
+    items.push({
+      key: "floorsMin",
+      label: `поверхів від ${filters.floorsMin}`,
+      next: { ...filters, floorsMin: "" },
+    });
+  }
+
+  if (filters.floorsMax) {
+    items.push({
+      key: "floorsMax",
+      label: `поверхів до ${filters.floorsMax}`,
+      next: { ...filters, floorsMax: "" },
+    });
+  }
+
+  if (filters.yearBuiltFrom) {
+    items.push({
+      key: "yearBuiltFrom",
+      label: `рік від ${filters.yearBuiltFrom}`,
+      next: { ...filters, yearBuiltFrom: "" },
+    });
+  }
+
+  if (filters.yearBuiltTo) {
+    items.push({
+      key: "yearBuiltTo",
+      label: `рік до ${filters.yearBuiltTo}`,
+      next: { ...filters, yearBuiltTo: "" },
+    });
+  }
+
+  filters.rooms.forEach((room) => {
+    items.push({
+      key: `room-${room}`,
+      label: `${room} кімн.`,
+      next: {
+        ...filters,
+        rooms: filters.rooms.filter((value) => value !== room),
+      },
+    });
+  });
+
+  filters.marketType.forEach((value) => {
+    items.push({
+      key: `marketType-${value}`,
+      label:
+        value === "new_building" ? "новобудова" : "вторинка",
+      next: {
+        ...filters,
+        marketType: filters.marketType.filter((item) => item !== value),
+      },
+    });
+  });
+
+  filters.heating.forEach((value) => {
+    items.push({
+      key: `heating-${value}`,
+      label: heatingLabel(value),
+      next: {
+        ...filters,
+        heating: filters.heating.filter((item) => item !== value),
+      },
+    });
+  });
+
+  filters.parking.forEach((value) => {
+    items.push({
+      key: `parking-${value}`,
+      label: parkingLabel(value),
+      next: {
+        ...filters,
+        parking: filters.parking.filter((item) => item !== value),
+      },
+    });
+  });
+
+  filters.renovation.forEach((value) => {
+    items.push({
+      key: `renovation-${value}`,
+      label: renovationLabel(value),
+      next: {
+        ...filters,
+        renovation: filters.renovation.filter((item) => item !== value),
+      },
+    });
+  });
+
+  filters.landPurpose.forEach((value) => {
+    items.push({
+      key: `landPurpose-${value}`,
+      label: landPurposeLabel(value),
+      next: {
+        ...filters,
+        landPurpose: filters.landPurpose.filter((item) => item !== value),
+      },
+    });
+  });
+
+  if (filters.notFirstFloor) {
+    items.push({
+      key: "notFirstFloor",
+      label: "не перший поверх",
+      next: { ...filters, notFirstFloor: false },
+    });
+  }
+
+  if (filters.notLastFloor) {
+    items.push({
+      key: "notLastFloor",
+      label: "не останній поверх",
+      next: { ...filters, notLastFloor: false },
+    });
+  }
+
+  if (filters.documentsReady) {
+    items.push({
+      key: "documentsReady",
+      label: "документи готові",
+      next: { ...filters, documentsReady: false },
+    });
+  }
+
+  if (filters.furnished) {
+    items.push({
+      key: "furnished",
+      label: "з меблями",
+      next: { ...filters, furnished: false },
+    });
+  }
+
+  if (filters.petsAllowed) {
+    items.push({
+      key: "petsAllowed",
+      label: "можна з тваринами",
+      next: { ...filters, petsAllowed: false },
+    });
+  }
+
   return items;
+}
+
+function heatingLabel(value: FiltersState["heating"][number]) {
+  switch (value) {
+    case "individual":
+      return "індивідуальне опалення";
+    case "central":
+      return "центральне опалення";
+    case "electric":
+      return "електричне опалення";
+    case "solid_fuel":
+      return "твердопаливне опалення";
+    default:
+      return value;
+  }
+}
+
+function parkingLabel(value: FiltersState["parking"][number]) {
+  switch (value) {
+    case "parking":
+      return "паркінг";
+    case "underground":
+      return "підземний паркінг";
+    default:
+      return value;
+  }
+}
+
+function renovationLabel(value: FiltersState["renovation"][number]) {
+  switch (value) {
+    case "no_repair":
+      return "без ремонту";
+    case "livable":
+      return "житловий стан";
+    case "good":
+      return "хороший стан";
+    case "euro":
+      return "євроремонт";
+    default:
+      return value;
+  }
+}
+
+function landPurposeLabel(value: FiltersState["landPurpose"][number]) {
+  switch (value) {
+    case "residential":
+      return "під забудову";
+    case "agricultural":
+      return "с/г призначення";
+    case "commercial":
+      return "комерційне призначення";
+    default:
+      return value;
+  }
 }

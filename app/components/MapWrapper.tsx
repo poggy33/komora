@@ -1,10 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { FiltersState } from "./FiltersDrawer";
+import type { SupportedPropertyType, FiltersState } from "./filters.types";
 import type { DealType, Property } from "@/types/property";
 
-type SupportedPropertyType = "apartment" | "house" | "land";
+// type SupportedPropertyType =
+//   | "apartment"
+//   | "house"
+//   | "land"
+//   | "commercial";
 
 type Props = {
   dealType: DealType;

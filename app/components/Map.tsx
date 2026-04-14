@@ -7,11 +7,15 @@ import type { FeatureCollection, Point } from "geojson";
 import Sidebar from "./Sidebar";
 import { createRoot, type Root } from "react-dom/client";
 import PopupCard from "./PopupCard";
-import type { FiltersState } from "./FiltersDrawer";
+import type { SupportedPropertyType, FiltersState } from "./filters.types";
 import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
 
-type SupportedPropertyType = "apartment" | "house" | "land";
+// type SupportedPropertyType =
+//   | "apartment"
+//   | "house"
+//   | "land"
+//   | "commercial";
 
 type Props = {
   dealType: DealType;
