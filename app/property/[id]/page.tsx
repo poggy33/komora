@@ -8,6 +8,7 @@ import PropertyDescription from "@/components/PropertyDescription";
 import PropertyAmenities from "@/components/PropertyAmenities";
 import PropertyLocationMapWrapper from "@/components/PropertyLocationMapWrapper";
 import PropertyPageActions from "@/components/PropertyPageActions";
+import PropertyMobileBottomBar from "@/components/PropertyMobileBottomBar";
 
 type PageProps = {
   params: Promise<{
@@ -29,7 +30,8 @@ export default async function PropertyPage({ params }: PageProps) {
       style={{
         maxWidth: "1280px",
         margin: "0 auto",
-        padding: "16px",
+        // padding: "16px",
+        padding: "16px 16px 96px",
         fontFamily: "Arial, sans-serif",
         color: "#111",
         lineHeight: 1.45,
@@ -96,7 +98,11 @@ export default async function PropertyPage({ params }: PageProps) {
           <SellerCard property={property} />
         </div>
       </div>
+      <PropertyMobileBottomBar
+        price={property.price}
+        dealType={property.dealType}
+        phone={property.owner?.phone}
+      />
     </main>
   );
 }
-
