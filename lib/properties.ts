@@ -51,7 +51,9 @@ function mapDbPropertyToUi(row: any): Property {
 
     location: {
       city: row.city,
+      region: row.region ?? undefined,
       district: row.district ?? undefined,
+      addressLine: row.address_line ?? undefined,
       street: row.address_line ?? undefined,
       fullAddress: buildFullAddress(row),
     },

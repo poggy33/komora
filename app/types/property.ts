@@ -25,9 +25,11 @@ export type PropertyOwner = {
 
 export type PropertyLocation = {
   city: string;
+  region?: string;
   district?: string;
   street?: string;
   building?: string;
+  addressLine?: string;
   fullAddress: string;
 };
 
