@@ -11,12 +11,6 @@ import type { SupportedPropertyType, FiltersState } from "./filters.types";
 import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
 
-// type SupportedPropertyType =
-//   | "apartment"
-//   | "house"
-//   | "land"
-//   | "commercial";
-
 type Props = {
   dealType: DealType;
   propertyType: SupportedPropertyType;
@@ -34,6 +28,7 @@ type Props = {
   onVisibleCountChange?: (count: number) => void;
   onMobileListModeChange?: (isListMode: boolean) => void;
   onVisiblePropertiesChange?: (properties: Property[]) => void;
+  rawProperties: Property[];
 };
 
 export default function Map({
@@ -53,6 +48,7 @@ export default function Map({
   onVisibleCountChange,
   onMobileListModeChange,
   onVisiblePropertiesChange,
+  rawProperties,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -61,6 +57,7 @@ export default function Map({
     new globalThis.Map(),
   );
   const filteredPropertiesRef = useRef<Property[]>([]);
+  const rawPropertiesRef = useRef<Property[]>([]);
 
   const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
   const [mobileViewMode, setMobileViewMode] = useState<"map" | "list">("map");
@@ -283,11 +280,10 @@ export default function Map({
     });
   };
 
-  const filteredProperties: Property[] = showFavoritesOnly
-    ? properties.filter((p: Property) => favoriteIds.includes(String(p.id)))
-    : properties;
+  const filteredProperties: Property[] = properties;
 
   filteredPropertiesRef.current = filteredProperties;
+  rawPropertiesRef.current = rawProperties;
 
   const buildGeoJSONFromList = (list: Property[]): FeatureCollection<Point> => {
     return {
@@ -322,6 +318,11 @@ export default function Map({
     const next = getPropertiesInView(map, list);
     setVisibleProperties(next);
     onVisibleCountChange?.(next.length);
+    onVisiblePropertiesChange?.(next);
+  };
+
+  const updateDrawerBaseProperties = (map: mapboxgl.Map, list: Property[]) => {
+    const next = getPropertiesInView(map, list);
     onVisiblePropertiesChange?.(next);
   };
 
@@ -394,6 +395,7 @@ export default function Map({
       map.once("idle", () => {
         renderHtmlMarkers(map, filteredPropertiesRef.current);
         updateVisibleProperties(map, filteredPropertiesRef.current);
+        updateDrawerBaseProperties(map, rawPropertiesRef.current);
 
         if (window.innerWidth <= 768) {
           const next = getPropertiesInView(map, filteredPropertiesRef.current);
@@ -454,6 +456,7 @@ export default function Map({
       map.on("moveend", () => {
         renderHtmlMarkers(map, filteredPropertiesRef.current);
         updateVisibleProperties(map, filteredPropertiesRef.current);
+        updateDrawerBaseProperties(map, rawPropertiesRef.current);
 
         if (window.innerWidth <= 768 && mobileViewMode === "map") {
           const next = getPropertiesInView(map, filteredPropertiesRef.current);
@@ -464,6 +467,7 @@ export default function Map({
       map.on("zoomend", () => {
         renderHtmlMarkers(map, filteredPropertiesRef.current);
         updateVisibleProperties(map, filteredPropertiesRef.current);
+        updateDrawerBaseProperties(map, rawPropertiesRef.current);
 
         if (window.innerWidth <= 768 && mobileViewMode === "map") {
           const next = getPropertiesInView(map, filteredPropertiesRef.current);
@@ -522,24 +526,30 @@ export default function Map({
 
     if (!source) return;
 
+    const nextVisible = getPropertiesInView(map, filteredPropertiesRef.current);
+    const nextDrawerBase = getPropertiesInView(map, rawPropertiesRef.current);
+
+    setVisibleProperties(nextVisible);
+    onVisibleCountChange?.(nextVisible.length);
+    onVisiblePropertiesChange?.(nextDrawerBase);
+
     source.setData(buildGeoJSONFromList(filteredPropertiesRef.current));
 
     setDesktopPopupProperty(null);
+
     if (popupRef.current) {
       popupRef.current.remove();
       popupRef.current = null;
     }
 
+    if (window.innerWidth <= 768) {
+      setMobileSnapshotProperties(nextVisible);
+    }
+
     map.once("idle", () => {
       renderHtmlMarkers(map, filteredPropertiesRef.current);
-      updateVisibleProperties(map, filteredPropertiesRef.current);
-
-      if (window.innerWidth <= 768) {
-        const next = getPropertiesInView(map, filteredPropertiesRef.current);
-        setMobileSnapshotProperties(next);
-      }
     });
-  }, [properties, showFavoritesOnly, favoriteIds]);
+  }, [properties, rawProperties, showFavoritesOnly, favoriteIds]);
 
   useEffect(() => {
     markerRefs.current.forEach((marker, id) => {

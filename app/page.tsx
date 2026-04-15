@@ -14,7 +14,6 @@ import {
   type SupportedPropertyType,
 } from "./components/filters.types";
 
-
 export default function HomePage() {
   const [dealType, setDealType] = useState<DealType>("sale");
   const [propertyType, setPropertyType] =
@@ -29,37 +28,15 @@ export default function HomePage() {
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  const [filters, setFilters] = useState<FiltersState>(DEFAULT_FILTERS_STATE);
+  const [appliedFilters, setAppliedFilters] = useState<FiltersState>(
+    DEFAULT_FILTERS_STATE,
+  );
 
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [rawProperties, setRawProperties] = useState<Property[]>([]);
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
+
   const [isLoadingProperties, setIsLoadingProperties] = useState(true);
   const [propertiesError, setPropertiesError] = useState<string | null>(null);
-
-  const activeFiltersCount = [
-    filters.priceMin,
-    filters.priceMax,
-    filters.areaMin,
-    filters.areaMax,
-    filters.pricePerSqmMin,
-    filters.pricePerSqmMax,
-    filters.lotAreaMin,
-    filters.lotAreaMax,
-    filters.floorsMin,
-    filters.floorsMax,
-    filters.yearBuiltFrom,
-    filters.yearBuiltTo,
-    filters.rooms.length > 0 ? "rooms" : "",
-    filters.notFirstFloor ? "notFirstFloor" : "",
-    filters.notLastFloor ? "notLastFloor" : "",
-    filters.marketType.length > 0 ? "marketType" : "",
-    filters.heating.length > 0 ? "heating" : "",
-    filters.parking.length > 0 ? "parking" : "",
-    filters.renovation.length > 0 ? "renovation" : "",
-    filters.documentsReady ? "documentsReady" : "",
-    filters.furnished ? "furnished" : "",
-    filters.petsAllowed ? "petsAllowed" : "",
-    filters.landPurpose.length > 0 ? "landPurpose" : "",
-  ].filter(Boolean).length;
 
   const { favoriteIds, toggleFavorite } = useFavorites();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -69,8 +46,34 @@ export default function HomePage() {
     Property[]
   >([]);
 
+  const activeFiltersCount = [
+    appliedFilters.priceMin,
+    appliedFilters.priceMax,
+    appliedFilters.areaMin,
+    appliedFilters.areaMax,
+    appliedFilters.pricePerSqmMin,
+    appliedFilters.pricePerSqmMax,
+    appliedFilters.lotAreaMin,
+    appliedFilters.lotAreaMax,
+    appliedFilters.floorsMin,
+    appliedFilters.floorsMax,
+    appliedFilters.yearBuiltFrom,
+    appliedFilters.yearBuiltTo,
+    appliedFilters.rooms.length > 0 ? "rooms" : "",
+    appliedFilters.notFirstFloor ? "notFirstFloor" : "",
+    appliedFilters.notLastFloor ? "notLastFloor" : "",
+    appliedFilters.marketType.length > 0 ? "marketType" : "",
+    appliedFilters.heating.length > 0 ? "heating" : "",
+    appliedFilters.parking.length > 0 ? "parking" : "",
+    appliedFilters.renovation.length > 0 ? "renovation" : "",
+    appliedFilters.documentsReady ? "documentsReady" : "",
+    appliedFilters.furnished ? "furnished" : "",
+    appliedFilters.petsAllowed ? "petsAllowed" : "",
+    appliedFilters.landPurpose.length > 0 ? "landPurpose" : "",
+  ].filter(Boolean).length;
+
   useEffect(() => {
-    async function loadProperties() {
+    async function loadRawProperties() {
       try {
         setIsLoadingProperties(true);
         setPropertiesError(null);
@@ -80,10 +83,9 @@ export default function HomePage() {
           : await getPropertiesFromSupabase({
               dealType,
               propertyType,
-              filters,
             });
 
-        setProperties(data);
+        setRawProperties(data);
       } catch (error) {
         console.error(error);
         setPropertiesError("Не вдалося завантажити оголошення");
@@ -92,8 +94,27 @@ export default function HomePage() {
       }
     }
 
-    loadProperties();
-  }, [dealType, propertyType, filters, showFavoritesOnly]);
+    loadRawProperties();
+  }, [dealType, propertyType, showFavoritesOnly]);
+
+  useEffect(() => {
+    if (showFavoritesOnly) {
+      setFilteredProperties(rawProperties);
+      return;
+    }
+
+    const next = rawProperties.filter((property) =>
+      matchesAppliedFilters(property, propertyType, dealType, appliedFilters),
+    );
+
+    setFilteredProperties(next);
+  }, [
+    rawProperties,
+    appliedFilters,
+    propertyType,
+    dealType,
+    showFavoritesOnly,
+  ]);
 
   return (
     <>
@@ -126,8 +147,8 @@ export default function HomePage() {
           }}
         >
           <ActiveFiltersBar
-            filters={filters}
-            onChange={(next) => setFilters(next)}
+            filters={appliedFilters}
+            onChange={(next) => setAppliedFilters(next)}
             isHiddenOnMobile={isMobileListMode}
           />
 
@@ -138,11 +159,12 @@ export default function HomePage() {
             setHoveredPropertyId={setHoveredPropertyId}
             selectedPropertyId={selectedPropertyId}
             setSelectedPropertyId={setSelectedPropertyId}
-            filters={filters}
+            filters={appliedFilters}
             favoriteIds={favoriteIds}
             toggleFavorite={toggleFavorite}
             showFavoritesOnly={showFavoritesOnly}
-            properties={properties}
+            properties={filteredProperties}
+            rawProperties={rawProperties}
             isLoadingProperties={isLoadingProperties}
             propertiesError={propertiesError}
             onVisibleCountChange={setVisibleCount}
@@ -155,13 +177,161 @@ export default function HomePage() {
       <FiltersDrawer
         isOpen={isFiltersOpen}
         onClose={() => setIsFiltersOpen(false)}
-        value={filters}
-        onApply={(next) => setFilters(next)}
-        onReset={() => setFilters(DEFAULT_FILTERS_STATE)}
+        value={appliedFilters}
+        onApply={(next) => setAppliedFilters(next)}
+        onReset={() => setAppliedFilters(DEFAULT_FILTERS_STATE)}
         propertyType={propertyType}
         dealType={dealType}
         visibleProperties={visiblePropertiesForDrawer}
       />
     </>
   );
+}
+
+function matchesAppliedFilters(
+  property: Property,
+  propertyType: SupportedPropertyType,
+  dealType: DealType,
+  filters: FiltersState,
+) {
+  if (property.propertyType !== propertyType) return false;
+  if (property.dealType !== dealType) return false;
+
+  const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
+  const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
+  const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
+  const areaMax = filters.areaMax ? Number(filters.areaMax) : null;
+  const lotAreaMin = filters.lotAreaMin ? Number(filters.lotAreaMin) : null;
+  const lotAreaMax = filters.lotAreaMax ? Number(filters.lotAreaMax) : null;
+  const floorsMin = filters.floorsMin ? Number(filters.floorsMin) : null;
+  const floorsMax = filters.floorsMax ? Number(filters.floorsMax) : null;
+  const yearBuiltFrom = filters.yearBuiltFrom
+    ? Number(filters.yearBuiltFrom)
+    : null;
+  const yearBuiltTo = filters.yearBuiltTo ? Number(filters.yearBuiltTo) : null;
+
+  if (priceMin !== null && property.price < priceMin) return false;
+  if (priceMax !== null && property.price > priceMax) return false;
+  if (areaMin !== null && property.area < areaMin) return false;
+  if (areaMax !== null && property.area > areaMax) return false;
+
+  if (propertyType !== "land" && propertyType !== "commercial") {
+    if (filters.rooms.length > 0) {
+      const normalizedRooms = filters.rooms.map((value) =>
+        value === "5+" ? 5 : Number(value),
+      );
+
+      const propertyRooms = property.rooms;
+
+      if (
+        propertyRooms === undefined ||
+        !normalizedRooms.some((value) =>
+          value === 5 ? propertyRooms >= 5 : propertyRooms === value,
+        )
+      ) {
+        return false;
+      }
+    }
+
+    if (
+      filters.notFirstFloor &&
+      property.floor !== undefined &&
+      property.floor <= 1
+    ) {
+      return false;
+    }
+
+    if (
+      filters.notLastFloor &&
+      property.floor !== undefined &&
+      property.totalFloors !== undefined &&
+      property.floor >= property.totalFloors
+    ) {
+      return false;
+    }
+  }
+
+  if (lotAreaMin !== null) {
+    if (property.lotArea === undefined || property.lotArea < lotAreaMin) {
+      return false;
+    }
+  }
+
+  if (lotAreaMax !== null) {
+    if (property.lotArea === undefined || property.lotArea > lotAreaMax) {
+      return false;
+    }
+  }
+
+  const propertyFloors =
+    property.propertyType === "house" ? property.floors : property.totalFloors;
+
+  if (floorsMin !== null) {
+    if (propertyFloors === undefined || propertyFloors < floorsMin) {
+      return false;
+    }
+  }
+
+  if (floorsMax !== null) {
+    if (propertyFloors === undefined || propertyFloors > floorsMax) {
+      return false;
+    }
+  }
+
+  if (yearBuiltFrom !== null) {
+    if (
+      property.yearBuilt === undefined ||
+      property.yearBuilt < yearBuiltFrom
+    ) {
+      return false;
+    }
+  }
+
+  if (yearBuiltTo !== null) {
+    if (property.yearBuilt === undefined || property.yearBuilt > yearBuiltTo) {
+      return false;
+    }
+  }
+
+  if (
+    filters.marketType.length > 0 &&
+    (!property.marketType || !filters.marketType.includes(property.marketType))
+  ) {
+    return false;
+  }
+
+  if (
+    filters.heating.length > 0 &&
+    (!property.heating || !filters.heating.includes(property.heating))
+  ) {
+    return false;
+  }
+
+  if (
+    filters.parking.length > 0 &&
+    (!property.parking || !filters.parking.includes(property.parking))
+  ) {
+    return false;
+  }
+
+  if (
+    filters.renovation.length > 0 &&
+    (!property.renovation || !filters.renovation.includes(property.renovation))
+  ) {
+    return false;
+  }
+
+  if (
+    filters.landPurpose.length > 0 &&
+    (!property.landPurpose ||
+      !filters.landPurpose.includes(property.landPurpose))
+  ) {
+    return false;
+  }
+
+  if (filters.documentsReady && !property.documentsReady) return false;
+  if (filters.furnished && !property.isFurnished) return false;
+  if (filters.petsAllowed && !property.petsAllowed) return false;
+
+  return true;
 }

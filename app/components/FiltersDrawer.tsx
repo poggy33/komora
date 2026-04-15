@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { DealType, Property } from "@/types/property";
-import { getPropertiesCountFromSupabase } from "../../lib/properties";
 import { filtersConfig } from "./filters.config";
 import type {
   FiltersState,
@@ -65,11 +64,10 @@ export default function FiltersDrawer({
   onReset,
   propertyType,
   dealType,
+  visibleProperties = [],
 }: Props) {
   const [draft, setDraft] = useState<FiltersState>(value);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [previewCount, setPreviewCount] = useState<number>(0);
-  const [isCounting, setIsCounting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -94,43 +92,6 @@ export default function FiltersDrawer({
     };
   }, [isOpen, onClose]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    let isCancelled = false;
-
-    setIsCounting(true);
-
-    const timeoutId = window.setTimeout(async () => {
-      try {
-        const count = await getPropertiesCountFromSupabase({
-          dealType,
-          propertyType,
-          filters: draft,
-        });
-
-        if (!isCancelled) {
-          setPreviewCount(count);
-        }
-      } catch (error) {
-        console.error("Failed to count filtered properties:", error);
-
-        if (!isCancelled) {
-          setPreviewCount(0);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsCounting(false);
-        }
-      }
-    }, 200);
-
-    return () => {
-      isCancelled = true;
-      window.clearTimeout(timeoutId);
-    };
-  }, [isOpen, dealType, propertyType, draft]);
-
   const config = useMemo(() => {
     return filtersConfig[propertyType][dealType];
   }, [propertyType, dealType]);
@@ -138,6 +99,15 @@ export default function FiltersDrawer({
   const visibleFields = showAdvanced
     ? config
     : config.filter((field) => !field.hiddenInTop);
+
+  const previewCount = useMemo(() => {
+    return getPreviewCount({
+      properties: visibleProperties,
+      propertyType,
+      dealType,
+      filters: draft,
+    });
+  }, [visibleProperties, propertyType, dealType, draft]);
 
   if (!isOpen) return null;
 
@@ -149,12 +119,7 @@ export default function FiltersDrawer({
   };
 
   const toggleStringArrayValue = <
-    T extends
-      | MarketType
-      | HeatingType
-      | ParkingType
-      | RenovationType
-      | LandPurposeType,
+    T extends MarketType | HeatingType | ParkingType | RenovationType | LandPurposeType
   >(
     key: keyof FiltersState,
     item: T,
@@ -353,9 +318,7 @@ export default function FiltersDrawer({
                 <button
                   key={item.value}
                   type="button"
-                  onClick={() =>
-                    toggleStringArrayValue("marketType", item.value)
-                  }
+                  onClick={() => toggleStringArrayValue("marketType", item.value)}
                   style={chipButtonStyle(active)}
                 >
                   {item.label}
@@ -617,7 +580,11 @@ export default function FiltersDrawer({
             gap: "10px",
           }}
         >
-          <button type="button" onClick={onReset} style={secondaryButtonStyle}>
+          <button
+            type="button"
+            onClick={onReset}
+            style={secondaryButtonStyle}
+          >
             Скинути
           </button>
 
@@ -627,19 +594,197 @@ export default function FiltersDrawer({
               onApply(draft);
               onClose();
             }}
-            style={primaryButtonStyle}
-            disabled={isCounting}
+            style={{
+              ...primaryButtonStyle,
+              opacity: previewCount > 0 ? 1 : 0.75,
+            }}
           >
-            {isCounting
-              ? "Рахуємо..."
-              : previewCount > 0
-                ? `Показати ${previewCount}`
-                : "Нічого не знайдено"}
+            {previewCount > 0
+              ? `Показати ${previewCount}`
+              : "Нічого не знайдено"}
           </button>
         </div>
       </div>
     </div>
   );
+}
+
+function getPreviewCount({
+  properties,
+  propertyType,
+  dealType,
+  filters,
+}: {
+  properties: Property[];
+  propertyType: SupportedPropertyType;
+  dealType: DealType;
+  filters: FiltersState;
+}) {
+  return properties.filter((property) =>
+    matchesFilters(property, propertyType, dealType, filters),
+  ).length;
+}
+
+function matchesFilters(
+  property: Property,
+  propertyType: SupportedPropertyType,
+  dealType: DealType,
+  filters: FiltersState,
+) {
+  if (property.propertyType !== propertyType) return false;
+  if (property.dealType !== dealType) return false;
+
+  const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
+  const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
+  const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
+  const areaMax = filters.areaMax ? Number(filters.areaMax) : null;
+  const lotAreaMin = filters.lotAreaMin ? Number(filters.lotAreaMin) : null;
+  const lotAreaMax = filters.lotAreaMax ? Number(filters.lotAreaMax) : null;
+  const floorsMin = filters.floorsMin ? Number(filters.floorsMin) : null;
+  const floorsMax = filters.floorsMax ? Number(filters.floorsMax) : null;
+  const yearBuiltFrom = filters.yearBuiltFrom
+    ? Number(filters.yearBuiltFrom)
+    : null;
+  const yearBuiltTo = filters.yearBuiltTo ? Number(filters.yearBuiltTo) : null;
+  const pricePerSqmMin = filters.pricePerSqmMin
+    ? Number(filters.pricePerSqmMin)
+    : null;
+  const pricePerSqmMax = filters.pricePerSqmMax
+    ? Number(filters.pricePerSqmMax)
+    : null;
+
+  if (priceMin !== null && property.price < priceMin) return false;
+  if (priceMax !== null && property.price > priceMax) return false;
+
+  if (areaMin !== null && property.area < areaMin) return false;
+  if (areaMax !== null && property.area > areaMax) return false;
+
+  if (propertyType !== "land" && propertyType !== "commercial") {
+    if (filters.rooms.length > 0) {
+      const normalizedRooms = filters.rooms.map((value) =>
+        value === "5+" ? 5 : Number(value),
+      );
+
+      const propertyRooms = property.rooms;
+
+      if (
+        propertyRooms === undefined ||
+        !normalizedRooms.some((value) =>
+          value === 5 ? propertyRooms >= 5 : propertyRooms === value,
+        )
+      ) {
+        return false;
+      }
+    }
+
+    if (
+      filters.notFirstFloor &&
+      property.floor !== undefined &&
+      property.floor <= 1
+    ) {
+      return false;
+    }
+
+    if (
+      filters.notLastFloor &&
+      property.floor !== undefined &&
+      property.totalFloors !== undefined &&
+      property.floor >= property.totalFloors
+    ) {
+      return false;
+    }
+  }
+
+  if (pricePerSqmMin !== null || pricePerSqmMax !== null) {
+    if (!property.area || property.area <= 0) return false;
+
+    const pricePerSqm = property.price / property.area;
+
+    if (pricePerSqmMin !== null && pricePerSqm < pricePerSqmMin) return false;
+    if (pricePerSqmMax !== null && pricePerSqm > pricePerSqmMax) return false;
+  }
+
+  if (lotAreaMin !== null) {
+    if (property.lotArea === undefined || property.lotArea < lotAreaMin) {
+      return false;
+    }
+  }
+
+  if (lotAreaMax !== null) {
+    if (property.lotArea === undefined || property.lotArea > lotAreaMax) {
+      return false;
+    }
+  }
+
+  const propertyFloors =
+    property.propertyType === "house"
+      ? property.floors
+      : property.totalFloors;
+
+  if (floorsMin !== null) {
+    if (propertyFloors === undefined || propertyFloors < floorsMin) {
+      return false;
+    }
+  }
+
+  if (floorsMax !== null) {
+    if (propertyFloors === undefined || propertyFloors > floorsMax) {
+      return false;
+    }
+  }
+
+  if (yearBuiltFrom !== null) {
+    if (property.yearBuilt === undefined || property.yearBuilt < yearBuiltFrom) {
+      return false;
+    }
+  }
+
+  if (yearBuiltTo !== null) {
+    if (property.yearBuilt === undefined || property.yearBuilt > yearBuiltTo) {
+      return false;
+    }
+  }
+
+  if (
+    filters.marketType.length > 0 &&
+    (!property.marketType || !filters.marketType.includes(property.marketType))
+  ) {
+    return false;
+  }
+
+  if (
+    filters.heating.length > 0 &&
+    (!property.heating || !filters.heating.includes(property.heating))
+  ) {
+    return false;
+  }
+
+  if (
+    filters.parking.length > 0 &&
+    (!property.parking || !filters.parking.includes(property.parking))
+  ) {
+    return false;
+  }
+
+  if (
+    filters.renovation.length > 0 &&
+    (!property.renovation || !filters.renovation.includes(property.renovation))
+  ) {
+    return false;
+  }
+
+  if (
+    filters.landPurpose.length > 0 &&
+    (!property.landPurpose || !filters.landPurpose.includes(property.landPurpose))
+  ) {
+    return false;
+  }
+
+  if (filters.documentsReady && !property.documentsReady) return false;
+  if (filters.furnished && !property.isFurnished) return false;
+  if (filters.petsAllowed && !property.petsAllowed) return false;
+
+  return true;
 }
 
 const fieldBlockStyle: React.CSSProperties = {

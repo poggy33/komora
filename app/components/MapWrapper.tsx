@@ -1,14 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { SupportedPropertyType, FiltersState } from "./filters.types";
 import type { DealType, Property } from "@/types/property";
-
-// type SupportedPropertyType =
-//   | "apartment"
-//   | "house"
-//   | "land"
-//   | "commercial";
+import type { FiltersState, SupportedPropertyType } from "./filters.types";
 
 type Props = {
   dealType: DealType;
@@ -22,6 +16,7 @@ type Props = {
   toggleFavorite: (id: string) => void;
   showFavoritesOnly: boolean;
   properties: Property[];
+  rawProperties: Property[];
   isLoadingProperties: boolean;
   propertiesError: string | null;
   onVisibleCountChange?: (count: number) => void;
@@ -45,6 +40,7 @@ export default function MapWrapper({
   toggleFavorite,
   showFavoritesOnly,
   properties,
+  rawProperties,
   isLoadingProperties,
   propertiesError,
   onVisibleCountChange,
@@ -64,6 +60,7 @@ export default function MapWrapper({
       toggleFavorite={toggleFavorite}
       showFavoritesOnly={showFavoritesOnly}
       properties={properties}
+      rawProperties={rawProperties}
       isLoadingProperties={isLoadingProperties}
       propertiesError={propertiesError}
       onVisibleCountChange={onVisibleCountChange}
