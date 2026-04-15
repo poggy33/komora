@@ -123,7 +123,7 @@ export default function FiltersDrawer({
           setIsCounting(false);
         }
       }
-    }, 300);
+    }, 200);
 
     return () => {
       isCancelled = true;
