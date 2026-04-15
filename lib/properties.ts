@@ -383,7 +383,7 @@ export async function getPropertiesCountFromSupabase({
 export type CreatePropertyInput = {
   title: string;
   description: string;
-  propertyType: "apartment" | "house" | "land";
+  propertyType: "apartment" | "house" | "land" | "commercial";
   dealType: "sale" | "rent";
   price: number;
   area: number;
@@ -677,7 +677,7 @@ export type UpdatePropertyInput = {
   id: string;
   title: string;
   description: string;
-  propertyType: "apartment" | "house" | "land";
+  propertyType: "apartment" | "house" | "land" | "commercial";
   dealType: "sale" | "rent";
   price: number;
   area: number;

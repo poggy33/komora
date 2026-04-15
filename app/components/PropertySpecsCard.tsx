@@ -179,6 +179,8 @@ function getPropertyTypeLabel(type: Property["propertyType"]) {
       return "Будинок";
     case "land":
       return "Земельна ділянка";
+    case "commercial":
+      return "Комерційна нерухомість";
     default:
       return "Нерухомість";
   }

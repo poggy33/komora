@@ -71,12 +71,14 @@ export default function PropertyListCard({
     setTouchEndX(null);
   };
 
-  const typeLabel =
-    property.propertyType === "apartment"
-      ? "Квартира"
-      : property.propertyType === "house"
-        ? "Будинок"
-        : "Земля";
+const typeLabel =
+  property.propertyType === "apartment"
+    ? "Квартира"
+    : property.propertyType === "house"
+      ? "Будинок"
+      : property.propertyType === "land"
+        ? "Земля"
+        : "Комерція";
 
   const dealLabel = property.dealType === "sale" ? "Продаж" : "Оренда";
 

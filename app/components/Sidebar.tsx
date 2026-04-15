@@ -140,7 +140,10 @@ function getTypeLabel(properties: Property[]) {
 
   if (type === "apartment") return "Квартири";
   if (type === "house") return "Будинки";
-  return "Земля";
+  if (type === "land") return "Земля";
+  if (type === "commercial") return "Комерційна нерухомість";
+
+  return "Нерухомість";
 }
 
 function getDealLabel(properties: Property[]) {
