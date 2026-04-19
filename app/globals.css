@@ -363,11 +363,34 @@ textarea {
   color: #ffffff;
 }
 
-.marker-pill__top {
+/* .marker-pill__top {
   display: block;
   font-size: 14px;
   font-weight: 700;
   line-height: 1.1;
+} */
+
+.marker-pill__top {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.marker-pill__heart {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: #ef4444;
+  line-height: 1;
+  margin-left: 2px;
 }
 
 .marker-pill__bottom {

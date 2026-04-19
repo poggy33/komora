@@ -52,6 +52,7 @@ export default function Map({
   );
   const searchPropertiesRef = useRef<Property[]>([]);
   const rawPropertiesRef = useRef<Property[]>([]);
+  const favoriteIdsRef = useRef<string[]>([]);
 
   const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
   const [mobileViewMode, setMobileViewMode] = useState<"map" | "list">("map");
@@ -121,6 +122,7 @@ export default function Map({
 
   const createMarkerElement = (property: Property) => {
     const el = document.createElement("button");
+    // const isFavorite = favoriteIds.includes(String(property.id));
     el.type = "button";
     el.setAttribute("data-property-id", String(property.id));
 
@@ -142,13 +144,73 @@ export default function Map({
       bottomLine = `${property.area} сот. • ${formatCompactMetricPrice(perSotka)}/сот.`;
     }
 
-    el.innerHTML = `
-      <span class="marker-pill__top">${topLine}</span>
-      <span class="marker-pill__bottom">${bottomLine}</span>
-    `;
+    const heartIcon = `
+    <svg
+      viewBox="0 0 24 24"
+      width="12"
+      height="12"
+      fill="#ef4444"
+      stroke="#ef4444"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M20.8 4.6c-1.5-1.5-4-1.5-5.5 0L12 7.9 8.7 4.6c-1.5-1.5-4-1.5-5.5 0-1.5 1.5-1.5 4 0 5.5L12 19l8.8-8.9c1.5-1.5 1.5-4 0-5.5z" />
+    </svg>
+  `;
+
+    el.innerHTML = buildMarkerInnerHtml(property);
 
     el.className = "marker-pill marker-pill--enter";
     return el;
+  };
+
+  const buildMarkerInnerHtml = (property: Property) => {
+    const topLine = formatCompactPrice(property.price);
+
+    let bottomLine = "";
+
+    if (property.propertyType === "apartment") {
+      const pricePerSqm = Math.round(property.price / property.area);
+      bottomLine = `${property.rooms}к • $${pricePerSqm}/м²`;
+    }
+
+    if (property.propertyType === "house") {
+      bottomLine = `${property.rooms}к • ${property.floors} пов.`;
+    }
+
+    if (property.propertyType === "land") {
+      const perSotka = Math.round(property.price / property.area);
+      bottomLine = `${property.area} сот. • ${formatCompactMetricPrice(perSotka)}/сот.`;
+    }
+
+    // const isFavorite = favoriteIds.includes(String(property.id));
+
+    const isFavorite = favoriteIdsRef.current.includes(String(property.id));
+    const heartIcon = `
+    <svg
+      viewBox="0 0 24 24"
+      width="12"
+      height="12"
+      fill="#ef4444"
+      stroke="#ef4444"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M20.8 4.6c-1.5-1.5-4-1.5-5.5 0L12 7.9 8.7 4.6c-1.5-1.5-4-1.5-5.5 0-1.5 1.5-1.5 4 0 5.5L12 19l8.8-8.9c1.5-1.5 1.5-4 0-5.5z" />
+    </svg>
+  `;
+
+    return `
+    <span class="marker-pill__top">
+      <span>${topLine}</span>
+      ${isFavorite ? `<span class="marker-pill__heart">${heartIcon}</span>` : ""}
+    </span>
+    <span class="marker-pill__bottom">${bottomLine}</span>
+  `;
   };
 
   const renderHtmlMarkers = (map: mapboxgl.Map, list: Property[]) => {
@@ -229,6 +291,7 @@ export default function Map({
 
   searchPropertiesRef.current = searchProperties;
   rawPropertiesRef.current = rawProperties;
+  favoriteIdsRef.current = favoriteIds;
 
   const buildGeoJSONFromList = (list: Property[]): FeatureCollection<Point> => {
     return {
@@ -274,6 +337,16 @@ export default function Map({
     if (window.innerWidth <= 768 && mobileViewMode === "map") {
       setMobileSnapshotProperties(nextVisibleSearch);
     }
+  };
+
+  const syncExistingMarkerContent = (list: Property[]) => {
+    markerRefs.current.forEach((marker, id) => {
+      const property = list.find((p) => String(p.id) === id);
+      if (!property) return;
+
+      const el = marker.getElement();
+      el.innerHTML = buildMarkerInnerHtml(property);
+    });
   };
 
   useEffect(() => {
@@ -443,6 +516,31 @@ export default function Map({
     };
   }, [isMobile]);
 
+  // useEffect(() => {
+  //   if (!mapRef.current) return;
+
+  //   const map = mapRef.current;
+  //   const source = map.getSource("points") as
+  //     | mapboxgl.GeoJSONSource
+  //     | undefined;
+
+  //   if (!source) return;
+
+  //   source.setData(buildGeoJSONFromList(searchPropertiesRef.current));
+  //   syncExistingMarkerContent(searchPropertiesRef.current);
+  //   setDesktopPopupProperty(null);
+
+  //   if (popupRef.current) {
+  //     popupRef.current.remove();
+  //     popupRef.current = null;
+  //   }
+
+  //   map.once("idle", () => {
+  //     renderHtmlMarkers(map, searchPropertiesRef.current);
+  //     syncViewportDerivedState(map);
+  //   });
+  // }, [properties, rawProperties, showFavoritesOnly, favoriteIds]);
+
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -465,7 +563,12 @@ export default function Map({
       renderHtmlMarkers(map, searchPropertiesRef.current);
       syncViewportDerivedState(map);
     });
-  }, [properties, rawProperties, showFavoritesOnly, favoriteIds]);
+  }, [properties, rawProperties, showFavoritesOnly]);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    syncExistingMarkerContent(searchPropertiesRef.current);
+  }, [favoriteIds]);
 
   useEffect(() => {
     markerRefs.current.forEach((marker, id) => {
