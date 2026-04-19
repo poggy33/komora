@@ -84,10 +84,12 @@ export default function HomePage() {
         setIsLoadingProperties(true);
         setPropertiesError(null);
 
-        const data = await getPropertiesFromSupabase({
-          dealType,
-          propertyType,
-        });
+        const data = showFavoritesOnly
+          ? await getPropertiesFromSupabase({})
+          : await getPropertiesFromSupabase({
+              dealType,
+              propertyType,
+            });
 
         setRawProperties(data);
       } catch (error) {
@@ -99,7 +101,7 @@ export default function HomePage() {
     }
 
     loadRawProperties();
-  }, [dealType, propertyType]);
+  }, [dealType, propertyType, showFavoritesOnly]);
 
   useEffect(() => {
     setSelectedPropertyId(null);
@@ -188,7 +190,7 @@ export default function HomePage() {
             properties={propertiesForMap}
             rawProperties={rawProperties}
             isLoadingProperties={isLoadingProperties}
-            propertiesError={propertiesError}     
+            propertiesError={propertiesError}
             onMobileListModeChange={setIsMobileListMode}
             onVisibleSearchPropertiesChange={setVisibleProperties}
             onVisibleBasePropertiesChange={setVisiblePropertiesForDrawer}

@@ -80,6 +80,7 @@ export default function MobilePropertyOverlay({
 
   return (
     <div
+      onClick={(e) => e.stopPropagation()}
       style={{
         position: "fixed",
         left: 0,
