@@ -71,14 +71,14 @@ export default function PropertyListCard({
     setTouchEndX(null);
   };
 
-const typeLabel =
-  property.propertyType === "apartment"
-    ? "Квартира"
-    : property.propertyType === "house"
-      ? "Будинок"
-      : property.propertyType === "land"
-        ? "Земля"
-        : "Комерція";
+  const typeLabel =
+    property.propertyType === "apartment"
+      ? "Квартира"
+      : property.propertyType === "house"
+        ? "Будинок"
+        : property.propertyType === "land"
+          ? "Земля"
+          : "Комерція";
 
   const dealLabel = property.dealType === "sale" ? "Продаж" : "Оренда";
 
@@ -204,7 +204,7 @@ const typeLabel =
             boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
           }}
         >
-          <HeartIcon isActive={isFavorite} />
+          <HeartIcon isActive={isFavorite} size={18} />
         </button>
 
         {safeImages.length > 1 && (

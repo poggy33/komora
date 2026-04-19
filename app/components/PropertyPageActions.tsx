@@ -61,18 +61,6 @@ export default function PropertyPageActions({ propertyId }: Props) {
       <button type="button" onClick={handleShare} style={secondaryButtonStyle}>
         Поділитися
       </button>
-
-      {/* <button
-        type="button"
-        onClick={() => toggleFavorite(propertyId)}
-        aria-label={favorite ? "Прибрати з обраного" : "Додати в обране"}
-        style={{
-          ...iconButtonStyle,
-          color: favorite ? "#e11d48" : "#111",
-        }}
-      >
-        {favorite ? "♥" : "♡"}
-      </button> */}
       <button
         type="button"
         aria-label={favorite ? "Прибрати з обраного" : "Додати в обране"}
@@ -82,7 +70,7 @@ export default function PropertyPageActions({ propertyId }: Props) {
         }}
         onClick={() => toggleFavorite(propertyId)}
       >
-        <HeartIcon isActive={favorite} />
+        <HeartIcon isActive={favorite} size={18} />
       </button>
     </div>
   );

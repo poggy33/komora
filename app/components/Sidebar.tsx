@@ -2,7 +2,6 @@
 
 import type { Property } from "../types/property";
 import PropertyListCard from "./PropertyListCard";
-import HeartIcon from "./ui/HeartIcon";
 
 type Props = {
   properties: Property[];
