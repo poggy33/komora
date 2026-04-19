@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { Property } from "../types/property";
-
+import HeartIcon from "./ui/HeartIcon";
 
 type Props = {
   property: Property;
@@ -204,7 +204,7 @@ const typeLabel =
             boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
           }}
         >
-          {isFavorite ? "♥" : "♡"}
+          <HeartIcon isActive={isFavorite} />
         </button>
 
         {safeImages.length > 1 && (

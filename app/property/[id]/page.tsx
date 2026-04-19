@@ -30,7 +30,6 @@ export default async function PropertyPage({ params }: PageProps) {
       style={{
         maxWidth: "1280px",
         margin: "0 auto",
-        // padding: "16px",
         padding: "16px 16px 96px",
         fontFamily: "Arial, sans-serif",
         color: "#111",

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useFavorites } from "app/hooks/useFavorites";
+import HeartIcon from "./ui/HeartIcon";
 
 type Props = {
   propertyId: string;
@@ -57,15 +58,11 @@ export default function PropertyPageActions({ propertyId }: Props) {
         margin: "10px 0 14px",
       }}
     >
-      <button
-        type="button"
-        onClick={handleShare}
-        style={secondaryButtonStyle}
-      >
+      <button type="button" onClick={handleShare} style={secondaryButtonStyle}>
         Поділитися
       </button>
 
-      <button
+      {/* <button
         type="button"
         onClick={() => toggleFavorite(propertyId)}
         aria-label={favorite ? "Прибрати з обраного" : "Додати в обране"}
@@ -75,6 +72,17 @@ export default function PropertyPageActions({ propertyId }: Props) {
         }}
       >
         {favorite ? "♥" : "♡"}
+      </button> */}
+      <button
+        type="button"
+        aria-label={favorite ? "Прибрати з обраного" : "Додати в обране"}
+        style={{
+          ...iconButtonStyle,
+          // color: favorite ? "#e11d48" : "#111",
+        }}
+        onClick={() => toggleFavorite(propertyId)}
+      >
+        <HeartIcon isActive={favorite} />
       </button>
     </div>
   );
