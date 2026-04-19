@@ -840,6 +840,8 @@ export default function Map({
             null
           }
           onClose={() => setSelectedPropertyId(null)}
+          isFavorite={favoriteIds.includes(String(selectedPropertyId))}
+          onToggleFavorite={toggleFavorite}
         />
       )}
     </div>
@@ -985,6 +987,10 @@ export default function Map({
                 images={desktopPopupProperty.images}
                 dealType={desktopPopupProperty.dealType}
                 propertyType={desktopPopupProperty.propertyType}
+                isFavorite={favoriteIds.includes(
+                  String(desktopPopupProperty.id),
+                )}
+                onToggleFavorite={toggleFavorite}
               />
             </div>
           </div>

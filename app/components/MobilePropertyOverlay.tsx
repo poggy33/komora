@@ -3,13 +3,21 @@
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import type { Property } from "@/types/property";
+import HeartIcon from "./ui/HeartIcon";
 
 type Props = {
   property: Property | null;
   onClose: () => void;
+  isFavorite: boolean;
+  onToggleFavorite: (id: string) => void;
 };
 
-export default function MobilePropertyOverlay({ property, onClose }: Props) {
+export default function MobilePropertyOverlay({
+  property,
+  onClose,
+  isFavorite,
+  onToggleFavorite,
+}: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const touchStartXRef = useRef<number | null>(null);
   const touchEndXRef = useRef<number | null>(null);
@@ -59,6 +67,16 @@ export default function MobilePropertyOverlay({ property, onClose }: Props) {
     if (!hasImages) return;
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
+
+  const showPricePerSqm =
+    property.dealType === "sale" &&
+    (property.propertyType === "apartment" ||
+      property.propertyType === "commercial") &&
+    property.area > 0;
+
+  const pricePerSqm = showPricePerSqm
+    ? Math.round(property.price / property.area)
+    : null;
 
   return (
     <div
@@ -233,12 +251,70 @@ export default function MobilePropertyOverlay({ property, onClose }: Props) {
 
         <div
           style={{
-            fontSize: "18px",
-            fontWeight: 800,
-            color: "#111",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "12px",
           }}
         >
-          ${property.price.toLocaleString()}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: "6px",
+              minWidth: 0,
+              flexWrap: "wrap",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "18px",
+                fontWeight: 800,
+                color: "#111",
+                lineHeight: 1.1,
+              }}
+            >
+              ${property.price.toLocaleString()}
+            </div>
+
+            {showPricePerSqm ? (
+              <div
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  color: "#666",
+                  lineHeight: 1.1,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                (${pricePerSqm?.toLocaleString()}/м²)
+              </div>
+            ) : null}
+          </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFavorite(String(property.id));
+            }}
+            aria-label="Додати в обране"
+            style={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "999px",
+              border: "none",
+              background: "rgba(255,255,255,0.94)",
+              cursor: "pointer",
+              display: "grid",
+              placeItems: "center",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
+              flexShrink: 0,
+            }}
+          >
+            <HeartIcon isActive={isFavorite} size={18} />
+          </button>
         </div>
 
         <div
@@ -257,7 +333,9 @@ export default function MobilePropertyOverlay({ property, onClose }: Props) {
               ? "Квартира"
               : property.propertyType === "house"
                 ? "Будинок"
-                : "Земля"}
+                : property.propertyType === "land"
+                  ? "Земля"
+                  : "Комерція"}
           </span>
 
           {property.rooms && (

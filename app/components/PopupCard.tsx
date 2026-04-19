@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { DealType, PropertyType } from "@/types/property";
+import HeartIcon from "./ui/HeartIcon";
 
 type Props = {
   id: string;
@@ -11,6 +12,8 @@ type Props = {
   images: string[];
   dealType: DealType;
   propertyType: PropertyType;
+  isFavorite: boolean;
+  onToggleFavorite: (id: string) => void;
 };
 
 export default function PopupCard({
@@ -21,6 +24,8 @@ export default function PopupCard({
   images,
   dealType,
   propertyType,
+  isFavorite,
+  onToggleFavorite,
 }: Props) {
   const safeImages =
     images?.length > 0 ? images : ["https://via.placeholder.com/400x260"];
@@ -29,6 +34,12 @@ export default function PopupCard({
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
+  const showPricePerSqm =
+    dealType === "sale" &&
+    (propertyType === "apartment" || propertyType === "commercial") &&
+    area > 0;
+
+  const pricePerSqm = showPricePerSqm ? Math.round(price / area) : null;
   const next = () => {
     setIndex((prev) => (prev + 1) % safeImages.length);
   };
@@ -187,17 +198,73 @@ export default function PopupCard({
             padding: "14px 14px 16px",
           }}
         >
+
           <div
             style={{
-              fontSize: "18px",
-              fontWeight: 700,
-              lineHeight: 1.2,
-              marginBottom: "4px",
-              color: "#111",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "12px",
             }}
           >
-            ${price.toLocaleString()}
-            {dealType === "rent" ? " / міс." : ""}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                gap: "6px",
+                minWidth: 0,
+                flexWrap: "wrap",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "22px",
+                  fontWeight: 800,
+                  color: "#111",
+                  lineHeight: 1.1,
+                }}
+              >
+                ${price.toLocaleString()}
+              </div>
+
+              {showPricePerSqm ? (
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#666",
+                    lineHeight: 1.1,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  (${pricePerSqm?.toLocaleString()}/м²)
+                </div>
+              ) : null}
+            </div>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleFavorite(id);
+              }}
+              aria-label="Додати в обране"
+              style={{
+                width: "34px",
+                height: "34px",
+                borderRadius: "999px",
+                border: "none",
+                background: "rgba(255,255,255,0.94)",
+                cursor: "pointer",
+                display: "grid",
+                placeItems: "center",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
+                flexShrink: 0,
+              }}
+            >
+              <HeartIcon isActive={isFavorite} size={18} />
+            </button>
           </div>
 
           <div
