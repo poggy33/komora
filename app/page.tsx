@@ -175,13 +175,13 @@ export default function HomePage() {
           ) : null}
 
           <MapWrapper
-            dealType={dealType}
-            propertyType={propertyType}
+            // dealType={dealType}
+            // propertyType={propertyType}
             hoveredPropertyId={hoveredPropertyId}
             setHoveredPropertyId={setHoveredPropertyId}
             selectedPropertyId={selectedPropertyId}
             setSelectedPropertyId={setSelectedPropertyId}
-            filters={appliedFilters}
+            // filters={appliedFilters}
             favoriteIds={favoriteIds}
             toggleFavorite={toggleFavorite}
             showFavoritesOnly={showFavoritesOnly}

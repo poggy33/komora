@@ -12,20 +12,16 @@ import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
 
 type Props = {
-  dealType: DealType;
-  propertyType: SupportedPropertyType;
   hoveredPropertyId: string | null;
   setHoveredPropertyId: (id: string | null) => void;
   selectedPropertyId: string | null;
   setSelectedPropertyId: (id: string | null) => void;
-  filters: FiltersState;
   favoriteIds: string[];
   toggleFavorite: (id: string) => void;
   showFavoritesOnly: boolean;
   properties: Property[];
   isLoadingProperties: boolean;
   propertiesError: string | null;
-  // onVisibleCountChange?: (count: number) => void;
   onMobileListModeChange?: (isListMode: boolean) => void;
   onVisibleSearchPropertiesChange?: (properties: Property[]) => void;
   onVisibleBasePropertiesChange?: (properties: Property[]) => void;
@@ -33,20 +29,16 @@ type Props = {
 };
 
 export default function Map({
-  dealType,
-  propertyType,
   hoveredPropertyId,
   setHoveredPropertyId,
   selectedPropertyId,
   setSelectedPropertyId,
-  filters,
   favoriteIds,
   toggleFavorite,
   showFavoritesOnly,
   properties,
   isLoadingProperties,
   propertiesError,
-  // onVisibleCountChange,
   onMobileListModeChange,
   onVisibleSearchPropertiesChange,
   onVisibleBasePropertiesChange,
