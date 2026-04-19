@@ -19,9 +19,13 @@ type Props = {
   rawProperties: Property[];
   isLoadingProperties: boolean;
   propertiesError: string | null;
-  onVisibleCountChange?: (count: number) => void;
+
+  // onVisibleCountChange?: (count: number) => void;
   onMobileListModeChange?: (isListMode: boolean) => void;
-  onVisiblePropertiesChange?: (properties: Property[]) => void;
+
+  // 🔥 нові callbacks
+  onVisibleSearchPropertiesChange?: (properties: Property[]) => void;
+  onVisibleBasePropertiesChange?: (properties: Property[]) => void;
 };
 
 const Map = dynamic(() => import("./Map"), {
@@ -43,9 +47,10 @@ export default function MapWrapper({
   rawProperties,
   isLoadingProperties,
   propertiesError,
-  onVisibleCountChange,
+  // onVisibleCountChange,
   onMobileListModeChange,
-  onVisiblePropertiesChange,
+  onVisibleSearchPropertiesChange,
+  onVisibleBasePropertiesChange,
 }: Props) {
   return (
     <Map
@@ -63,9 +68,11 @@ export default function MapWrapper({
       rawProperties={rawProperties}
       isLoadingProperties={isLoadingProperties}
       propertiesError={propertiesError}
-      onVisibleCountChange={onVisibleCountChange}
+      // onVisibleCountChange={onVisibleCountChange}
       onMobileListModeChange={onMobileListModeChange}
-      onVisiblePropertiesChange={onVisiblePropertiesChange}
+      // 🔥 тут головна зміна
+      onVisibleSearchPropertiesChange={onVisibleSearchPropertiesChange}
+      onVisibleBasePropertiesChange={onVisibleBasePropertiesChange}
     />
   );
 }

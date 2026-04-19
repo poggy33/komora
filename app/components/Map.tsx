@@ -25,9 +25,10 @@ type Props = {
   properties: Property[];
   isLoadingProperties: boolean;
   propertiesError: string | null;
-  onVisibleCountChange?: (count: number) => void;
+  // onVisibleCountChange?: (count: number) => void;
   onMobileListModeChange?: (isListMode: boolean) => void;
-  onVisiblePropertiesChange?: (properties: Property[]) => void;
+  onVisibleSearchPropertiesChange?: (properties: Property[]) => void;
+  onVisibleBasePropertiesChange?: (properties: Property[]) => void;
   rawProperties: Property[];
 };
 
@@ -45,9 +46,10 @@ export default function Map({
   properties,
   isLoadingProperties,
   propertiesError,
-  onVisibleCountChange,
+  // onVisibleCountChange,
   onMobileListModeChange,
-  onVisiblePropertiesChange,
+  onVisibleSearchPropertiesChange,
+  onVisibleBasePropertiesChange,
   rawProperties,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -56,7 +58,7 @@ export default function Map({
   const markerRefs = useRef<globalThis.Map<string, mapboxgl.Marker>>(
     new globalThis.Map(),
   );
-  const filteredPropertiesRef = useRef<Property[]>([]);
+  const searchPropertiesRef = useRef<Property[]>([]);
   const rawPropertiesRef = useRef<Property[]>([]);
 
   const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
@@ -66,6 +68,21 @@ export default function Map({
   >([]);
   const [desktopPopupProperty, setDesktopPopupProperty] =
     useState<Property | null>(null);
+
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+    };
+  }, []);
 
   const formatCompactPrice = (num: number) => {
     if (num >= 1000000) {
@@ -89,21 +106,6 @@ export default function Map({
 
     return `$${num}`;
   };
-
-  const [isMobile, setIsMobile] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
-    return () => {
-      window.removeEventListener("resize", checkMobile);
-    };
-  }, []);
 
   const buildMarkerLabel = (p: Property) => {
     const topLine = formatCompactPrice(p.price);
@@ -157,53 +159,6 @@ export default function Map({
     return el;
   };
 
-  const openPropertyPopup = (
-    map: mapboxgl.Map,
-    property: Property,
-    coordinates: [number, number],
-  ) => {
-    if (popupRef.current) {
-      popupRef.current.remove();
-      popupRef.current = null;
-    }
-
-    const container = document.createElement("div");
-    const root: Root = createRoot(container);
-
-    root.render(
-      <PopupCard
-        id={String(property.id)}
-        price={property.price}
-        rooms={property.rooms}
-        area={property.area}
-        images={property.images}
-        dealType={property.dealType}
-        propertyType={property.propertyType}
-      />,
-    );
-
-    const popup = new mapboxgl.Popup({
-      closeButton: true,
-      closeOnClick: true,
-      offset: 12,
-    })
-      .setLngLat(coordinates)
-      .setDOMContent(container)
-      .addTo(map);
-
-    let isUnmounted = false;
-
-    popup.on("close", () => {
-      setTimeout(() => {
-        if (isUnmounted) return;
-        isUnmounted = true;
-        root.unmount();
-      }, 0);
-    });
-
-    popupRef.current = popup;
-  };
-
   const renderHtmlMarkers = (map: mapboxgl.Map, list: Property[]) => {
     if (!map.getLayer("unclustered-helper")) return;
 
@@ -240,9 +195,7 @@ export default function Map({
         e.preventDefault();
         e.stopPropagation();
 
-        //map sidebar interactive
         if (window.innerWidth <= 768) {
-          // setIsMobileMapFocused(true);
           setMobileViewMode("map");
         }
 
@@ -280,9 +233,9 @@ export default function Map({
     });
   };
 
-  const filteredProperties: Property[] = properties;
+  const searchProperties: Property[] = properties;
 
-  filteredPropertiesRef.current = filteredProperties;
+  searchPropertiesRef.current = searchProperties;
   rawPropertiesRef.current = rawProperties;
 
   const buildGeoJSONFromList = (list: Property[]): FeatureCollection<Point> => {
@@ -301,6 +254,7 @@ export default function Map({
       })),
     };
   };
+
   const getPropertiesInView = (
     map: mapboxgl.Map,
     list: Property[],
@@ -314,16 +268,20 @@ export default function Map({
     });
   };
 
-  const updateVisibleProperties = (map: mapboxgl.Map, list: Property[]) => {
-    const next = getPropertiesInView(map, list);
-    setVisibleProperties(next);
-    onVisibleCountChange?.(next.length);
-    onVisiblePropertiesChange?.(next);
-  };
+  const syncViewportDerivedState = (map: mapboxgl.Map) => {
+    const nextVisibleSearch = getPropertiesInView(
+      map,
+      searchPropertiesRef.current,
+    );
+    const nextVisibleBase = getPropertiesInView(map, rawPropertiesRef.current);
 
-  const updateDrawerBaseProperties = (map: mapboxgl.Map, list: Property[]) => {
-    const next = getPropertiesInView(map, list);
-    onVisiblePropertiesChange?.(next);
+    setVisibleProperties(nextVisibleSearch);
+    onVisibleSearchPropertiesChange?.(nextVisibleSearch);
+    onVisibleBasePropertiesChange?.(nextVisibleBase);
+
+    if (window.innerWidth <= 768 && mobileViewMode === "map") {
+      setMobileSnapshotProperties(nextVisibleSearch);
+    }
   };
 
   useEffect(() => {
@@ -347,7 +305,7 @@ export default function Map({
 
       map.addSource("points", {
         type: "geojson",
-        data: buildGeoJSONFromList(filteredPropertiesRef.current),
+        data: buildGeoJSONFromList(searchPropertiesRef.current),
         cluster: true,
         clusterMaxZoom: 13,
         clusterRadius: 50,
@@ -393,14 +351,8 @@ export default function Map({
       });
 
       map.once("idle", () => {
-        renderHtmlMarkers(map, filteredPropertiesRef.current);
-        updateVisibleProperties(map, filteredPropertiesRef.current);
-        updateDrawerBaseProperties(map, rawPropertiesRef.current);
-
-        if (window.innerWidth <= 768) {
-          const next = getPropertiesInView(map, filteredPropertiesRef.current);
-          setMobileSnapshotProperties(next);
-        }
+        renderHtmlMarkers(map, searchPropertiesRef.current);
+        syncViewportDerivedState(map);
       });
 
       map.on("click", "clusters", (e) => {
@@ -453,50 +405,33 @@ export default function Map({
         }
       });
 
-      map.on("moveend", () => {
-        renderHtmlMarkers(map, filteredPropertiesRef.current);
-        updateVisibleProperties(map, filteredPropertiesRef.current);
-        updateDrawerBaseProperties(map, rawPropertiesRef.current);
+      const handleViewportChange = () => {
+        renderHtmlMarkers(map, searchPropertiesRef.current);
+        syncViewportDerivedState(map);
+      };
 
-        if (window.innerWidth <= 768 && mobileViewMode === "map") {
-          const next = getPropertiesInView(map, filteredPropertiesRef.current);
-          setMobileSnapshotProperties(next);
-        }
-      });
-
-      map.on("zoomend", () => {
-        renderHtmlMarkers(map, filteredPropertiesRef.current);
-        updateVisibleProperties(map, filteredPropertiesRef.current);
-        updateDrawerBaseProperties(map, rawPropertiesRef.current);
-
-        if (window.innerWidth <= 768 && mobileViewMode === "map") {
-          const next = getPropertiesInView(map, filteredPropertiesRef.current);
-          setMobileSnapshotProperties(next);
-        }
-      });
+      map.on("moveend", handleViewportChange);
+      map.on("zoomend", handleViewportChange);
 
       map.on("data", () => {
         if (!map.getLayer("unclustered-helper")) return;
-        renderHtmlMarkers(map, filteredPropertiesRef.current);
+        renderHtmlMarkers(map, searchPropertiesRef.current);
       });
 
       map.on("dragstart", () => {
         if (window.innerWidth <= 768) {
-          // setIsMobileMapFocused(true);
           setMobileViewMode("map");
         }
       });
 
       map.on("zoomstart", () => {
         if (window.innerWidth <= 768) {
-          // setIsMobileMapFocused(true);
           setMobileViewMode("map");
         }
       });
 
       map.on("touchstart", () => {
         if (window.innerWidth <= 768) {
-          // setIsMobileMapFocused(true);
           setMobileViewMode("map");
         }
       });
@@ -526,15 +461,7 @@ export default function Map({
 
     if (!source) return;
 
-    const nextVisible = getPropertiesInView(map, filteredPropertiesRef.current);
-    const nextDrawerBase = getPropertiesInView(map, rawPropertiesRef.current);
-
-    setVisibleProperties(nextVisible);
-    onVisibleCountChange?.(nextVisible.length);
-    onVisiblePropertiesChange?.(nextDrawerBase);
-
-    source.setData(buildGeoJSONFromList(filteredPropertiesRef.current));
-
+    source.setData(buildGeoJSONFromList(searchPropertiesRef.current));
     setDesktopPopupProperty(null);
 
     if (popupRef.current) {
@@ -542,12 +469,9 @@ export default function Map({
       popupRef.current = null;
     }
 
-    if (window.innerWidth <= 768) {
-      setMobileSnapshotProperties(nextVisible);
-    }
-
     map.once("idle", () => {
-      renderHtmlMarkers(map, filteredPropertiesRef.current);
+      renderHtmlMarkers(map, searchPropertiesRef.current);
+      syncViewportDerivedState(map);
     });
   }, [properties, rawProperties, showFavoritesOnly, favoriteIds]);
 
@@ -596,18 +520,15 @@ export default function Map({
     });
   };
 
-  // const mobileMapHeight = mobileViewMode === "map" ? "88%" : "10%";
-  // const mobileListHeight = mobileViewMode === "map" ? "12%" : "90%";
-
   const sidebarProperties = showFavoritesOnly
-    ? filteredProperties
+    ? searchProperties
     : isMobile
       ? mobileViewMode === "list"
         ? mobileSnapshotProperties
         : visibleProperties
-      : visibleProperties.length > 0 || filteredProperties.length === 0
+      : visibleProperties.length > 0 || searchProperties.length === 0
         ? visibleProperties
-        : filteredProperties;
+        : searchProperties;
 
   if (isMobile === null) {
     return (
@@ -631,7 +552,6 @@ export default function Map({
       }}
       className="main-search-layout mobile"
     >
-      {/* map fills all available space */}
       <div
         style={{
           position: "absolute",
@@ -692,7 +612,6 @@ export default function Map({
         )}
       </div>
 
-      {/* bottom sheet overlay */}
       <div
         style={{
           position: "absolute",
@@ -741,6 +660,7 @@ export default function Map({
           }}
           compactHeaderOnly={mobileViewMode === "map"}
         />
+
         {mobileViewMode === "list" && (
           <div
             style={{
@@ -821,9 +741,8 @@ export default function Map({
       {selectedPropertyId && (
         <MobilePropertyOverlay
           property={
-            filteredProperties.find(
-              (p) => String(p.id) === selectedPropertyId,
-            ) ?? null
+            searchProperties.find((p) => String(p.id) === selectedPropertyId) ??
+            null
           }
           onClose={() => setSelectedPropertyId(null)}
         />

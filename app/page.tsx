@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MainTopBar from "./components/MainTopBar";
 import MapWrapper from "./components/MapWrapper";
 import FiltersDrawer from "./components/FiltersDrawer";
@@ -33,18 +33,24 @@ export default function HomePage() {
   );
 
   const [rawProperties, setRawProperties] = useState<Property[]>([]);
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
+  const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
+  const [visiblePropertiesForDrawer, setVisiblePropertiesForDrawer] = useState<
+    Property[]
+  >([]);
 
   const [isLoadingProperties, setIsLoadingProperties] = useState(true);
   const [propertiesError, setPropertiesError] = useState<string | null>(null);
 
   const { favoriteIds, toggleFavorite } = useFavorites();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(0);
   const [isMobileListMode, setIsMobileListMode] = useState(false);
-  const [visiblePropertiesForDrawer, setVisiblePropertiesForDrawer] = useState<
-    Property[]
-  >([]);
+
+  const favoriteIdsSet = useMemo(
+    () => new Set(favoriteIds.map(String)),
+    [favoriteIds],
+  );
+
+  const isFavoritesMode = showFavoritesOnly;
 
   const activeFiltersCount = [
     appliedFilters.priceMin,
@@ -78,12 +84,10 @@ export default function HomePage() {
         setIsLoadingProperties(true);
         setPropertiesError(null);
 
-        const data = showFavoritesOnly
-          ? await getPropertiesFromSupabase({})
-          : await getPropertiesFromSupabase({
-              dealType,
-              propertyType,
-            });
+        const data = await getPropertiesFromSupabase({
+          dealType,
+          propertyType,
+        });
 
         setRawProperties(data);
       } catch (error) {
@@ -95,26 +99,38 @@ export default function HomePage() {
     }
 
     loadRawProperties();
-  }, [dealType, propertyType, showFavoritesOnly]);
+  }, [dealType, propertyType]);
 
   useEffect(() => {
-    if (showFavoritesOnly) {
-      setFilteredProperties(rawProperties);
-      return;
-    }
+    setSelectedPropertyId(null);
+    setHoveredPropertyId(null);
+  }, [dealType, propertyType, isFavoritesMode]);
 
-    const next = rawProperties.filter((property) =>
+  useEffect(() => {
+    if (isFavoritesMode) {
+      setIsFiltersOpen(false);
+    }
+  }, [isFavoritesMode]);
+
+  const searchModeProperties = useMemo(() => {
+    return rawProperties.filter((property) =>
       matchesAppliedFilters(property, propertyType, dealType, appliedFilters),
     );
+  }, [rawProperties, propertyType, dealType, appliedFilters]);
 
-    setFilteredProperties(next);
-  }, [
-    rawProperties,
-    appliedFilters,
-    propertyType,
-    dealType,
-    showFavoritesOnly,
-  ]);
+  const favoriteModeProperties = useMemo(() => {
+    return rawProperties.filter((property) =>
+      favoriteIdsSet.has(String(property.id)),
+    );
+  }, [rawProperties, favoriteIdsSet]);
+
+  const propertiesForMap = isFavoritesMode
+    ? favoriteModeProperties
+    : searchModeProperties;
+
+  const handleToggleFavorites = () => {
+    setShowFavoritesOnly((prev) => !prev);
+  };
 
   return (
     <>
@@ -131,12 +147,16 @@ export default function HomePage() {
           dealType={dealType}
           setPropertyType={setPropertyType}
           setDealType={setDealType}
-          onOpenFilters={() => setIsFiltersOpen(true)}
+          onOpenFilters={() => {
+            if (!isFavoritesMode) {
+              setIsFiltersOpen(true);
+            }
+          }}
           onOpenUserMenu={() => {}}
           showFavoritesOnly={showFavoritesOnly}
-          onToggleFavorites={() => setShowFavoritesOnly((prev) => !prev)}
+          onToggleFavorites={handleToggleFavorites}
           favoritesCount={favoriteIds.length}
-          activeFiltersCount={activeFiltersCount}
+          activeFiltersCount={isFavoritesMode ? 0 : activeFiltersCount}
         />
 
         <div
@@ -146,11 +166,13 @@ export default function HomePage() {
             position: "relative",
           }}
         >
-          <ActiveFiltersBar
-            filters={appliedFilters}
-            onChange={(next) => setAppliedFilters(next)}
-            isHiddenOnMobile={isMobileListMode}
-          />
+          {!isFavoritesMode ? (
+            <ActiveFiltersBar
+              filters={appliedFilters}
+              onChange={(next) => setAppliedFilters(next)}
+              isHiddenOnMobile={isMobileListMode}
+            />
+          ) : null}
 
           <MapWrapper
             dealType={dealType}
@@ -163,27 +185,29 @@ export default function HomePage() {
             favoriteIds={favoriteIds}
             toggleFavorite={toggleFavorite}
             showFavoritesOnly={showFavoritesOnly}
-            properties={filteredProperties}
+            properties={propertiesForMap}
             rawProperties={rawProperties}
             isLoadingProperties={isLoadingProperties}
-            propertiesError={propertiesError}
-            onVisibleCountChange={setVisibleCount}
+            propertiesError={propertiesError}     
             onMobileListModeChange={setIsMobileListMode}
-            onVisiblePropertiesChange={setVisiblePropertiesForDrawer}
+            onVisibleSearchPropertiesChange={setVisibleProperties}
+            onVisibleBasePropertiesChange={setVisiblePropertiesForDrawer}
           />
         </div>
       </main>
 
-      <FiltersDrawer
-        isOpen={isFiltersOpen}
-        onClose={() => setIsFiltersOpen(false)}
-        value={appliedFilters}
-        onApply={(next) => setAppliedFilters(next)}
-        onReset={() => setAppliedFilters(DEFAULT_FILTERS_STATE)}
-        propertyType={propertyType}
-        dealType={dealType}
-        visibleProperties={visiblePropertiesForDrawer}
-      />
+      {!isFavoritesMode ? (
+        <FiltersDrawer
+          isOpen={isFiltersOpen}
+          onClose={() => setIsFiltersOpen(false)}
+          value={appliedFilters}
+          onApply={(next) => setAppliedFilters(next)}
+          onReset={() => setAppliedFilters(DEFAULT_FILTERS_STATE)}
+          propertyType={propertyType}
+          dealType={dealType}
+          visibleProperties={visiblePropertiesForDrawer}
+        />
+      ) : null}
     </>
   );
 }
