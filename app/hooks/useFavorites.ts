@@ -96,7 +96,11 @@ export function useFavorites() {
       }
 
       await savePropertyInSupabase(safeId);
-      setFavoriteIds((prev) => [...prev, safeId]);
+      // setFavoriteIds((prev) => [...prev, safeId]);
+          setFavoriteIds((prev) =>
+      prev.includes(safeId) ? prev : [...prev, safeId],
+    );
+// console.log("favoriteIds", favoriteIds);
       return;
     }
 

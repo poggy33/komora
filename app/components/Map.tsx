@@ -5,9 +5,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection, Point } from "geojson";
 import Sidebar from "./Sidebar";
-import { createRoot, type Root } from "react-dom/client";
 import PopupCard from "./PopupCard";
-import type { SupportedPropertyType, FiltersState } from "./filters.types";
 import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
 
@@ -158,7 +156,7 @@ export default function Map({
     >
       <path d="M20.8 4.6c-1.5-1.5-4-1.5-5.5 0L12 7.9 8.7 4.6c-1.5-1.5-4-1.5-5.5 0-1.5 1.5-1.5 4 0 5.5L12 19l8.8-8.9c1.5-1.5 1.5-4 0-5.5z" />
     </svg>
-  `;
+    `;
 
     el.innerHTML = buildMarkerInnerHtml(property);
 
@@ -202,7 +200,7 @@ export default function Map({
     >
       <path d="M20.8 4.6c-1.5-1.5-4-1.5-5.5 0L12 7.9 8.7 4.6c-1.5-1.5-4-1.5-5.5 0-1.5 1.5-1.5 4 0 5.5L12 19l8.8-8.9c1.5-1.5 1.5-4 0-5.5z" />
     </svg>
-  `;
+    `;
 
     return `
     <span class="marker-pill__top">
@@ -516,31 +514,6 @@ export default function Map({
     };
   }, [isMobile]);
 
-  // useEffect(() => {
-  //   if (!mapRef.current) return;
-
-  //   const map = mapRef.current;
-  //   const source = map.getSource("points") as
-  //     | mapboxgl.GeoJSONSource
-  //     | undefined;
-
-  //   if (!source) return;
-
-  //   source.setData(buildGeoJSONFromList(searchPropertiesRef.current));
-  //   syncExistingMarkerContent(searchPropertiesRef.current);
-  //   setDesktopPopupProperty(null);
-
-  //   if (popupRef.current) {
-  //     popupRef.current.remove();
-  //     popupRef.current = null;
-  //   }
-
-  //   map.once("idle", () => {
-  //     renderHtmlMarkers(map, searchPropertiesRef.current);
-  //     syncViewportDerivedState(map);
-  //   });
-  // }, [properties, rawProperties, showFavoritesOnly, favoriteIds]);
-
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -552,12 +525,25 @@ export default function Map({
     if (!source) return;
 
     source.setData(buildGeoJSONFromList(searchPropertiesRef.current));
-    setDesktopPopupProperty(null);
 
-    if (popupRef.current) {
-      popupRef.current.remove();
-      popupRef.current = null;
-    }
+    // setDesktopPopupProperty(null);
+
+    // if (popupRef.current) {
+    //   popupRef.current.remove();
+    //   popupRef.current = null;
+    // }
+
+    setDesktopPopupProperty((prev) => {
+      if (!prev) return null;
+
+      return (
+        rawProperties.find((p) => String(p.id) === String(prev.id)) ??
+        searchPropertiesRef.current.find(
+          (p) => String(p.id) === String(prev.id),
+        ) ??
+        null
+      );
+    });
 
     map.once("idle", () => {
       renderHtmlMarkers(map, searchPropertiesRef.current);
@@ -836,6 +822,7 @@ export default function Map({
       {selectedPropertyId && (
         <MobilePropertyOverlay
           property={
+            rawProperties.find((p) => String(p.id) === selectedPropertyId) ??
             searchProperties.find((p) => String(p.id) === selectedPropertyId) ??
             null
           }

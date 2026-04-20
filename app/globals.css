@@ -388,9 +388,7 @@ textarea {
   width: 12px;
   height: 12px;
   flex-shrink: 0;
-  color: #ef4444;
-  line-height: 1;
-  margin-left: 2px;
+  transform: translateX(2px);
 }
 
 .marker-pill__bottom {
