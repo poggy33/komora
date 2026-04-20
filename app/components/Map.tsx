@@ -526,13 +526,6 @@ export default function Map({
 
     source.setData(buildGeoJSONFromList(searchPropertiesRef.current));
 
-    // setDesktopPopupProperty(null);
-
-    // if (popupRef.current) {
-    //   popupRef.current.remove();
-    //   popupRef.current = null;
-    // }
-
     setDesktopPopupProperty((prev) => {
       if (!prev) return null;
 

@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+// import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import MainTopBar from "./components/MainTopBar";
 import MapWrapper from "./components/MapWrapper";
 import FiltersDrawer from "./components/FiltersDrawer";
@@ -14,7 +16,131 @@ import {
   type SupportedPropertyType,
 } from "./components/filters.types";
 
+function parseFiltersFromSearchParams(
+  searchParams: URLSearchParams,
+): FiltersState {
+  const parseStringArray = (key: string) => {
+    const raw = searchParams.get(key);
+    if (!raw) return [];
+    return raw
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  };
+
+  const parseBoolean = (key: string) => searchParams.get(key) === "1";
+
+  return {
+    priceMin: searchParams.get("priceMin") ?? "",
+    priceMax: searchParams.get("priceMax") ?? "",
+
+    pricePerSqmMin: searchParams.get("pricePerSqmMin") ?? "",
+    pricePerSqmMax: searchParams.get("pricePerSqmMax") ?? "",
+
+    areaMin: searchParams.get("areaMin") ?? "",
+    areaMax: searchParams.get("areaMax") ?? "",
+
+    lotAreaMin: searchParams.get("lotAreaMin") ?? "",
+    lotAreaMax: searchParams.get("lotAreaMax") ?? "",
+
+    rooms: parseStringArray("rooms"),
+
+    notFirstFloor: parseBoolean("notFirstFloor"),
+    notLastFloor: parseBoolean("notLastFloor"),
+
+    floorsMin: searchParams.get("floorsMin") ?? "",
+    floorsMax: searchParams.get("floorsMax") ?? "",
+
+    yearBuiltFrom: searchParams.get("yearBuiltFrom") ?? "",
+    yearBuiltTo: searchParams.get("yearBuiltTo") ?? "",
+
+    marketType: parseStringArray("marketType") as FiltersState["marketType"],
+    heating: parseStringArray("heating") as FiltersState["heating"],
+    parking: parseStringArray("parking") as FiltersState["parking"],
+    renovation: parseStringArray("renovation") as FiltersState["renovation"],
+
+    documentsReady: parseBoolean("documentsReady"),
+
+    furnished: parseBoolean("furnished"),
+    petsAllowed: parseBoolean("petsAllowed"),
+
+    landPurpose: parseStringArray("landPurpose") as FiltersState["landPurpose"],
+  };
+}
+
+function buildSearchParamsFromState(args: {
+  dealType: DealType;
+  propertyType: SupportedPropertyType;
+  showFavoritesOnly: boolean;
+  filters: FiltersState;
+}) {
+  const params = new URLSearchParams();
+
+  params.set("dealType", args.dealType);
+  params.set("propertyType", args.propertyType);
+
+  if (args.showFavoritesOnly) {
+    params.set("favorites", "1");
+  }
+
+  const setIfValue = (key: string, value: string) => {
+    if (value) params.set(key, value);
+  };
+
+  const setIfArray = (key: string, value: string[]) => {
+    if (value.length > 0) params.set(key, value.join(","));
+  };
+
+  const setIfBoolean = (key: string, value: boolean) => {
+    if (value) params.set(key, "1");
+  };
+
+  const { filters } = args;
+
+  setIfValue("priceMin", filters.priceMin);
+  setIfValue("priceMax", filters.priceMax);
+
+  setIfValue("pricePerSqmMin", filters.pricePerSqmMin);
+  setIfValue("pricePerSqmMax", filters.pricePerSqmMax);
+
+  setIfValue("areaMin", filters.areaMin);
+  setIfValue("areaMax", filters.areaMax);
+
+  setIfValue("lotAreaMin", filters.lotAreaMin);
+  setIfValue("lotAreaMax", filters.lotAreaMax);
+
+  setIfArray("rooms", filters.rooms);
+
+  setIfBoolean("notFirstFloor", filters.notFirstFloor);
+  setIfBoolean("notLastFloor", filters.notLastFloor);
+
+  setIfValue("floorsMin", filters.floorsMin);
+  setIfValue("floorsMax", filters.floorsMax);
+
+  setIfValue("yearBuiltFrom", filters.yearBuiltFrom);
+  setIfValue("yearBuiltTo", filters.yearBuiltTo);
+
+  setIfArray("marketType", filters.marketType);
+  setIfArray("heating", filters.heating);
+  setIfArray("parking", filters.parking);
+  setIfArray("renovation", filters.renovation);
+
+  setIfBoolean("documentsReady", filters.documentsReady);
+
+  setIfBoolean("furnished", filters.furnished);
+  setIfBoolean("petsAllowed", filters.petsAllowed);
+
+  setIfArray("landPurpose", filters.landPurpose);
+
+  return params;
+}
+
 export default function HomePage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const hasHydratedFromUrlRef = useRef(false);
   const [dealType, setDealType] = useState<DealType>("sale");
   const [propertyType, setPropertyType] =
     useState<SupportedPropertyType>("apartment");
@@ -78,7 +204,70 @@ export default function HomePage() {
     appliedFilters.landPurpose.length > 0 ? "landPurpose" : "",
   ].filter(Boolean).length;
 
+  // hydration-effect
   useEffect(() => {
+    if (hasHydratedFromUrlRef.current) return;
+
+    const nextDealType = searchParams.get("dealType");
+    const nextPropertyType = searchParams.get("propertyType");
+    const nextShowFavoritesOnly = searchParams.get("favorites") === "1";
+    const nextFilters = parseFiltersFromSearchParams(
+      new URLSearchParams(searchParams.toString()),
+    );
+
+    if (nextDealType === "sale" || nextDealType === "rent") {
+      setDealType(nextDealType);
+    }
+
+    if (
+      nextPropertyType === "apartment" ||
+      nextPropertyType === "house" ||
+      nextPropertyType === "land" ||
+      nextPropertyType === "commercial"
+    ) {
+      setPropertyType(nextPropertyType);
+    }
+
+    setShowFavoritesOnly(nextShowFavoritesOnly);
+    setAppliedFilters(nextFilters);
+
+    hasHydratedFromUrlRef.current = true;
+  }, [searchParams]);
+
+  // add sync state - url
+
+  useEffect(() => {
+    if (!hasHydratedFromUrlRef.current) return;
+
+    const params = buildSearchParamsFromState({
+      dealType,
+      propertyType,
+      showFavoritesOnly,
+      filters: appliedFilters,
+    });
+
+    const nextQuery = params.toString();
+    const currentQuery = searchParams.toString();
+
+    if (nextQuery === currentQuery) return;
+
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  }, [
+    dealType,
+    propertyType,
+    showFavoritesOnly,
+    appliedFilters,
+    pathname,
+    router,
+    searchParams,
+  ]);
+
+  // loading effect
+  useEffect(() => {
+    if (!hasHydratedFromUrlRef.current) return;
+
     async function loadRawProperties() {
       try {
         setIsLoadingProperties(true);
