@@ -2,7 +2,7 @@
 
 // import { useEffect, useMemo, useState } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import MainTopBar from "./components/MainTopBar";
 import MapWrapper from "./components/MapWrapper";
 import FiltersDrawer from "./components/FiltersDrawer";
@@ -138,7 +138,6 @@ function buildSearchParamsFromState(args: {
 export default function HomePage() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const hasHydratedFromUrlRef = useRef(false);
   const [dealType, setDealType] = useState<DealType>("sale");
@@ -207,13 +206,14 @@ export default function HomePage() {
   // hydration-effect
   useEffect(() => {
     if (hasHydratedFromUrlRef.current) return;
+    if (typeof window === "undefined") return;
 
-    const nextDealType = searchParams.get("dealType");
-    const nextPropertyType = searchParams.get("propertyType");
-    const nextShowFavoritesOnly = searchParams.get("favorites") === "1";
-    const nextFilters = parseFiltersFromSearchParams(
-      new URLSearchParams(searchParams.toString()),
-    );
+    const params = new URLSearchParams(window.location.search);
+
+    const nextDealType = params.get("dealType");
+    const nextPropertyType = params.get("propertyType");
+    const nextShowFavoritesOnly = params.get("favorites") === "1";
+    const nextFilters = parseFiltersFromSearchParams(params);
 
     if (nextDealType === "sale" || nextDealType === "rent") {
       setDealType(nextDealType);
@@ -232,12 +232,12 @@ export default function HomePage() {
     setAppliedFilters(nextFilters);
 
     hasHydratedFromUrlRef.current = true;
-  }, [searchParams]);
+  }, []);
 
   // add sync state - url
-
   useEffect(() => {
     if (!hasHydratedFromUrlRef.current) return;
+    if (typeof window === "undefined") return;
 
     const params = buildSearchParamsFromState({
       dealType,
@@ -247,7 +247,7 @@ export default function HomePage() {
     });
 
     const nextQuery = params.toString();
-    const currentQuery = searchParams.toString();
+    const currentQuery = new URLSearchParams(window.location.search).toString();
 
     if (nextQuery === currentQuery) return;
 
@@ -261,7 +261,6 @@ export default function HomePage() {
     appliedFilters,
     pathname,
     router,
-    searchParams,
   ]);
 
   // loading effect

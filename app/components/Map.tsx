@@ -711,6 +711,24 @@ export default function Map({
   }, [isMobile, mobileViewMode]);
 
   useEffect(() => {
+  if (isMobile === null) return;
+
+  if (!selectedPropertyId) {
+    setDesktopPopupProperty(null);
+    return;
+  }
+
+  if (isMobile) return;
+
+  const nextProperty =
+    rawProperties.find((p) => String(p.id) === selectedPropertyId) ??
+    searchProperties.find((p) => String(p.id) === selectedPropertyId) ??
+    null;
+
+  setDesktopPopupProperty(nextProperty);
+}, [selectedPropertyId, rawProperties, searchProperties, isMobile]);
+
+  useEffect(() => {
     onMobileListModeChange?.(isMobile === true && mobileViewMode === "list");
   }, [isMobile, mobileViewMode, onMobileListModeChange]);
 
