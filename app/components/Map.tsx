@@ -9,6 +9,56 @@ import PopupCard from "./PopupCard";
 import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
 
+const MAP_VIEW_STORAGE_KEY = "map-view-state";
+
+function saveMapViewToSessionStorage(map: mapboxgl.Map) {
+  try {
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+
+    window.sessionStorage.setItem(
+      MAP_VIEW_STORAGE_KEY,
+      JSON.stringify({
+        center: [center.lng, center.lat],
+        zoom,
+      }),
+    );
+  } catch (error) {
+    console.error("Failed to save map view:", error);
+  }
+}
+
+function readMapViewFromSessionStorage(): {
+  center: [number, number];
+  zoom: number;
+} | null {
+  try {
+    const raw = window.sessionStorage.getItem(MAP_VIEW_STORAGE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+
+    if (
+      !parsed ||
+      !Array.isArray(parsed.center) ||
+      parsed.center.length !== 2 ||
+      typeof parsed.center[0] !== "number" ||
+      typeof parsed.center[1] !== "number" ||
+      typeof parsed.zoom !== "number"
+    ) {
+      return null;
+    }
+
+    return {
+      center: [parsed.center[0], parsed.center[1]],
+      zoom: parsed.zoom,
+    };
+  } catch (error) {
+    console.error("Failed to read map view:", error);
+    return null;
+  }
+}
+
 type Props = {
   hoveredPropertyId: string | null;
   setHoveredPropertyId: (id: string | null) => void;
@@ -354,11 +404,20 @@ export default function Map({
 
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
+    // const map = new mapboxgl.Map({
+    //   container: mapContainer.current,
+    //   style: "mapbox://styles/mapbox/streets-v11",
+    //   center: [24.71, 48.92],
+    //   zoom: 12,
+    // });
+
+    const savedMapView = readMapViewFromSessionStorage();
+
     const map = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v11",
-      center: [24.71, 48.92],
-      zoom: 12,
+      center: savedMapView?.center ?? [24.71, 48.92],
+      zoom: savedMapView?.zoom ?? 12,
     });
 
     mapRef.current = map;
@@ -413,7 +472,13 @@ export default function Map({
         },
       });
 
+      // map.once("idle", () => {
+      //   renderHtmlMarkers(map, searchPropertiesRef.current);
+      //   syncViewportDerivedState(map);
+      // });
+
       map.once("idle", () => {
+        saveMapViewToSessionStorage(map);
         renderHtmlMarkers(map, searchPropertiesRef.current);
         syncViewportDerivedState(map);
       });
@@ -468,7 +533,13 @@ export default function Map({
         }
       });
 
+      // const handleViewportChange = () => {
+      //   renderHtmlMarkers(map, searchPropertiesRef.current);
+      //   syncViewportDerivedState(map);
+      // };
+
       const handleViewportChange = () => {
+        saveMapViewToSessionStorage(map);
         renderHtmlMarkers(map, searchPropertiesRef.current);
         syncViewportDerivedState(map);
       };
