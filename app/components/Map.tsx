@@ -10,6 +10,7 @@ import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
 
 const MAP_VIEW_STORAGE_KEY = "map-view-state";
+const MAP_SELECTED_PROPERTY_STORAGE_KEY = "map-selected-property-id";
 
 function saveMapViewToSessionStorage(map: mapboxgl.Map) {
   try {
@@ -55,6 +56,30 @@ function readMapViewFromSessionStorage(): {
     };
   } catch (error) {
     console.error("Failed to read map view:", error);
+    return null;
+  }
+}
+
+function saveSelectedPropertyIdToSessionStorage(id: string | null) {
+  try {
+    if (!id) {
+      window.sessionStorage.removeItem(MAP_SELECTED_PROPERTY_STORAGE_KEY);
+      return;
+    }
+
+    window.sessionStorage.setItem(MAP_SELECTED_PROPERTY_STORAGE_KEY, id);
+  } catch (error) {
+    console.error("Failed to save selected property id:", error);
+  }
+}
+
+function readSelectedPropertyIdFromSessionStorage(): string | null {
+  try {
+    return (
+      window.sessionStorage.getItem(MAP_SELECTED_PROPERTY_STORAGE_KEY) ?? null
+    );
+  } catch (error) {
+    console.error("Failed to read selected property id:", error);
     return null;
   }
 }
@@ -168,49 +193,60 @@ export default function Map({
     return topLine;
   };
 
+  // const createMarkerElement = (property: Property) => {
+  //   const el = document.createElement("button");
+  //   // const isFavorite = favoriteIds.includes(String(property.id));
+  //   el.type = "button";
+  //   el.setAttribute("data-property-id", String(property.id));
+
+  //   const topLine = formatCompactPrice(property.price);
+
+  //   let bottomLine = "";
+
+  //   if (property.propertyType === "apartment") {
+  //     const pricePerSqm = Math.round(property.price / property.area);
+  //     bottomLine = `${property.rooms}к • $${pricePerSqm}/м²`;
+  //   }
+
+  //   if (property.propertyType === "house") {
+  //     bottomLine = `${property.rooms}к • ${property.floors} пов.`;
+  //   }
+
+  //   if (property.propertyType === "land") {
+  //     const perSotka = Math.round(property.price / property.area);
+  //     bottomLine = `${property.area} сот. • ${formatCompactMetricPrice(perSotka)}/сот.`;
+  //   }
+
+  //   const heartIcon = `
+  //   <svg
+  //     viewBox="0 0 24 24"
+  //     width="12"
+  //     height="12"
+  //     fill="#ef4444"
+  //     stroke="#ef4444"
+  //     stroke-width="1.8"
+  //     stroke-linecap="round"
+  //     stroke-linejoin="round"
+  //     aria-hidden="true"
+  //   >
+  //     <path d="M20.8 4.6c-1.5-1.5-4-1.5-5.5 0L12 7.9 8.7 4.6c-1.5-1.5-4-1.5-5.5 0-1.5 1.5-1.5 4 0 5.5L12 19l8.8-8.9c1.5-1.5 1.5-4 0-5.5z" />
+  //   </svg>
+  //   `;
+
+  //   el.innerHTML = buildMarkerInnerHtml(property);
+
+  //   el.className = "marker-pill marker-pill--enter";
+  //   return el;
+  // };
+
   const createMarkerElement = (property: Property) => {
     const el = document.createElement("button");
-    // const isFavorite = favoriteIds.includes(String(property.id));
     el.type = "button";
     el.setAttribute("data-property-id", String(property.id));
 
-    const topLine = formatCompactPrice(property.price);
-
-    let bottomLine = "";
-
-    if (property.propertyType === "apartment") {
-      const pricePerSqm = Math.round(property.price / property.area);
-      bottomLine = `${property.rooms}к • $${pricePerSqm}/м²`;
-    }
-
-    if (property.propertyType === "house") {
-      bottomLine = `${property.rooms}к • ${property.floors} пов.`;
-    }
-
-    if (property.propertyType === "land") {
-      const perSotka = Math.round(property.price / property.area);
-      bottomLine = `${property.area} сот. • ${formatCompactMetricPrice(perSotka)}/сот.`;
-    }
-
-    const heartIcon = `
-    <svg
-      viewBox="0 0 24 24"
-      width="12"
-      height="12"
-      fill="#ef4444"
-      stroke="#ef4444"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M20.8 4.6c-1.5-1.5-4-1.5-5.5 0L12 7.9 8.7 4.6c-1.5-1.5-4-1.5-5.5 0-1.5 1.5-1.5 4 0 5.5L12 19l8.8-8.9c1.5-1.5 1.5-4 0-5.5z" />
-    </svg>
-    `;
-
     el.innerHTML = buildMarkerInnerHtml(property);
-
     el.className = "marker-pill marker-pill--enter";
+
     return el;
   };
 
@@ -396,6 +432,33 @@ export default function Map({
       el.innerHTML = buildMarkerInnerHtml(property);
     });
   };
+
+  useEffect(() => {
+    saveSelectedPropertyIdToSessionStorage(selectedPropertyId);
+  }, [selectedPropertyId]);
+
+  useEffect(() => {
+    if (selectedPropertyId) return;
+
+    const savedSelectedId = readSelectedPropertyIdFromSessionStorage();
+    if (!savedSelectedId) return;
+
+    const existsInRaw = rawProperties.some(
+      (p) => String(p.id) === savedSelectedId,
+    );
+    const existsInSearch = searchProperties.some(
+      (p) => String(p.id) === savedSelectedId,
+    );
+
+    if (!existsInRaw && !existsInSearch) return;
+
+    setSelectedPropertyId(savedSelectedId);
+  }, [
+    selectedPropertyId,
+    rawProperties,
+    searchProperties,
+    setSelectedPropertyId,
+  ]);
 
   useEffect(() => {
     if (isMobile === null) return;
