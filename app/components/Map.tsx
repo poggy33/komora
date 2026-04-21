@@ -11,6 +11,26 @@ import MobilePropertyOverlay from "./MobilePropertyOverlay";
 
 const MAP_VIEW_STORAGE_KEY = "map-view-state";
 const MAP_SELECTED_PROPERTY_STORAGE_KEY = "map-selected-property-id";
+const MAP_MOBILE_VIEW_MODE_KEY = "map-mobile-view-mode";
+
+function saveMobileViewMode(mode: "map" | "list") {
+  try {
+    window.sessionStorage.setItem(MAP_MOBILE_VIEW_MODE_KEY, mode);
+  } catch (e) {
+    console.error("Failed to save mobile view mode", e);
+  }
+}
+
+function readMobileViewMode(): "map" | "list" | null {
+  try {
+    const value = window.sessionStorage.getItem(MAP_MOBILE_VIEW_MODE_KEY);
+    if (value === "map" || value === "list") return value;
+    return null;
+  } catch (e) {
+    console.error("Failed to read mobile view mode", e);
+    return null;
+  }
+}
 
 function saveMapViewToSessionStorage(map: mapboxgl.Map) {
   try {
@@ -137,6 +157,32 @@ export default function Map({
     useState<Property | null>(null);
 
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
+  const hasHydratedMobileViewModeRef = useRef(false);
+
+  useEffect(() => {
+    if (hasHydratedMobileViewModeRef.current) return;
+    if (isMobile === null) return;
+    if (!isMobile) {
+      hasHydratedMobileViewModeRef.current = true;
+      return;
+    }
+
+    const savedMode = readMobileViewMode();
+    if (!savedMode) {
+      hasHydratedMobileViewModeRef.current = true;
+      return;
+    }
+
+    setMobileViewMode(savedMode);
+    hasHydratedMobileViewModeRef.current = true;
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (!hasHydratedMobileViewModeRef.current) return;
+    if (isMobile !== true) return;
+
+    saveMobileViewMode(mobileViewMode);
+  }, [mobileViewMode, isMobile]);
 
   useEffect(() => {
     const checkMobile = () => {

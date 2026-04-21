@@ -2,6 +2,10 @@
 
 import type { Property } from "../types/property";
 import PropertyListCard from "./PropertyListCard";
+import { useEffect, useRef, useState } from "react";
+
+const SIDEBAR_SCROLL_STORAGE_KEY_DESKTOP = "sidebar-scroll-top-desktop";
+const SIDEBAR_SCROLL_STORAGE_KEY_MOBILE = "sidebar-scroll-top-mobile";
 
 type Props = {
   properties: Property[];
@@ -16,6 +20,38 @@ type Props = {
   compactHeaderOnly?: boolean;
 };
 
+function getSidebarScrollStorageKey(isMobileList: boolean) {
+  return isMobileList
+    ? SIDEBAR_SCROLL_STORAGE_KEY_MOBILE
+    : SIDEBAR_SCROLL_STORAGE_KEY_DESKTOP;
+}
+
+function saveSidebarScrollTop(value: number, isMobileList: boolean) {
+  try {
+    window.sessionStorage.setItem(
+      getSidebarScrollStorageKey(isMobileList),
+      String(value),
+    );
+  } catch (error) {
+    console.error("Failed to save sidebar scroll:", error);
+  }
+}
+
+function readSidebarScrollTop(isMobileList: boolean): number | null {
+  try {
+    const raw = window.sessionStorage.getItem(
+      getSidebarScrollStorageKey(isMobileList),
+    );
+    if (!raw) return null;
+
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  } catch (error) {
+    console.error("Failed to read sidebar scroll:", error);
+    return null;
+  }
+}
+
 export default function Sidebar({
   properties,
   onSelect,
@@ -28,6 +64,50 @@ export default function Sidebar({
   onUserInteract,
   compactHeaderOnly = false,
 }: Props) {
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const hasHydratedScrollRef = useRef(false);
+  const isMobileListMode = compactHeaderOnly === false;
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    if (compactHeaderOnly) return;
+
+    const handleScroll = () => {
+      saveSidebarScrollTop(el.scrollTop, isMobileListMode);
+    };
+
+    el.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      el.removeEventListener("scroll", handleScroll);
+    };
+  }, [compactHeaderOnly, isMobileListMode]);
+
+  useEffect(() => {
+    if (compactHeaderOnly) return;
+
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    if (properties.length === 0) return;
+
+    const savedScrollTop = readSidebarScrollTop(isMobileListMode);
+    if (savedScrollTop === null) {
+      hasHydratedScrollRef.current = true;
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      if (!scrollContainerRef.current) return;
+      scrollContainerRef.current.scrollTop = savedScrollTop;
+      hasHydratedScrollRef.current = true;
+    });
+  }, [properties.length, compactHeaderOnly, isMobileListMode]);
+
+  useEffect(() => {
+    hasHydratedScrollRef.current = false;
+  }, [compactHeaderOnly]);
+  
   return (
     <div
       style={{
@@ -91,6 +171,7 @@ export default function Sidebar({
       {compactHeaderOnly ? null : (
         <div
           className="sidebar-scroll sidebar-cards"
+          ref={scrollContainerRef}
           style={{
             padding: "14px",
             overflowY: "auto",
