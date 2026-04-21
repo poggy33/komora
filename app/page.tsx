@@ -140,6 +140,7 @@ export default function HomePage() {
   const pathname = usePathname();
 
   const hasHydratedFromUrlRef = useRef(false);
+  const hasMountedSelectionResetRef = useRef(false);
   const [dealType, setDealType] = useState<DealType>("sale");
   const [propertyType, setPropertyType] =
     useState<SupportedPropertyType>("apartment");
@@ -291,7 +292,17 @@ export default function HomePage() {
     loadRawProperties();
   }, [dealType, propertyType, showFavoritesOnly]);
 
+  // useEffect(() => {
+  //   setSelectedPropertyId(null);
+  //   setHoveredPropertyId(null);
+  // }, [dealType, propertyType, isFavoritesMode]);
+
   useEffect(() => {
+    if (!hasMountedSelectionResetRef.current) {
+      hasMountedSelectionResetRef.current = true;
+      return;
+    }
+
     setSelectedPropertyId(null);
     setHoveredPropertyId(null);
   }, [dealType, propertyType, isFavoritesMode]);

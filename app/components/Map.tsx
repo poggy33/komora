@@ -126,6 +126,7 @@ export default function Map({
   const searchPropertiesRef = useRef<Property[]>([]);
   const rawPropertiesRef = useRef<Property[]>([]);
   const favoriteIdsRef = useRef<string[]>([]);
+  const hasHydratedSelectedPropertyRef = useRef(false);
 
   const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
   const [mobileViewMode, setMobileViewMode] = useState<"map" | "list">("map");
@@ -192,52 +193,6 @@ export default function Map({
 
     return topLine;
   };
-
-  // const createMarkerElement = (property: Property) => {
-  //   const el = document.createElement("button");
-  //   // const isFavorite = favoriteIds.includes(String(property.id));
-  //   el.type = "button";
-  //   el.setAttribute("data-property-id", String(property.id));
-
-  //   const topLine = formatCompactPrice(property.price);
-
-  //   let bottomLine = "";
-
-  //   if (property.propertyType === "apartment") {
-  //     const pricePerSqm = Math.round(property.price / property.area);
-  //     bottomLine = `${property.rooms}к • $${pricePerSqm}/м²`;
-  //   }
-
-  //   if (property.propertyType === "house") {
-  //     bottomLine = `${property.rooms}к • ${property.floors} пов.`;
-  //   }
-
-  //   if (property.propertyType === "land") {
-  //     const perSotka = Math.round(property.price / property.area);
-  //     bottomLine = `${property.area} сот. • ${formatCompactMetricPrice(perSotka)}/сот.`;
-  //   }
-
-  //   const heartIcon = `
-  //   <svg
-  //     viewBox="0 0 24 24"
-  //     width="12"
-  //     height="12"
-  //     fill="#ef4444"
-  //     stroke="#ef4444"
-  //     stroke-width="1.8"
-  //     stroke-linecap="round"
-  //     stroke-linejoin="round"
-  //     aria-hidden="true"
-  //   >
-  //     <path d="M20.8 4.6c-1.5-1.5-4-1.5-5.5 0L12 7.9 8.7 4.6c-1.5-1.5-4-1.5-5.5 0-1.5 1.5-1.5 4 0 5.5L12 19l8.8-8.9c1.5-1.5 1.5-4 0-5.5z" />
-  //   </svg>
-  //   `;
-
-  //   el.innerHTML = buildMarkerInnerHtml(property);
-
-  //   el.className = "marker-pill marker-pill--enter";
-  //   return el;
-  // };
 
   const createMarkerElement = (property: Property) => {
     const el = document.createElement("button");
@@ -434,14 +389,18 @@ export default function Map({
   };
 
   useEffect(() => {
+    if (!hasHydratedSelectedPropertyRef.current) return;
     saveSelectedPropertyIdToSessionStorage(selectedPropertyId);
   }, [selectedPropertyId]);
 
   useEffect(() => {
-    if (selectedPropertyId) return;
+    if (hasHydratedSelectedPropertyRef.current) return;
 
     const savedSelectedId = readSelectedPropertyIdFromSessionStorage();
-    if (!savedSelectedId) return;
+    if (!savedSelectedId) {
+      hasHydratedSelectedPropertyRef.current = true;
+      return;
+    }
 
     const existsInRaw = rawProperties.some(
       (p) => String(p.id) === savedSelectedId,
@@ -453,12 +412,29 @@ export default function Map({
     if (!existsInRaw && !existsInSearch) return;
 
     setSelectedPropertyId(savedSelectedId);
-  }, [
-    selectedPropertyId,
-    rawProperties,
-    searchProperties,
-    setSelectedPropertyId,
-  ]);
+    hasHydratedSelectedPropertyRef.current = true;
+  }, [rawProperties, searchProperties, setSelectedPropertyId]);
+
+  // useEffect(() => {
+  //   if (isMobile === null) return;
+
+  //   if (!selectedPropertyId) {
+  //     setDesktopPopupProperty(null);
+  //     return;
+  //   }
+
+  //   const nextProperty =
+  //     rawProperties.find((p) => String(p.id) === selectedPropertyId) ??
+  //     searchProperties.find((p) => String(p.id) === selectedPropertyId) ??
+  //     null;
+
+  //   if (isMobile) {
+  //     setDesktopPopupProperty(null);
+  //     return;
+  //   }
+
+  //   setDesktopPopupProperty(nextProperty);
+  // }, [selectedPropertyId, rawProperties, searchProperties, isMobile]);
 
   useEffect(() => {
     if (isMobile === null) return;
@@ -466,13 +442,6 @@ export default function Map({
     if (mapRef.current) return;
 
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
-
-    // const map = new mapboxgl.Map({
-    //   container: mapContainer.current,
-    //   style: "mapbox://styles/mapbox/streets-v11",
-    //   center: [24.71, 48.92],
-    //   zoom: 12,
-    // });
 
     const savedMapView = readMapViewFromSessionStorage();
 
@@ -535,11 +504,6 @@ export default function Map({
         },
       });
 
-      // map.once("idle", () => {
-      //   renderHtmlMarkers(map, searchPropertiesRef.current);
-      //   syncViewportDerivedState(map);
-      // });
-
       map.once("idle", () => {
         saveMapViewToSessionStorage(map);
         renderHtmlMarkers(map, searchPropertiesRef.current);
@@ -595,11 +559,6 @@ export default function Map({
           popupRef.current = null;
         }
       });
-
-      // const handleViewportChange = () => {
-      //   renderHtmlMarkers(map, searchPropertiesRef.current);
-      //   syncViewportDerivedState(map);
-      // };
 
       const handleViewportChange = () => {
         saveMapViewToSessionStorage(map);
@@ -711,22 +670,22 @@ export default function Map({
   }, [isMobile, mobileViewMode]);
 
   useEffect(() => {
-  if (isMobile === null) return;
+    if (isMobile === null) return;
 
-  if (!selectedPropertyId) {
-    setDesktopPopupProperty(null);
-    return;
-  }
+    if (!selectedPropertyId) {
+      setDesktopPopupProperty(null);
+      return;
+    }
 
-  if (isMobile) return;
+    if (isMobile) return;
 
-  const nextProperty =
-    rawProperties.find((p) => String(p.id) === selectedPropertyId) ??
-    searchProperties.find((p) => String(p.id) === selectedPropertyId) ??
-    null;
+    const nextProperty =
+      rawProperties.find((p) => String(p.id) === selectedPropertyId) ??
+      searchProperties.find((p) => String(p.id) === selectedPropertyId) ??
+      null;
 
-  setDesktopPopupProperty(nextProperty);
-}, [selectedPropertyId, rawProperties, searchProperties, isMobile]);
+    setDesktopPopupProperty(nextProperty);
+  }, [selectedPropertyId, rawProperties, searchProperties, isMobile]);
 
   useEffect(() => {
     onMobileListModeChange?.(isMobile === true && mobileViewMode === "list");
