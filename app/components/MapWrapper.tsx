@@ -21,6 +21,8 @@ type Props = {
   // 🔥 нові callbacks
   onVisibleSearchPropertiesChange?: (properties: Property[]) => void;
   onVisibleBasePropertiesChange?: (properties: Property[]) => void;
+  isBootLoading: boolean;
+  isRefreshing: boolean;
 };
 
 const Map = dynamic(() => import("./Map"), {
@@ -42,6 +44,8 @@ export default function MapWrapper({
   onMobileListModeChange,
   onVisibleSearchPropertiesChange,
   onVisibleBasePropertiesChange,
+  isBootLoading,
+  isRefreshing,
 }: Props) {
   return (
     <Map
@@ -60,6 +64,8 @@ export default function MapWrapper({
       // 🔥 тут головна зміна
       onVisibleSearchPropertiesChange={onVisibleSearchPropertiesChange}
       onVisibleBasePropertiesChange={onVisibleBasePropertiesChange}
+      isBootLoading={isBootLoading}
+      isRefreshing={isRefreshing}
     />
   );
 }

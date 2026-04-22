@@ -1,8 +1,11 @@
 "use client";
 
+import SidebarShell from "./SidebarShell";
+import SidebarList from "./SidebarList";
 import type { Property } from "../types/property";
 import PropertyListCard from "./PropertyListCard";
 import { useEffect, useRef, useState } from "react";
+import LoadingPill from "./ui/LoadingPill";
 
 const SIDEBAR_SCROLL_STORAGE_KEY_DESKTOP = "sidebar-scroll-top-desktop";
 const SIDEBAR_SCROLL_STORAGE_KEY_MOBILE = "sidebar-scroll-top-mobile";
@@ -18,6 +21,9 @@ type Props = {
   showFavoritesOnly: boolean;
   onUserInteract?: () => void;
   compactHeaderOnly?: boolean;
+  isLoading?: boolean;
+  isBootLoading?: boolean;
+  isRefreshing?: boolean;
 };
 
 function getSidebarScrollStorageKey(isMobileList: boolean) {
@@ -63,10 +69,24 @@ export default function Sidebar({
   showFavoritesOnly,
   onUserInteract,
   compactHeaderOnly = false,
+  isLoading,
+  isBootLoading = false,
+  isRefreshing = false,
 }: Props) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const hasHydratedScrollRef = useRef(false);
   const isMobileListMode = compactHeaderOnly === false;
+
+  const [stableProperties, setStableProperties] =
+    useState<Property[]>(properties);
+
+  useEffect(() => {
+    if (!isRefreshing) {
+      setStableProperties(properties);
+    }
+  }, [properties, isRefreshing]);
+
+  const displayedProperties = isRefreshing ? stableProperties : properties;
 
   useEffect(() => {
     const el = scrollContainerRef.current;
@@ -107,110 +127,41 @@ export default function Sidebar({
   useEffect(() => {
     hasHydratedScrollRef.current = false;
   }, [compactHeaderOnly]);
-  
+
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        minHeight: 0,
-        background: "#fff",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <SidebarShell
+      count={displayedProperties.length}
+      title={showFavoritesOnly ? "в обраному" : "оголошень"}
+      subtitle={
+        showFavoritesOnly
+          ? "Усі збережені об’єкти"
+          : `${getTypeLabel(displayedProperties)} • ${getDealLabel(displayedProperties)}`
+      }
+      compactHeaderOnly={compactHeaderOnly}
+      isBootLoading={isBootLoading}
+      isRefreshing={isRefreshing}
+      onHeaderClick={onUserInteract}
+      scrollContainerRef={scrollContainerRef}
+      onScroll={() => onUserInteract?.()}
+      onTouchStart={() => onUserInteract?.()}
     >
-      <div
-        className="sidebar-header"
-        style={{
-          padding: compactHeaderOnly ? "10px 16px 12px" : "14px 16px",
-          borderBottom: "1px solid #eee",
-          background: "rgba(255,255,255,0.96)",
-          backdropFilter: "blur(8px)",
-          position: "sticky",
-          top: 0,
-          zIndex: 2,
-          flexShrink: 0,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          minHeight: compactHeaderOnly ? "72px" : "auto",
-          boxSizing: "border-box",
-          cursor: compactHeaderOnly ? "pointer" : "default",
-        }}
-        onClick={() => {
-          if (compactHeaderOnly) onUserInteract?.();
-        }}
-      >
-        <div
-          style={{
-            fontSize: compactHeaderOnly ? "13px" : "14px",
-            fontWeight: 700,
-            color: "#111",
-            marginBottom: "2px",
-            lineHeight: 1.25,
-          }}
-        >
-          {showFavoritesOnly
-            ? `${properties.length} в обраному`
-            : `${properties.length} оголошень`}
-        </div>
-
-        <div
-          style={{
-            fontSize: compactHeaderOnly ? "11px" : "12px",
-            color: "#666",
-            lineHeight: 1.25,
-          }}
-        >
-          {showFavoritesOnly
-            ? "Усі збережені об’єкти"
-            : `${getTypeLabel(properties)} • ${getDealLabel(properties)}`}
-        </div>
-      </div>
-
-      {compactHeaderOnly ? null : (
-        <div
-          className="sidebar-scroll sidebar-cards"
-          ref={scrollContainerRef}
-          style={{
-            padding: "14px",
-            overflowY: "auto",
-            flex: 1,
-          }}
-          onScroll={() => onUserInteract?.()}
-          onTouchStart={() => onUserInteract?.()}
-        >
-          {properties.length === 0 ? (
-            <EmptyState isFavorites={showFavoritesOnly} />
-          ) : (
-            properties.map((property) => {
-              const isHovered = hoveredPropertyId === String(property.id);
-              const isSelected = selectedPropertyId === String(property.id);
-
-              return (
-                <div
-                  key={property.id}
-                  style={{ marginBottom: "14px" }}
-                  onMouseDown={() => onUserInteract?.()}
-                  onTouchStart={() => onUserInteract?.()}
-                >
-                  <PropertyListCard
-                    key={property.id}
-                    property={property}
-                    isHovered={isHovered}
-                    isSelected={isSelected}
-                    isFavorite={favoriteIds.includes(String(property.id))}
-                    onToggleFavorite={toggleFavorite}
-                    onHover={onHover}
-                    onSelect={onSelect}
-                  />
-                </div>
-              );
-            })
-          )}
-        </div>
+      {isBootLoading ? (
+        <SidebarSkeleton />
+      ) : displayedProperties.length === 0 ? (
+        <EmptyState isFavorites={showFavoritesOnly} />
+      ) : (
+        <SidebarList
+          properties={displayedProperties}
+          hoveredPropertyId={hoveredPropertyId}
+          selectedPropertyId={selectedPropertyId}
+          favoriteIds={favoriteIds}
+          toggleFavorite={toggleFavorite}
+          onHover={onHover}
+          onSelect={onSelect}
+          onUserInteract={onUserInteract}
+        />
       )}
-    </div>
+    </SidebarShell>
   );
 }
 
@@ -268,6 +219,89 @@ function EmptyState({ isFavorites }: { isFavorites: boolean }) {
           ? "Натисніть ♥ на картці або на мапі, щоб зберегти оголошення."
           : "Спробуйте змінити тип нерухомості, режим угоди або параметри фільтрів."}
       </div>
+    </div>
+  );
+}
+
+function SidebarSkeleton() {
+  return (
+    <div
+      style={{
+        padding: "14px",
+        display: "grid",
+        gap: "14px",
+      }}
+    >
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div
+          key={index}
+          style={{
+            border: "1px solid #ececec",
+            borderRadius: "18px",
+            overflow: "hidden",
+            background: "#fff",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              height: "180px",
+              background:
+                "linear-gradient(90deg, #f3f3f3 0%, #f8f8f8 50%, #f3f3f3 100%)",
+            }}
+          />
+          <div
+            style={{
+              padding: "14px",
+              display: "grid",
+              gap: "10px",
+            }}
+          >
+            <div
+              style={{
+                width: "38%",
+                height: "12px",
+                borderRadius: "999px",
+                background: "#f0f0f0",
+              }}
+            />
+            <div
+              style={{
+                width: "72%",
+                height: "16px",
+                borderRadius: "999px",
+                background: "#ececec",
+              }}
+            />
+            <div
+              style={{
+                width: "56%",
+                height: "13px",
+                borderRadius: "999px",
+                background: "#f1f1f1",
+              }}
+            />
+            <div
+              style={{
+                width: "84%",
+                height: "12px",
+                borderRadius: "999px",
+                background: "#f5f5f5",
+              }}
+            />
+            <div
+              style={{
+                width: "34%",
+                height: "18px",
+                borderRadius: "999px",
+                background: "#ececec",
+                marginTop: "4px",
+              }}
+            />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

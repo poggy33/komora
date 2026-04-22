@@ -165,6 +165,7 @@ export default function HomePage() {
   >([]);
 
   const [isLoadingProperties, setIsLoadingProperties] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [propertiesError, setPropertiesError] = useState<string | null>(null);
 
   const { favoriteIds, toggleFavorite } = useFavorites();
@@ -203,6 +204,9 @@ export default function HomePage() {
     appliedFilters.petsAllowed ? "petsAllowed" : "",
     appliedFilters.landPurpose.length > 0 ? "landPurpose" : "",
   ].filter(Boolean).length;
+
+  const isBootLoading = isLoadingProperties && !hasLoadedOnce;
+  const isRefreshing = isLoadingProperties && hasLoadedOnce;
 
   // hydration-effect
   useEffect(() => {
@@ -286,16 +290,12 @@ export default function HomePage() {
         setPropertiesError("Не вдалося завантажити оголошення");
       } finally {
         setIsLoadingProperties(false);
+        setHasLoadedOnce(true);
       }
     }
 
     loadRawProperties();
   }, [dealType, propertyType, showFavoritesOnly]);
-
-  // useEffect(() => {
-  //   setSelectedPropertyId(null);
-  //   setHoveredPropertyId(null);
-  // }, [dealType, propertyType, isFavoritesMode]);
 
   useEffect(() => {
     if (!hasMountedSelectionResetRef.current) {
@@ -376,13 +376,10 @@ export default function HomePage() {
           ) : null}
 
           <MapWrapper
-            // dealType={dealType}
-            // propertyType={propertyType}
             hoveredPropertyId={hoveredPropertyId}
             setHoveredPropertyId={setHoveredPropertyId}
             selectedPropertyId={selectedPropertyId}
             setSelectedPropertyId={setSelectedPropertyId}
-            // filters={appliedFilters}
             favoriteIds={favoriteIds}
             toggleFavorite={toggleFavorite}
             showFavoritesOnly={showFavoritesOnly}
@@ -393,6 +390,8 @@ export default function HomePage() {
             onMobileListModeChange={setIsMobileListMode}
             onVisibleSearchPropertiesChange={setVisibleProperties}
             onVisibleBasePropertiesChange={setVisiblePropertiesForDrawer}
+            isBootLoading={isBootLoading}
+            isRefreshing={isRefreshing}
           />
         </div>
       </main>

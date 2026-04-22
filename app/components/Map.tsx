@@ -8,6 +8,7 @@ import Sidebar from "./Sidebar";
 import PopupCard from "./PopupCard";
 import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
+import LoadingPill from "./ui/LoadingPill";
 
 const MAP_VIEW_STORAGE_KEY = "map-view-state";
 const MAP_SELECTED_PROPERTY_STORAGE_KEY = "map-selected-property-id";
@@ -119,6 +120,8 @@ type Props = {
   onVisibleSearchPropertiesChange?: (properties: Property[]) => void;
   onVisibleBasePropertiesChange?: (properties: Property[]) => void;
   rawProperties: Property[];
+  isBootLoading: boolean;
+  isRefreshing: boolean;
 };
 
 export default function Map({
@@ -136,6 +139,8 @@ export default function Map({
   onVisibleSearchPropertiesChange,
   onVisibleBasePropertiesChange,
   rawProperties,
+  isBootLoading,
+  isRefreshing,
 }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -460,27 +465,6 @@ export default function Map({
     setSelectedPropertyId(savedSelectedId);
     hasHydratedSelectedPropertyRef.current = true;
   }, [rawProperties, searchProperties, setSelectedPropertyId]);
-
-  // useEffect(() => {
-  //   if (isMobile === null) return;
-
-  //   if (!selectedPropertyId) {
-  //     setDesktopPopupProperty(null);
-  //     return;
-  //   }
-
-  //   const nextProperty =
-  //     rawProperties.find((p) => String(p.id) === selectedPropertyId) ??
-  //     searchProperties.find((p) => String(p.id) === selectedPropertyId) ??
-  //     null;
-
-  //   if (isMobile) {
-  //     setDesktopPopupProperty(null);
-  //     return;
-  //   }
-
-  //   setDesktopPopupProperty(nextProperty);
-  // }, [selectedPropertyId, rawProperties, searchProperties, isMobile]);
 
   useEffect(() => {
     if (isMobile === null) return;
@@ -890,6 +874,8 @@ export default function Map({
             }
           }}
           compactHeaderOnly={mobileViewMode === "map"}
+          isBootLoading={isBootLoading}
+          isRefreshing={isRefreshing}
         />
 
         {mobileViewMode === "list" && (
@@ -932,7 +918,20 @@ export default function Map({
           </div>
         )}
 
-        {isLoadingProperties && (
+        {isRefreshing && (
+          <div
+            style={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              zIndex: 5,
+            }}
+          >
+            <LoadingPill size="sm" label="Оновлюємо мапу..." />
+          </div>
+        )}
+
+        {/* {isLoadingProperties && (
           <div
             style={{
               position: "absolute",
@@ -947,7 +946,7 @@ export default function Map({
           >
             Завантаження оголошень...
           </div>
-        )}
+        )} */}
 
         {propertiesError && (
           <div
@@ -1013,9 +1012,24 @@ export default function Map({
           toggleFavorite={toggleFavorite}
           showFavoritesOnly={showFavoritesOnly}
           onUserInteract={() => {}}
+          isBootLoading={isBootLoading}
+          isRefreshing={isRefreshing}
         />
 
-        {isLoadingProperties && (
+        {isRefreshing && (
+          <div
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              zIndex: 5,
+            }}
+          >
+            <LoadingPill size="sm" label="Оновлюємо мапу..." />
+          </div>
+        )}
+
+        {/* {isLoadingProperties && (
           <div
             style={{
               position: "absolute",
@@ -1030,7 +1044,7 @@ export default function Map({
           >
             Завантаження оголошень...
           </div>
-        )}
+        )} */}
 
         {propertiesError && (
           <div
