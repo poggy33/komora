@@ -167,6 +167,8 @@ export default function Map({
   >([]);
   const [hasDesktopViewportSnapshot, setHasDesktopViewportSnapshot] =
     useState(false);
+  const [mobileListDragOffset, setMobileListDragOffset] = useState(0);
+  const [isMobileListDragging, setIsMobileListDragging] = useState(false);
 
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const hasHydratedMobileViewModeRef = useRef(false);
@@ -743,6 +745,13 @@ export default function Map({
     onMobileListModeChange?.(isMobile === true && mobileViewMode === "list");
   }, [isMobile, mobileViewMode, onMobileListModeChange]);
 
+  useEffect(() => {
+    if (mobileViewMode === "map") {
+      setMobileListDragOffset(0);
+      setIsMobileListDragging(false);
+    }
+  }, [mobileViewMode]);
+
   const handleSelect = (p: Property) => {
     if (!mapRef.current) return;
 
@@ -849,11 +858,25 @@ export default function Map({
   const handleMobileListDragStart = (clientY: number) => {
     mobileDragStartYRef.current = clientY;
     mobileDragCurrentYRef.current = clientY;
+    setIsMobileListDragging(true);
   };
 
   const handleMobileListDragMove = (clientY: number) => {
     if (mobileDragStartYRef.current === null) return;
+
     mobileDragCurrentYRef.current = clientY;
+
+    const deltaY = clientY - mobileDragStartYRef.current;
+
+    // тягнемо тільки вниз
+    if (deltaY <= 0) {
+      setMobileListDragOffset(0);
+      return;
+    }
+
+    // легкий "rubber band" ефект
+    const dampedDelta = deltaY * 0.92;
+    setMobileListDragOffset(dampedDelta);
   };
 
   const handleMobileListDragEnd = () => {
@@ -863,15 +886,21 @@ export default function Map({
     ) {
       mobileDragStartYRef.current = null;
       mobileDragCurrentYRef.current = null;
+      setIsMobileListDragging(false);
+      setMobileListDragOffset(0);
       return;
     }
 
     const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
 
-    // свайп вниз
-    if (deltaY > 42) {
+    // якщо добре потягнули вниз — закриваємо
+    if (deltaY > 72) {
       setMobileViewMode("map");
     }
+
+    // якщо не дотягнули — повертаємо назад
+    setMobileListDragOffset(0);
+    setIsMobileListDragging(false);
 
     mobileDragStartYRef.current = null;
     mobileDragCurrentYRef.current = null;
@@ -1017,6 +1046,14 @@ export default function Map({
           inset: 0,
           background: "#fff",
           zIndex: 20,
+          transform:
+            mobileViewMode === "list"
+              ? `translateY(${mobileListDragOffset}px)`
+              : undefined,
+          transition: isMobileListDragging
+            ? "none"
+            : "opacity 0.25s ease, transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)",
+          willChange: "transform, opacity",
         }}
       >
         <div
@@ -1035,10 +1072,13 @@ export default function Map({
         >
           <div
             style={{
-              width: "34px",
+              width: isMobileListDragging ? "40px" : "34px",
               height: "4px",
               borderRadius: "999px",
-              background: "rgba(17,17,17,0.14)",
+              background: isMobileListDragging
+                ? "rgba(17,17,17,0.22)"
+                : "rgba(17,17,17,0.14)",
+              transition: "width 0.18s ease, background 0.18s ease",
             }}
           />
         </div>
