@@ -170,6 +170,9 @@ export default function Map({
 
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const hasHydratedMobileViewModeRef = useRef(false);
+  const mobileDragStartYRef = useRef<number | null>(null);
+  const mobileDragCurrentYRef = useRef<number | null>(null);
+  const mobileDragMovedRef = useRef(false);
 
   useEffect(() => {
     if (hasHydratedMobileViewModeRef.current) return;
@@ -799,6 +802,81 @@ export default function Map({
       ? `${getPropertyTypeLabel(mobileMapHeaderProperties[0].propertyType)} • ${getDealTypeLabel(mobileMapHeaderProperties[0].dealType)}`
       : "";
 
+  const openMobileList = () => {
+    setMobileSnapshotProperties(visibleProperties);
+    setMobileViewMode("list");
+  };
+
+  const handleMobileHeaderDragStart = (clientY: number) => {
+    mobileDragStartYRef.current = clientY;
+    mobileDragCurrentYRef.current = clientY;
+    mobileDragMovedRef.current = false;
+  };
+
+  const handleMobileHeaderDragMove = (clientY: number) => {
+    if (mobileDragStartYRef.current === null) return;
+    mobileDragCurrentYRef.current = clientY;
+
+    const deltaY = clientY - mobileDragStartYRef.current;
+    if (Math.abs(deltaY) > 8) {
+      mobileDragMovedRef.current = true;
+    }
+  };
+
+  const handleMobileHeaderDragEnd = () => {
+    if (
+      mobileDragStartYRef.current === null ||
+      mobileDragCurrentYRef.current === null
+    ) {
+      mobileDragStartYRef.current = null;
+      mobileDragCurrentYRef.current = null;
+      mobileDragMovedRef.current = false;
+      return;
+    }
+
+    const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
+
+    // свайп вгору
+    if (deltaY < -36) {
+      openMobileList();
+    }
+
+    mobileDragStartYRef.current = null;
+    mobileDragCurrentYRef.current = null;
+    mobileDragMovedRef.current = false;
+  };
+
+  const handleMobileListDragStart = (clientY: number) => {
+    mobileDragStartYRef.current = clientY;
+    mobileDragCurrentYRef.current = clientY;
+  };
+
+  const handleMobileListDragMove = (clientY: number) => {
+    if (mobileDragStartYRef.current === null) return;
+    mobileDragCurrentYRef.current = clientY;
+  };
+
+  const handleMobileListDragEnd = () => {
+    if (
+      mobileDragStartYRef.current === null ||
+      mobileDragCurrentYRef.current === null
+    ) {
+      mobileDragStartYRef.current = null;
+      mobileDragCurrentYRef.current = null;
+      return;
+    }
+
+    const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
+
+    // свайп вниз
+    if (deltaY > 42) {
+      setMobileViewMode("map");
+    }
+
+    mobileDragStartYRef.current = null;
+    mobileDragCurrentYRef.current = null;
+  };
+
   if (isMobile === null) {
     return (
       <div
@@ -917,9 +995,12 @@ export default function Map({
             subtitle={mobileMapHeaderSubtitle}
             isLoading={isMobileMapHeaderLoading}
             onClick={() => {
-              setMobileSnapshotProperties(visibleProperties);
-              setMobileViewMode("list");
+              if (mobileDragMovedRef.current) return;
+              openMobileList();
             }}
+            onDragStart={handleMobileHeaderDragStart}
+            onDragMove={handleMobileHeaderDragMove}
+            onDragEnd={handleMobileHeaderDragEnd}
           />
         </div>
       </div>
@@ -937,6 +1018,9 @@ export default function Map({
           background: "#fff",
           zIndex: 20,
         }}
+        onTouchStart={(e) => handleMobileListDragStart(e.touches[0].clientY)}
+        onTouchMove={(e) => handleMobileListDragMove(e.touches[0].clientY)}
+        onTouchEnd={handleMobileListDragEnd}
       >
         <div
           style={{

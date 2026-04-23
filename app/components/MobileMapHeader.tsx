@@ -8,6 +8,9 @@ type Props = {
   subtitle: string;
   isLoading: boolean;
   onClick: () => void;
+  onDragStart?: (clientY: number) => void;
+  onDragMove?: (clientY: number) => void;
+  onDragEnd?: () => void;
 };
 
 export default function MobileMapHeader({
@@ -16,6 +19,9 @@ export default function MobileMapHeader({
   subtitle,
   isLoading,
   onClick,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
 }: Props) {
   const [isPressed, setIsPressed] = useState(false);
 
@@ -26,12 +32,21 @@ export default function MobileMapHeader({
       onMouseDown={() => setIsPressed(true)}
       onMouseUp={() => setIsPressed(false)}
       onMouseLeave={() => setIsPressed(false)}
-      onTouchStart={() => setIsPressed(true)}
-      onTouchEnd={() => setIsPressed(false)}
+      onTouchStart={(e) => {
+        setIsPressed(true);
+        onDragStart?.(e.touches[0].clientY);
+      }}
+      onTouchMove={(e) => {
+        onDragMove?.(e.touches[0].clientY);
+      }}
+      onTouchEnd={() => {
+        setIsPressed(false);
+        onDragEnd?.();
+      }}
       style={{
         width: "100%",
-        minHeight: "60px",
-        padding: "8px 16px 10px",
+        minHeight: "68px",
+        padding: "8px 16px 12px",
         border: "none",
         borderTop: "1px solid #eee",
         background: "rgba(255,255,255,0.96)",
@@ -48,8 +63,11 @@ export default function MobileMapHeader({
         WebkitAppearance: "none",
         opacity: isPressed ? 0.72 : 1,
         transition: "opacity 0.16s ease",
+        touchAction: "none",
       }}
-      aria-label={isLoading ? "Відкрити список" : `${count} ${title}. Відкрити список`}
+      aria-label={
+        isLoading ? "Відкрити список" : `${count} ${title}. Відкрити список`
+      }
     >
       {isLoading ? (
         <>
