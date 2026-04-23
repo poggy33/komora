@@ -141,6 +141,7 @@ export default function HomePage() {
 
   const hasHydratedFromUrlRef = useRef(false);
   const hasMountedSelectionResetRef = useRef(false);
+  const hasSyncedUrlRef = useRef(false);
   const [dealType, setDealType] = useState<DealType>("sale");
   const [propertyType, setPropertyType] =
     useState<SupportedPropertyType>("apartment");
@@ -242,6 +243,10 @@ export default function HomePage() {
   // add sync state - url
   useEffect(() => {
     if (!hasHydratedFromUrlRef.current) return;
+    if (!hasSyncedUrlRef.current) {
+      hasSyncedUrlRef.current = true;
+      return;
+    }
     if (typeof window === "undefined") return;
 
     const params = buildSearchParamsFromState({
