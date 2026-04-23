@@ -67,6 +67,21 @@ textarea {
   border-top-color: #fff !important;
 }
 
+.sidebar-fade {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.sidebar-fade--hidden {
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+}
+
+.sidebar-fade--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Layout */
 @media (max-width: 900px) {
   .main-search-layout {

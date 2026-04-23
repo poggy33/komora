@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection, Point } from "geojson";
-import Sidebar from "./Sidebar";
 import PopupCard from "./PopupCard";
 import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
@@ -783,6 +782,22 @@ export default function Map({
     isMobile === true &&
     mobileViewMode === "map" &&
     (isBootLoading || isRefreshing || !hasMobileSnapshot);
+  const getPropertyTypeLabel = (propertyType: Property["propertyType"]) => {
+    if (propertyType === "apartment") return "Квартири";
+    if (propertyType === "house") return "Будинки";
+    if (propertyType === "land") return "Земля";
+    return "Комерційна нерухомість";
+  };
+
+  const getDealTypeLabel = (dealType: DealType) => {
+    return dealType === "sale" ? "Продаж" : "Оренда";
+  };
+
+  const mobileMapHeaderSubtitle = showFavoritesOnly
+    ? "Усі збережені об’єкти"
+    : mobileMapHeaderProperties.length > 0
+      ? `${getPropertyTypeLabel(mobileMapHeaderProperties[0].propertyType)} • ${getDealTypeLabel(mobileMapHeaderProperties[0].dealType)}`
+      : "";
 
   if (isMobile === null) {
     return (
@@ -901,25 +916,7 @@ export default function Map({
           <MobileMapHeader
             count={mobileMapHeaderProperties.length}
             title={showFavoritesOnly ? "в обраному" : "оголошень"}
-            subtitle={
-              showFavoritesOnly
-                ? "Усі збережені об’єкти"
-                : mobileMapHeaderProperties.length > 0
-                  ? `${
-                      mobileMapHeaderProperties[0].propertyType === "apartment"
-                        ? "Квартири"
-                        : mobileMapHeaderProperties[0].propertyType === "house"
-                          ? "Будинки"
-                          : mobileMapHeaderProperties[0].propertyType === "land"
-                            ? "Земля"
-                            : "Комерційна нерухомість"
-                    } • ${
-                      mobileMapHeaderProperties[0].dealType === "sale"
-                        ? "Продаж"
-                        : "Оренда"
-                    }`
-                  : ""
-            }
+            subtitle={mobileMapHeaderSubtitle}
             isLoading={isMobileMapHeaderLoading}
             onClick={() => {
               setMobileSnapshotProperties(visibleProperties);
@@ -1049,20 +1046,6 @@ export default function Map({
         }}
         className="main-search-sidebar"
       >
-        {/* <Sidebar
-          properties={sidebarProperties}
-          onSelect={handleSelect}
-          onHover={setHoveredPropertyId}
-          hoveredPropertyId={hoveredPropertyId}
-          selectedPropertyId={selectedPropertyId}
-          favoriteIds={favoriteIds}
-          toggleFavorite={toggleFavorite}
-          showFavoritesOnly={showFavoritesOnly}
-          onUserInteract={() => {}}
-          isBootLoading={isBootLoading}
-          isRefreshing={isRefreshing || !hasDesktopViewportSnapshot}
-        /> */}
-
         <SidebarV2
           properties={sidebarProperties}
           onSelect={handleSelect}

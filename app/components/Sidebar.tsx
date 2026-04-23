@@ -3,9 +3,7 @@
 import SidebarShell from "./SidebarShell";
 import SidebarList from "./SidebarList";
 import type { Property } from "../types/property";
-import PropertyListCard from "./PropertyListCard";
 import { useEffect, useRef, useState } from "react";
-import LoadingPill from "./ui/LoadingPill";
 
 const SIDEBAR_SCROLL_STORAGE_KEY_DESKTOP = "sidebar-scroll-top-desktop";
 const SIDEBAR_SCROLL_STORAGE_KEY_MOBILE = "sidebar-scroll-top-mobile";
@@ -21,7 +19,7 @@ type Props = {
   showFavoritesOnly: boolean;
   onUserInteract?: () => void;
   compactHeaderOnly?: boolean;
-  isLoading?: boolean;
+  // isLoading?: boolean;
   isBootLoading?: boolean;
   isRefreshing?: boolean;
 };
@@ -69,7 +67,7 @@ export default function Sidebar({
   showFavoritesOnly,
   onUserInteract,
   compactHeaderOnly = false,
-  isLoading,
+  // isLoading,
   isBootLoading = false,
   isRefreshing = false,
 }: Props) {
