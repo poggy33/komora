@@ -159,6 +159,7 @@ export default function Map({
   const [mobileSnapshotProperties, setMobileSnapshotProperties] = useState<
     Property[]
   >([]);
+  const [hasMobileSnapshot, setHasMobileSnapshot] = useState(false);
   const [desktopPopupProperty, setDesktopPopupProperty] =
     useState<Property | null>(null);
   const [desktopSidebarProperties, setDesktopSidebarProperties] = useState<
@@ -431,9 +432,8 @@ export default function Map({
     onVisibleBasePropertiesChange?.(nextVisibleBase);
 
     if (window.innerWidth <= 768) {
-      if (mobileViewMode === "map") {
-        setMobileSnapshotProperties(nextVisibleSearch);
-      }
+      setMobileSnapshotProperties(nextVisibleSearch);
+      setHasMobileSnapshot(true);
     } else {
       setDesktopSidebarProperties(nextVisibleSearch);
       setHasDesktopViewportSnapshot(true);
@@ -658,6 +658,10 @@ export default function Map({
 
     if (!source) return;
 
+    if (window.innerWidth <= 768) {
+      setHasMobileSnapshot(false);
+    }
+
     if (window.innerWidth > 768) {
       setHasDesktopViewportSnapshot(false);
     }
@@ -762,6 +766,11 @@ export default function Map({
 
   const isDesktopSidebarLoading =
     !isMobile && (isBootLoading || isRefreshing || !hasDesktopViewportSnapshot);
+
+  const isMobileListLoading =
+    isMobile === true &&
+    mobileViewMode === "list" &&
+    (isBootLoading || isRefreshing || !hasMobileSnapshot);
 
   if (isMobile === null) {
     return (
@@ -876,25 +885,39 @@ export default function Map({
           }}
         />
 
-        <Sidebar
-          properties={sidebarProperties}
-          onSelect={handleSelect}
-          onHover={setHoveredPropertyId}
-          hoveredPropertyId={hoveredPropertyId}
-          selectedPropertyId={selectedPropertyId}
-          favoriteIds={favoriteIds}
-          toggleFavorite={toggleFavorite}
-          showFavoritesOnly={showFavoritesOnly}
-          onUserInteract={() => {
-            if (mobileViewMode === "map") {
+        {mobileViewMode === "map" ? (
+          <Sidebar
+            properties={sidebarProperties}
+            onSelect={handleSelect}
+            onHover={setHoveredPropertyId}
+            hoveredPropertyId={hoveredPropertyId}
+            selectedPropertyId={selectedPropertyId}
+            favoriteIds={favoriteIds}
+            toggleFavorite={toggleFavorite}
+            showFavoritesOnly={showFavoritesOnly}
+            onUserInteract={() => {
               setMobileSnapshotProperties(visibleProperties);
               setMobileViewMode("list");
-            }
-          }}
-          compactHeaderOnly={mobileViewMode === "map"}
-          isBootLoading={isBootLoading}
-          isRefreshing={isRefreshing}
-        />
+            }}
+            compactHeaderOnly
+            isBootLoading={isBootLoading}
+            isRefreshing={isRefreshing}
+          />
+        ) : (
+          <SidebarV2
+            properties={mobileSnapshotProperties}
+            onSelect={handleSelect}
+            onHover={setHoveredPropertyId}
+            hoveredPropertyId={hoveredPropertyId}
+            selectedPropertyId={selectedPropertyId}
+            favoriteIds={favoriteIds}
+            toggleFavorite={toggleFavorite}
+            showFavoritesOnly={showFavoritesOnly}
+            onUserInteract={() => {}}
+            isBootLoading={isMobileListLoading}
+            isRefreshing={false}
+          />
+        )}
 
         {mobileViewMode === "list" && (
           <div
