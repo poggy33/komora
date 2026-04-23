@@ -1018,20 +1018,30 @@ export default function Map({
           background: "#fff",
           zIndex: 20,
         }}
-        onTouchStart={(e) => handleMobileListDragStart(e.touches[0].clientY)}
-        onTouchMove={(e) => handleMobileListDragMove(e.touches[0].clientY)}
-        onTouchEnd={handleMobileListDragEnd}
       >
         <div
+          onTouchStart={(e) => handleMobileListDragStart(e.touches[0].clientY)}
+          onTouchMove={(e) => handleMobileListDragMove(e.touches[0].clientY)}
+          onTouchEnd={handleMobileListDragEnd}
           style={{
-            width: "34px",
-            height: "4px",
-            borderRadius: "999px",
-            background: "rgba(17,17,17,0.14)",
-            margin: "8px auto 2px",
+            width: "100%",
+            padding: "8px 0 6px",
+            display: "flex",
+            justifyContent: "center",
             flexShrink: 0,
+            touchAction: "none",
+            cursor: "grab",
           }}
-        />
+        >
+          <div
+            style={{
+              width: "34px",
+              height: "4px",
+              borderRadius: "999px",
+              background: "rgba(17,17,17,0.14)",
+            }}
+          />
+        </div>
 
         <SidebarV2
           properties={mobileSnapshotProperties}
