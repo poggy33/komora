@@ -9,6 +9,7 @@ import PopupCard from "./PopupCard";
 import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
 import LoadingPill from "./ui/LoadingPill";
+import SidebarV2 from "./SidebarV2";
 
 const MAP_VIEW_STORAGE_KEY = "map-view-state";
 const MAP_SELECTED_PROPERTY_STORAGE_KEY = "map-selected-property-id";
@@ -160,6 +161,11 @@ export default function Map({
   >([]);
   const [desktopPopupProperty, setDesktopPopupProperty] =
     useState<Property | null>(null);
+  const [desktopSidebarProperties, setDesktopSidebarProperties] = useState<
+    Property[]
+  >([]);
+  const [hasDesktopViewportSnapshot, setHasDesktopViewportSnapshot] =
+    useState(false);
 
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const hasHydratedMobileViewModeRef = useRef(false);
@@ -424,8 +430,13 @@ export default function Map({
     onVisibleSearchPropertiesChange?.(nextVisibleSearch);
     onVisibleBasePropertiesChange?.(nextVisibleBase);
 
-    if (window.innerWidth <= 768 && mobileViewMode === "map") {
-      setMobileSnapshotProperties(nextVisibleSearch);
+    if (window.innerWidth <= 768) {
+      if (mobileViewMode === "map") {
+        setMobileSnapshotProperties(nextVisibleSearch);
+      }
+    } else {
+      setDesktopSidebarProperties(nextVisibleSearch);
+      setHasDesktopViewportSnapshot(true);
     }
   };
 
@@ -647,6 +658,10 @@ export default function Map({
 
     if (!source) return;
 
+    if (window.innerWidth > 768) {
+      setHasDesktopViewportSnapshot(false);
+    }
+
     source.setData(buildGeoJSONFromList(searchPropertiesRef.current));
 
     setDesktopPopupProperty((prev) => {
@@ -741,9 +756,12 @@ export default function Map({
       ? mobileViewMode === "list"
         ? mobileSnapshotProperties
         : visibleProperties
-      : visibleProperties.length > 0 || searchProperties.length === 0
-        ? visibleProperties
-        : searchProperties;
+      : hasDesktopViewportSnapshot
+        ? desktopSidebarProperties
+        : desktopSidebarProperties;
+
+  const isDesktopSidebarLoading =
+    !isMobile && (isBootLoading || isRefreshing || !hasDesktopViewportSnapshot);
 
   if (isMobile === null) {
     return (
@@ -931,23 +949,6 @@ export default function Map({
           </div>
         )}
 
-        {/* {isLoadingProperties && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(255,255,255,0.85)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 600,
-              zIndex: 5,
-            }}
-          >
-            Завантаження оголошень...
-          </div>
-        )} */}
-
         {propertiesError && (
           <div
             style={{
@@ -1002,7 +1003,7 @@ export default function Map({
         }}
         className="main-search-sidebar"
       >
-        <Sidebar
+        {/* <Sidebar
           properties={sidebarProperties}
           onSelect={handleSelect}
           onHover={setHoveredPropertyId}
@@ -1013,7 +1014,21 @@ export default function Map({
           showFavoritesOnly={showFavoritesOnly}
           onUserInteract={() => {}}
           isBootLoading={isBootLoading}
-          isRefreshing={isRefreshing}
+          isRefreshing={isRefreshing || !hasDesktopViewportSnapshot}
+        /> */}
+
+        <SidebarV2
+          properties={sidebarProperties}
+          onSelect={handleSelect}
+          onHover={setHoveredPropertyId}
+          hoveredPropertyId={hoveredPropertyId}
+          selectedPropertyId={selectedPropertyId}
+          favoriteIds={favoriteIds}
+          toggleFavorite={toggleFavorite}
+          showFavoritesOnly={showFavoritesOnly}
+          onUserInteract={() => {}}
+          isBootLoading={isDesktopSidebarLoading}
+          isRefreshing={false}
         />
 
         {isRefreshing && (
@@ -1028,23 +1043,6 @@ export default function Map({
             <LoadingPill size="sm" label="Оновлюємо мапу..." />
           </div>
         )}
-
-        {/* {isLoadingProperties && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(255,255,255,0.85)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 600,
-              zIndex: 5,
-            }}
-          >
-            Завантаження оголошень...
-          </div>
-        )} */}
 
         {propertiesError && (
           <div

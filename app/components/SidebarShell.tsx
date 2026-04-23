@@ -63,27 +63,55 @@ export default function SidebarShell({
           if (compactHeaderOnly) onHeaderClick?.();
         }}
       >
-        <div
-          style={{
-            fontSize: compactHeaderOnly ? "13px" : "14px",
-            fontWeight: 700,
-            color: "#111",
-            marginBottom: "2px",
-            lineHeight: 1.25,
-          }}
-        >
-          {count} {title}
-        </div>
+{(isBootLoading || isRefreshing) ? (
+  <>
+    <div
+      style={{
+        fontSize: compactHeaderOnly ? "13px" : "14px",
+        fontWeight: 700,
+        color: "#111",
+        marginBottom: "2px",
+        lineHeight: 1.25,
+      }}
+    >
+      Завантажуємо список...
+    </div>
 
-        <div
-          style={{
-            fontSize: compactHeaderOnly ? "11px" : "12px",
-            color: "#666",
-            lineHeight: 1.25,
-          }}
-        >
-          {subtitle}
-        </div>
+    <div
+      style={{
+        fontSize: compactHeaderOnly ? "11px" : "12px",
+        color: "#666",
+        lineHeight: 1.25,
+      }}
+    >
+      Оновлюємо оголошення для поточного режиму
+    </div>
+  </>
+) : (
+  <>
+    <div
+      style={{
+        fontSize: compactHeaderOnly ? "13px" : "14px",
+        fontWeight: 700,
+        color: "#111",
+        marginBottom: "2px",
+        lineHeight: 1.25,
+      }}
+    >
+      {count} {title}
+    </div>
+
+    <div
+      style={{
+        fontSize: compactHeaderOnly ? "11px" : "12px",
+        color: "#666",
+        lineHeight: 1.25,
+      }}
+    >
+      {subtitle}
+    </div>
+  </>
+)}
       </div>
 
       {compactHeaderOnly ? null : (
