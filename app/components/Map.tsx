@@ -10,6 +10,7 @@ import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
 import LoadingPill from "./ui/LoadingPill";
 import SidebarV2 from "./SidebarV2";
+import MobileMapHeader from "./MobileMapHeader";
 
 const MAP_VIEW_STORAGE_KEY = "map-view-state";
 const MAP_SELECTED_PROPERTY_STORAGE_KEY = "map-selected-property-id";
@@ -772,6 +773,17 @@ export default function Map({
     mobileViewMode === "list" &&
     (isBootLoading || isRefreshing || !hasMobileSnapshot);
 
+  const mobileMapHeaderProperties = showFavoritesOnly
+    ? searchProperties
+    : mobileSnapshotProperties.length > 0
+      ? mobileSnapshotProperties
+      : visibleProperties;
+
+  const isMobileMapHeaderLoading =
+    isMobile === true &&
+    mobileViewMode === "map" &&
+    (isBootLoading || isRefreshing || !hasMobileSnapshot);
+
   if (isMobile === null) {
     return (
       <div
@@ -886,22 +898,33 @@ export default function Map({
         />
 
         {mobileViewMode === "map" ? (
-          <Sidebar
-            properties={sidebarProperties}
-            onSelect={handleSelect}
-            onHover={setHoveredPropertyId}
-            hoveredPropertyId={hoveredPropertyId}
-            selectedPropertyId={selectedPropertyId}
-            favoriteIds={favoriteIds}
-            toggleFavorite={toggleFavorite}
-            showFavoritesOnly={showFavoritesOnly}
-            onUserInteract={() => {
+          <MobileMapHeader
+            count={mobileMapHeaderProperties.length}
+            title={showFavoritesOnly ? "в обраному" : "оголошень"}
+            subtitle={
+              showFavoritesOnly
+                ? "Усі збережені об’єкти"
+                : mobileMapHeaderProperties.length > 0
+                  ? `${
+                      mobileMapHeaderProperties[0].propertyType === "apartment"
+                        ? "Квартири"
+                        : mobileMapHeaderProperties[0].propertyType === "house"
+                          ? "Будинки"
+                          : mobileMapHeaderProperties[0].propertyType === "land"
+                            ? "Земля"
+                            : "Комерційна нерухомість"
+                    } • ${
+                      mobileMapHeaderProperties[0].dealType === "sale"
+                        ? "Продаж"
+                        : "Оренда"
+                    }`
+                  : ""
+            }
+            isLoading={isMobileMapHeaderLoading}
+            onClick={() => {
               setMobileSnapshotProperties(visibleProperties);
               setMobileViewMode("list");
             }}
-            compactHeaderOnly
-            isBootLoading={isBootLoading}
-            isRefreshing={isRefreshing}
           />
         ) : (
           <SidebarV2
