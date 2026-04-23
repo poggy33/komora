@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 type Props = {
   count: number;
   title: string;
@@ -15,87 +17,89 @@ export default function MobileMapHeader({
   isLoading,
   onClick,
 }: Props) {
+  const [isPressed, setIsPressed] = useState(false);
+
   return (
-    <div
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseLeave={() => setIsPressed(false)}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
       style={{
         width: "100%",
-        height: "100%",
-        minHeight: 0,
-        background: "#fff",
+        minHeight: "60px",
+        padding: "8px 16px 10px",
+        border: "none",
+        borderTop: "1px solid #eee",
+        background: "rgba(255,255,255,0.96)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        cursor: "pointer",
         display: "flex",
         flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        textAlign: "left",
+        boxSizing: "border-box",
+        appearance: "none",
+        WebkitAppearance: "none",
+        opacity: isPressed ? 0.72 : 1,
+        transition: "opacity 0.16s ease",
       }}
+      aria-label={isLoading ? "Відкрити список" : `${count} ${title}. Відкрити список`}
     >
-      <div
-        className="sidebar-header"
-        style={{
-          padding: "10px 16px 12px",
-          borderBottom: "1px solid #eee",
-          background: "rgba(255,255,255,0.96)",
-          backdropFilter: "blur(8px)",
-          position: "sticky",
-          top: 0,
-          zIndex: 2,
-          flexShrink: 0,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          minHeight: "72px",
-          boxSizing: "border-box",
-          cursor: "pointer",
-        }}
-        onClick={onClick}
-      >
-        {isLoading ? (
-          <>
-            <div
-              style={{
-                fontSize: "13px",
-                fontWeight: 700,
-                color: "#111",
-                marginBottom: "2px",
-                lineHeight: 1.25,
-              }}
-            >
-              Завантажуємо список...
-            </div>
+      {isLoading ? (
+        <>
+          <div
+            style={{
+              fontSize: "13px",
+              fontWeight: 700,
+              color: "#111",
+              marginBottom: "2px",
+              lineHeight: 1.2,
+            }}
+          >
+            Завантажуємо список...
+          </div>
 
-            <div
-              style={{
-                fontSize: "11px",
-                color: "#666",
-                lineHeight: 1.25,
-              }}
-            >
-              Оновлюємо видимі оголошення
-            </div>
-          </>
-        ) : (
-          <>
-            <div
-              style={{
-                fontSize: "13px",
-                fontWeight: 700,
-                color: "#111",
-                marginBottom: "2px",
-                lineHeight: 1.25,
-              }}
-            >
-              {count} {title}
-            </div>
+          <div
+            style={{
+              fontSize: "11px",
+              color: "#666",
+              lineHeight: 1.2,
+            }}
+          >
+            Оновлюємо видимі оголошення
+          </div>
+        </>
+      ) : (
+        <>
+          <div
+            style={{
+              fontSize: "13px",
+              fontWeight: 700,
+              color: "#111",
+              marginBottom: "2px",
+              lineHeight: 1.2,
+            }}
+          >
+            {count} {title}
+          </div>
 
-            <div
-              style={{
-                fontSize: "11px",
-                color: "#666",
-                lineHeight: 1.25,
-              }}
-            >
-              {subtitle}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+          <div
+            style={{
+              fontSize: "11px",
+              color: "#666",
+              lineHeight: 1.2,
+            }}
+          >
+            {subtitle}
+          </div>
+        </>
+      )}
+    </button>
   );
 }

@@ -82,6 +82,21 @@ textarea {
   transform: translateY(0);
 }
 
+.mobile-view {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.mobile-view--hidden {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+.mobile-view--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Layout */
 @media (max-width: 900px) {
   .main-search-layout {

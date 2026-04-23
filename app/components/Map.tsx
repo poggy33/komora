@@ -821,98 +821,96 @@ export default function Map({
       }}
       className="main-search-layout mobile"
     >
+      {/* MAP LAYER */}
       <div
+        className={`mobile-view ${
+          mobileViewMode === "map"
+            ? "mobile-view--visible"
+            : "mobile-view--hidden"
+        }`}
         style={{
           position: "absolute",
           inset: 0,
           background: "#f8f8f8",
         }}
-        className="main-search-map"
-        onClick={() => {
-          if (mobileViewMode === "list") {
-            setMobileViewMode("map");
-          }
-        }}
       >
         <div
-          ref={mapContainer}
+          className="main-search-map"
           style={{
             position: "absolute",
             inset: 0,
+            background: "#f8f8f8",
           }}
-        />
-
-        {isLoadingProperties && (
+        >
           <div
+            ref={mapContainer}
             style={{
               position: "absolute",
-              top: 12,
-              right: 12,
-              padding: "10px 14px",
-              borderRadius: "999px",
-              background: "#fff",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-              zIndex: 5,
-              fontWeight: 600,
-              fontSize: "13px",
+              inset: 0,
+              visibility: mobileViewMode === "map" ? "visible" : "hidden",
             }}
-          >
-            Завантаження...
-          </div>
-        )}
+          />
 
-        {propertiesError && (
-          <div
-            style={{
-              position: "absolute",
-              top: 12,
-              left: 12,
-              right: 12,
-              padding: "12px 14px",
-              borderRadius: "12px",
-              background: "#fee2e2",
-              color: "#991b1b",
-              fontWeight: 600,
-              zIndex: 6,
-            }}
-          >
-            {propertiesError}
-          </div>
-        )}
-      </div>
+          {isLoadingProperties && (
+            <div
+              style={{
+                position: "absolute",
+                top: 12,
+                right: 12,
+                padding: "10px 14px",
+                borderRadius: "999px",
+                background: "#fff",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                zIndex: 5,
+                fontWeight: 600,
+                fontSize: "13px",
+              }}
+            >
+              Завантаження...
+            </div>
+          )}
 
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          top: mobileViewMode === "map" ? "auto" : "0",
-          height: mobileViewMode === "map" ? "92px" : "100%",
-          background: "#fff",
-          borderTopLeftRadius: "18px",
-          borderTopRightRadius: "18px",
-          boxShadow: "0 -8px 28px rgba(0,0,0,0.08)",
-          overflow: "hidden",
-          transition: "height 260ms ease, top 260ms ease",
-          zIndex: 20,
-          display: "flex",
-          flexDirection: "column",
-        }}
-        className="main-search-sidebar"
-      >
+          {propertiesError && (
+            <div
+              style={{
+                position: "absolute",
+                top: 12,
+                left: 12,
+                right: 12,
+                padding: "12px 14px",
+                borderRadius: "12px",
+                background: "#fee2e2",
+                color: "#991b1b",
+                fontWeight: 600,
+                zIndex: 6,
+              }}
+            >
+              {propertiesError}
+            </div>
+          )}
+        </div>
+
+        {/* COMPACT HEADER OVER MAP */}
         <div
           style={{
-            width: "36px",
-            height: "4px",
-            borderRadius: "999px",
-            background: "#d4d4d4",
-            margin: "8px auto 4px",
-            flexShrink: 0,
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 20,
           }}
-        />
+        >
+          <div
+            style={{
+              width: "36px",
+              height: "4px",
+              borderRadius: "999px",
+              background: "#d4d4d4",
+              margin: "8px auto 4px",
+              flexShrink: 0,
+            }}
+          />
 
-        {mobileViewMode === "map" ? (
           <MobileMapHeader
             count={mobileMapHeaderProperties.length}
             title={showFavoritesOnly ? "в обраному" : "оголошень"}
@@ -923,61 +921,85 @@ export default function Map({
               setMobileViewMode("list");
             }}
           />
-        ) : (
-          <SidebarV2
-            properties={mobileSnapshotProperties}
-            onSelect={handleSelect}
-            onHover={setHoveredPropertyId}
-            hoveredPropertyId={hoveredPropertyId}
-            selectedPropertyId={selectedPropertyId}
-            favoriteIds={favoriteIds}
-            toggleFavorite={toggleFavorite}
-            showFavoritesOnly={showFavoritesOnly}
-            onUserInteract={() => {}}
-            isBootLoading={isMobileListLoading}
-            isRefreshing={false}
-          />
-        )}
+        </div>
+      </div>
 
-        {mobileViewMode === "list" && (
-          <div
+      {/* LIST LAYER */}
+      <div
+        className={`mobile-view ${
+          mobileViewMode === "list"
+            ? "mobile-view--visible"
+            : "mobile-view--hidden"
+        }`}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "#fff",
+          zIndex: 20,
+        }}
+      >
+        <div
+          style={{
+            width: "34px",
+            height: "4px",
+            borderRadius: "999px",
+            background: "rgba(17,17,17,0.14)",
+            margin: "8px auto 2px",
+            flexShrink: 0,
+          }}
+        />
+
+        <SidebarV2
+          properties={mobileSnapshotProperties}
+          onSelect={handleSelect}
+          onHover={setHoveredPropertyId}
+          hoveredPropertyId={hoveredPropertyId}
+          selectedPropertyId={selectedPropertyId}
+          favoriteIds={favoriteIds}
+          toggleFavorite={toggleFavorite}
+          showFavoritesOnly={showFavoritesOnly}
+          onUserInteract={() => {}}
+          isBootLoading={isMobileListLoading}
+          isRefreshing={false}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: "14px",
+            display: "flex",
+            justifyContent: "center",
+            pointerEvents: "none",
+            zIndex: 30,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setMobileViewMode("map")}
             style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: "14px",
-              display: "flex",
-              justifyContent: "center",
-              pointerEvents: "none",
-              zIndex: 30,
+              pointerEvents: "auto",
+              height: "42px",
+              padding: "0 16px",
+              borderRadius: "999px",
+              border: "1px solid rgba(255,255,255,0.35)",
+              background: "rgba(17,17,17,0.82)",
+              color: "#fff",
+              fontSize: "13px",
+              fontWeight: 700,
+              cursor: "pointer",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+              backdropFilter: "blur(8px)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
             }}
           >
-            <button
-              type="button"
-              onClick={() => setMobileViewMode("map")}
-              style={{
-                pointerEvents: "auto",
-                height: "42px",
-                padding: "0 16px",
-                borderRadius: "999px",
-                border: "1px solid rgba(255,255,255,0.35)",
-                background: "rgba(17,17,17,0.82)",
-                color: "#fff",
-                fontSize: "13px",
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
-                backdropFilter: "blur(8px)",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <span style={{ fontSize: "14px", lineHeight: 1 }}>🗺</span>
-              <span>Показати карту</span>
-            </button>
-          </div>
-        )}
+            <span style={{ fontSize: "14px", lineHeight: 1 }}>🗺</span>
+            <span>Показати карту</span>
+          </button>
+        </div>
 
         {isRefreshing && (
           <div
