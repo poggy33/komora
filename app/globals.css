@@ -83,18 +83,21 @@ textarea {
 }
 
 .mobile-view {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.mobile-view--hidden {
-  opacity: 0;
-  transform: translateY(8px);
-  pointer-events: none;
+  transition:
+    opacity 0.25s ease,
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
 }
 
 .mobile-view--visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+.mobile-view--hidden {
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
 }
 
 /* Layout */
