@@ -41,13 +41,14 @@ export default function ActiveFiltersBar({
 
   return (
     <div
+      className={isMobile ? "active-filters-scroll" : undefined}
       style={
         isMobile
           ? {
               position: "absolute",
               top: "0",
-              left: "10px",
-              right: "10px",
+              left: 0,
+              right: 0,
               zIndex: 2,
               pointerEvents: "none",
             }
@@ -65,15 +66,16 @@ export default function ActiveFiltersBar({
                 display: "flex",
                 gap: "6px",
                 overflowX: "auto",
-                padding: "6px 8px",
-                borderRadius: "14px",
-                background: "rgba(255,255,255,0.22)",
-                backdropFilter: "blur(3px)",
-                WebkitBackdropFilter: "blur(12px)",
-                border: "1px solid rgba(255,255,255,0.45)",
-                boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+                padding: "6px 12px",
+                borderRadius: 0,
+                background: "rgba(255,255,255,0.11)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                borderBottom: "1px solid rgba(17,17,17,0.08)",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
                 pointerEvents: "auto",
                 WebkitOverflowScrolling: "touch",
+                scrollbarWidth: "none",
               }
             : {
                 display: "flex",
@@ -91,11 +93,11 @@ export default function ActiveFiltersBar({
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              padding: "6px 10px",
-              minHeight: "30px",
+              padding: "6px 9px",
+              minHeight: "28px",
               borderRadius: "999px",
               border: "1px solid #ddd",
-              background: "rgba(248,248,248,0.58)",
+              background: "rgba(248,248,248,0.33)",
               color: "#111",
               fontSize: "12px",
               fontWeight: 500,

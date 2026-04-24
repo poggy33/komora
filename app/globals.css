@@ -453,3 +453,7 @@ textarea {
   }
 }
 
+.active-filters-scroll::-webkit-scrollbar {
+  display: none;
+}
+

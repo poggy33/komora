@@ -1005,6 +1005,7 @@ export default function Map({
             right: 0,
             bottom: 0,
             zIndex: 20,
+            // height: mobileViewMode === "map" ? "90px" : "100%",
           }}
         >
           <div

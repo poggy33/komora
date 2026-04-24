@@ -122,7 +122,8 @@ export default function MainTopBar({
       <div
         style={{
           maxWidth: "100%",
-          padding: "10px 16px 12px",
+          // padding: "10px 16px 12px",
+          padding: "8px 12px 6px",
           display: "grid",
           gap: "10px",
           position: "relative",
@@ -150,7 +151,7 @@ export default function MainTopBar({
               src="/komora_logo_ultratight_more_rounded.svg"
               alt="KOMORA"
               style={{
-                height: "34px",
+                height: "32px",
                 objectFit: "contain",
                 display: "block",
               }}
@@ -175,7 +176,7 @@ export default function MainTopBar({
               {isAuthenticated ? (
                 user?.phone?.slice(-2) || "•"
               ) : (
-                <svg width="40" height="40" viewBox="0 0 40 40">
+                <svg width="34" height="34" viewBox="0 0 40 40">
                   {/* фон */}
                   <circle cx="20" cy="20" r="20" fill="#0B0B0B" />
 
@@ -217,7 +218,8 @@ export default function MainTopBar({
             display: "flex",
             alignItems: "center",
             justifyContent: "flex-start",
-            gap: "8px",
+            gap: "6px",
+            marginTop: "-6px",
             flexWrap: "wrap",
           }}
         >
@@ -371,7 +373,7 @@ export default function MainTopBar({
 }
 
 const selectStyle: React.CSSProperties = {
-  height: "40px",
+  height: "34px",
   padding: "0 12px",
   borderRadius: "999px",
   border: "1px solid #ddd",
@@ -386,7 +388,7 @@ const toggleButtonStyle: React.CSSProperties = {
   height: "34px",
   border: "none",
   borderRadius: "999px",
-  padding: "0 14px",
+  padding: "0 12px",
   fontSize: "13px",
   fontWeight: 600,
   cursor: "pointer",
@@ -394,7 +396,7 @@ const toggleButtonStyle: React.CSSProperties = {
 };
 
 const pillButtonStyle: React.CSSProperties = {
-  height: "40px",
+  height: "34px",
   padding: "0 12px",
   borderRadius: "999px",
   background: "#fff",

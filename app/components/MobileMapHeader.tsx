@@ -45,8 +45,8 @@ export default function MobileMapHeader({
       }}
       style={{
         width: "100%",
-        minHeight: "68px",
-        padding: "8px 16px 12px",
+        minHeight: "48px",
+        padding: "4px 16px 8px",
         border: "none",
         borderTop: "1px solid #eee",
         background: "rgba(255,255,255,0.96)",
@@ -73,11 +73,11 @@ export default function MobileMapHeader({
         <>
           <div
             style={{
-              fontSize: "13px",
+              fontSize: "12.5px",
               fontWeight: 700,
               color: "#111",
-              marginBottom: "2px",
-              lineHeight: 1.2,
+              marginBottom: "1px",
+              lineHeight: 1.15,
             }}
           >
             Завантажуємо список...
@@ -85,9 +85,9 @@ export default function MobileMapHeader({
 
           <div
             style={{
-              fontSize: "11px",
+              fontSize: "10.5px",
+              lineHeight: 1.15,
               color: "#666",
-              lineHeight: 1.2,
             }}
           >
             Оновлюємо видимі оголошення

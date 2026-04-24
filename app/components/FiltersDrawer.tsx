@@ -942,7 +942,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: "12px",
   border: "1px solid #ddd",
   padding: "0 14px",
-  fontSize: "14px",
+  fontSize: "16px",
   outline: "none",
   background: "#fff",
   boxSizing: "border-box",
