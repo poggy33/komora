@@ -46,6 +46,8 @@ export type FiltersState = {
   petsAllowed: boolean;
 
   landPurpose: LandPurposeType[];
+
+  publishedWithin: "all" | "1d" | "3d" | "7d" | "30d";
 };
 
 export const DEFAULT_FILTERS_STATE: FiltersState = {
@@ -84,4 +86,6 @@ export const DEFAULT_FILTERS_STATE: FiltersState = {
   petsAllowed: false,
 
   landPurpose: [],
+
+  publishedWithin: "all",
 };

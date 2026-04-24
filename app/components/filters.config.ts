@@ -1,8 +1,11 @@
 import type { DealType } from "@/types/property";
 import type { SupportedPropertyType } from "./filters.types";
 
-export type FilterFieldType = "range" | "multi_select" | "toggle";
-
+export type FilterFieldType =
+  | "range"
+  | "multi_select"
+  | "toggle"
+  | "select";
 export type FilterSection = "main" | "building" | "comfort" | "legal";
 
 export type FilterField = {
@@ -24,6 +27,7 @@ export const filtersConfig: FiltersConfig = {
       { key: "price", label: "Ціна", type: "range", section: "main" },
       { key: "rooms", label: "Кімнати", type: "multi_select", section: "main" },
       { key: "area", label: "Площа", type: "range", section: "main" },
+      { key: "publishedWithin", label: "Дата публікації", type: "select", section: "main" },
       {
         key: "marketType",
         label: "Новобудова / вторинка",
@@ -92,6 +96,7 @@ export const filtersConfig: FiltersConfig = {
       { key: "price", label: "Ціна", type: "range", section: "main" },
       { key: "rooms", label: "Кімнати", type: "multi_select", section: "main" },
       { key: "area", label: "Площа", type: "range", section: "main" },
+      { key: "publishedWithin", label: "Дата публікації", type: "select", section: "main" },
       { key: "furnished", label: "Меблі", type: "toggle", section: "comfort" },
       {
         key: "petsAllowed",
@@ -157,6 +162,7 @@ export const filtersConfig: FiltersConfig = {
       { key: "rooms", label: "Кімнати", type: "multi_select", section: "main" },
       { key: "area", label: "Площа будинку", type: "range", section: "main" },
       { key: "lotArea", label: "Площа ділянки", type: "range", section: "main" },
+      { key: "publishedWithin", label: "Дата публікації", type: "select", section: "main" },
       {
         key: "floors",
         label: "Поверховість",
@@ -204,6 +210,7 @@ export const filtersConfig: FiltersConfig = {
       { key: "price", label: "Ціна", type: "range", section: "main" },
       { key: "rooms", label: "Кімнати", type: "multi_select", section: "main" },
       { key: "area", label: "Площа", type: "range", section: "main" },
+      { key: "publishedWithin", label: "Дата публікації", type: "select", section: "main" },
       { key: "furnished", label: "Меблі", type: "toggle", section: "comfort" },
       {
         key: "petsAllowed",
@@ -253,6 +260,7 @@ export const filtersConfig: FiltersConfig = {
     sale: [
       { key: "price", label: "Ціна", type: "range", section: "main" },
       { key: "area", label: "Площа", type: "range", section: "main" },
+      { key: "publishedWithin", label: "Дата публікації", type: "select", section: "main" },
       {
         key: "landPurpose",
         label: "Призначення",
@@ -271,6 +279,7 @@ export const filtersConfig: FiltersConfig = {
     rent: [
       { key: "price", label: "Ціна", type: "range", section: "main" },
       { key: "area", label: "Площа", type: "range", section: "main" },
+      { key: "publishedWithin", label: "Дата публікації", type: "select", section: "main" },
       {
         key: "landPurpose",
         label: "Призначення",
@@ -290,6 +299,7 @@ commercial: {
   sale: [
     { key: "price", label: "Ціна", type: "range", section: "main" },
     { key: "area", label: "Площа", type: "range", section: "main" },
+    { key: "publishedWithin", label: "Дата публікації", type: "select", section: "main" },
     {
       key: "yearBuilt",
       label: "Рік будівництва",
@@ -328,6 +338,7 @@ commercial: {
   rent: [
     { key: "price", label: "Ціна", type: "range", section: "main" },
     { key: "area", label: "Площа", type: "range", section: "main" },
+    { key: "publishedWithin", label: "Дата публікації", type: "select", section: "main" },
     {
       key: "furnished",
       label: "Меблі",

@@ -65,6 +65,14 @@ function parseFiltersFromSearchParams(
     petsAllowed: parseBoolean("petsAllowed"),
 
     landPurpose: parseStringArray("landPurpose") as FiltersState["landPurpose"],
+    publishedWithin:
+      (searchParams.get("publishedWithin") as
+        | "all"
+        | "1d"
+        | "3d"
+        | "7d"
+        | "30d"
+        | null) ?? "all",
   };
 }
 
@@ -131,6 +139,10 @@ function buildSearchParamsFromState(args: {
   setIfBoolean("petsAllowed", filters.petsAllowed);
 
   setIfArray("landPurpose", filters.landPurpose);
+
+  if (filters.publishedWithin !== "all") {
+  params.set("publishedWithin", filters.publishedWithin);
+}
 
   return params;
 }
@@ -204,6 +216,7 @@ export default function HomePage() {
     appliedFilters.furnished ? "furnished" : "",
     appliedFilters.petsAllowed ? "petsAllowed" : "",
     appliedFilters.landPurpose.length > 0 ? "landPurpose" : "",
+    appliedFilters.publishedWithin !== "all" ? "publishedWithin" : "",
   ].filter(Boolean).length;
 
   const isBootLoading = isLoadingProperties && !hasLoadedOnce;
@@ -439,10 +452,30 @@ function matchesAppliedFilters(
     : null;
   const yearBuiltTo = filters.yearBuiltTo ? Number(filters.yearBuiltTo) : null;
 
+  let publishedWithinDays: number | null = null;
+
+  if (filters.publishedWithin === "1d") publishedWithinDays = 1;
+  if (filters.publishedWithin === "3d") publishedWithinDays = 3;
+  if (filters.publishedWithin === "7d") publishedWithinDays = 7;
+  if (filters.publishedWithin === "30d") publishedWithinDays = 30;
+
   if (priceMin !== null && property.price < priceMin) return false;
   if (priceMax !== null && property.price > priceMax) return false;
   if (areaMin !== null && property.area < areaMin) return false;
   if (areaMax !== null && property.area > areaMax) return false;
+
+  if (publishedWithinDays !== null) {
+    if (!property.publishedAt) return false;
+
+    const publishedAtMs = new Date(property.publishedAt).getTime();
+    if (Number.isNaN(publishedAtMs)) return false;
+
+    const nowMs = Date.now();
+    const diffMs = nowMs - publishedAtMs;
+    const maxAgeMs = publishedWithinDays * 24 * 60 * 60 * 1000;
+
+    if (diffMs > maxAgeMs) return false;
+  }
 
   if (propertyType !== "land" && propertyType !== "commercial") {
     if (filters.rooms.length > 0) {

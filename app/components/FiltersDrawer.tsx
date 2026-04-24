@@ -56,6 +56,14 @@ const LAND_PURPOSE_OPTIONS: { value: LandPurposeType; label: string }[] = [
   { value: "commercial", label: "Комерційне" },
 ];
 
+const publishedWithinOptions = [
+  { value: "all", label: "Усі" },
+  { value: "1d", label: "За 1 день" },
+  { value: "3d", label: "За 3 дні" },
+  { value: "7d", label: "За 7 днів" },
+  { value: "30d", label: "За 30 днів" },
+] as const;
+
 export default function FiltersDrawer({
   isOpen,
   onClose,
@@ -119,7 +127,12 @@ export default function FiltersDrawer({
   };
 
   const toggleStringArrayValue = <
-    T extends MarketType | HeatingType | ParkingType | RenovationType | LandPurposeType
+    T extends
+      | MarketType
+      | HeatingType
+      | ParkingType
+      | RenovationType
+      | LandPurposeType,
   >(
     key: keyof FiltersState,
     item: T,
@@ -318,7 +331,9 @@ export default function FiltersDrawer({
                 <button
                   key={item.value}
                   type="button"
-                  onClick={() => toggleStringArrayValue("marketType", item.value)}
+                  onClick={() =>
+                    toggleStringArrayValue("marketType", item.value)
+                  }
                   style={chipButtonStyle(active)}
                 >
                   {item.label}
@@ -491,6 +506,105 @@ export default function FiltersDrawer({
       }
     }
 
+    if (field.type === "select" && field.key === "publishedWithin") {
+      return (
+        // <select
+        //   value={draft.publishedWithin}
+        //   onChange={(e) =>
+        //     setDraft((prev) => ({
+        //       ...prev,
+        //       publishedWithin: e.target.value as
+        //         | "all"
+        //         | "1d"
+        //         | "3d"
+        //         | "7d"
+        //         | "30d",
+        //     }))
+        //   }
+        //   // style={{
+        //   //   height: "44px",
+        //   //   borderRadius: "12px",
+        //   //   border: "1px solid #ddd",
+        //   //   padding: "0 14px",
+        //   //   fontSize: "14px",
+        //   //   background: "#fff",
+        //   //   outline: "none",
+        //   // }}
+        //   style={{
+        //     width: "100%",
+        //     height: "46px",
+        //     borderRadius: "12px",
+        //     border: "1px solid #ddd",
+        //     padding: "0 14px",
+        //     fontSize: "16px",
+        //     background: "#fff",
+        //     color: "#111",
+        //     outline: "none",
+        //     boxSizing: "border-box",
+        //     appearance: "none",
+        //     WebkitAppearance: "none",
+        //   }}
+        // >
+        //   {publishedWithinOptions.map((option) => (
+        //     <option key={option.value} value={option.value}>
+        //       {option.label}
+        //     </option>
+        //   ))}
+        // </select>
+
+        <div style={{ position: "relative" }}>
+          <select
+            value={draft.publishedWithin}
+            onChange={(e) =>
+              setDraft((prev) => ({
+                ...prev,
+                publishedWithin: e.target.value as
+                  | "all"
+                  | "1d"
+                  | "3d"
+                  | "7d"
+                  | "30d",
+              }))
+            }
+            style={{
+              width: "100%",
+              height: "46px",
+              borderRadius: "12px",
+              border: "1px solid #ddd",
+              padding: "0 40px 0 14px",
+              fontSize: "16px",
+              background: "#fff",
+              color: "#111",
+              outline: "none",
+              boxSizing: "border-box",
+              appearance: "none",
+              WebkitAppearance: "none",
+            }}
+          >
+            {publishedWithinOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+
+          <span
+            style={{
+              position: "absolute",
+              right: "14px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              pointerEvents: "none",
+              fontSize: "12px",
+              color: "#666",
+            }}
+          >
+            ▾
+          </span>
+        </div>
+      );
+    }
+
     return null;
   };
 
@@ -580,11 +694,7 @@ export default function FiltersDrawer({
             gap: "10px",
           }}
         >
-          <button
-            type="button"
-            onClick={onReset}
-            style={secondaryButtonStyle}
-          >
+          <button type="button" onClick={onReset} style={secondaryButtonStyle}>
             Скинути
           </button>
 
@@ -653,11 +763,31 @@ function matchesFilters(
     ? Number(filters.pricePerSqmMax)
     : null;
 
+  let publishedWithinDays: number | null = null;
+
+  if (filters.publishedWithin === "1d") publishedWithinDays = 1;
+  if (filters.publishedWithin === "3d") publishedWithinDays = 3;
+  if (filters.publishedWithin === "7d") publishedWithinDays = 7;
+  if (filters.publishedWithin === "30d") publishedWithinDays = 30;
+
   if (priceMin !== null && property.price < priceMin) return false;
   if (priceMax !== null && property.price > priceMax) return false;
 
   if (areaMin !== null && property.area < areaMin) return false;
   if (areaMax !== null && property.area > areaMax) return false;
+
+  if (publishedWithinDays !== null) {
+    if (!property.publishedAt) return false;
+
+    const publishedAtMs = new Date(property.publishedAt).getTime();
+    if (Number.isNaN(publishedAtMs)) return false;
+
+    const nowMs = Date.now();
+    const diffMs = nowMs - publishedAtMs;
+    const maxAgeMs = publishedWithinDays * 24 * 60 * 60 * 1000;
+
+    if (diffMs > maxAgeMs) return false;
+  }
 
   if (propertyType !== "land" && propertyType !== "commercial") {
     if (filters.rooms.length > 0) {
@@ -717,9 +847,7 @@ function matchesFilters(
   }
 
   const propertyFloors =
-    property.propertyType === "house"
-      ? property.floors
-      : property.totalFloors;
+    property.propertyType === "house" ? property.floors : property.totalFloors;
 
   if (floorsMin !== null) {
     if (propertyFloors === undefined || propertyFloors < floorsMin) {
@@ -734,7 +862,10 @@ function matchesFilters(
   }
 
   if (yearBuiltFrom !== null) {
-    if (property.yearBuilt === undefined || property.yearBuilt < yearBuiltFrom) {
+    if (
+      property.yearBuilt === undefined ||
+      property.yearBuilt < yearBuiltFrom
+    ) {
       return false;
     }
   }
@@ -775,7 +906,8 @@ function matchesFilters(
 
   if (
     filters.landPurpose.length > 0 &&
-    (!property.landPurpose || !filters.landPurpose.includes(property.landPurpose))
+    (!property.landPurpose ||
+      !filters.landPurpose.includes(property.landPurpose))
   ) {
     return false;
   }

@@ -235,8 +235,7 @@ function buildItems(filters: FiltersState): FilterChip[] {
   filters.marketType.forEach((value) => {
     items.push({
       key: `marketType-${value}`,
-      label:
-        value === "new_building" ? "новобудова" : "вторинка",
+      label: value === "new_building" ? "новобудова" : "вторинка",
       next: {
         ...filters,
         marketType: filters.marketType.filter((item) => item !== value),
@@ -328,6 +327,17 @@ function buildItems(filters: FiltersState): FilterChip[] {
     });
   }
 
+  if (filters.publishedWithin !== "all") {
+    items.push({
+      key: "publishedWithin",
+      label: `${getPublishedWithinLabel(filters.publishedWithin)}`,
+      next: {
+        ...filters,
+        publishedWithin: "all",
+      },
+    });
+  }
+
   return items;
 }
 
@@ -383,4 +393,12 @@ function landPurposeLabel(value: FiltersState["landPurpose"][number]) {
     default:
       return value;
   }
+}
+
+function getPublishedWithinLabel(value: FiltersState["publishedWithin"]) {
+  if (value === "1d") return "За 1 день";
+  if (value === "3d") return "За 3 дні";
+  if (value === "7d") return "За 7 днів";
+  if (value === "30d") return "За 30 днів";
+  return "";
 }
