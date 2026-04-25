@@ -118,11 +118,21 @@ export default function AuthForm() {
           Телефон
         </label>
 
+        {/* <input
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="+380..."
+          disabled={step === "code"}
+          style={inputStyle}
+        /> */}
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="+380..."
           disabled={step === "code"}
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
           style={inputStyle}
         />
       </div>
@@ -139,10 +149,20 @@ export default function AuthForm() {
             Код з SMS
           </label>
 
+          {/* <input
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="123456"
+            style={inputStyle}
+          /> */}
           <input
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="123456"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]*"
             style={inputStyle}
           />
         </div>
@@ -181,6 +201,18 @@ export default function AuthForm() {
   );
 }
 
+// const inputStyle: React.CSSProperties = {
+//   width: "100%",
+//   height: "46px",
+//   borderRadius: "14px",
+//   border: "1px solid #ddd",
+//   padding: "0 14px",
+//   fontSize: "16px",
+//   outline: "none",
+//   boxSizing: "border-box",
+//   background: "#fff",
+// };
+
 const inputStyle: React.CSSProperties = {
   width: "100%",
   height: "46px",
@@ -188,9 +220,11 @@ const inputStyle: React.CSSProperties = {
   border: "1px solid #ddd",
   padding: "0 14px",
   fontSize: "16px",
+  lineHeight: "20px",
   outline: "none",
   boxSizing: "border-box",
   background: "#fff",
+  WebkitTextSizeAdjust: "100%",
 };
 
 const buttonStyle: React.CSSProperties = {
