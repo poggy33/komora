@@ -10,13 +10,14 @@ export default function PropertySpecsCard({ property }: Props) {
   const items = buildSpecs(property);
 
   return (
-    <section style={{ marginBottom: "24px" }}>
+    <section style={{ marginBottom: "18px" }}>
       <h2
         style={{
-          fontSize: "24px",
+          fontSize: "22px",
           fontWeight: 700,
-          marginBottom: "16px",
+          marginBottom: "12px",
           color: "#111",
+          lineHeight: 1.15,
         }}
       >
         Основна інформація
@@ -25,7 +26,7 @@ export default function PropertySpecsCard({ property }: Props) {
       <div
         style={{
           border: "1px solid #e7e7e7",
-          borderRadius: "18px",
+          borderRadius: "16px",
           background: "#fff",
           overflow: "hidden",
         }}
@@ -45,10 +46,10 @@ export default function PropertySpecsCard({ property }: Props) {
               <div
                 key={`${item.label}-${index}`}
                 style={{
-                  padding: "18px 20px",
+                  padding: "13px 16px",
                   borderRight: isLeft ? "1px solid #f1f1f1" : "none",
                   borderBottom: isLastRow ? "none" : "1px solid #f1f1f1",
-                  minHeight: "86px",
+                  minHeight: "72px",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
@@ -56,10 +57,10 @@ export default function PropertySpecsCard({ property }: Props) {
               >
                 <div
                   style={{
-                    fontSize: "13px",
+                    fontSize: "12px",
                     color: "#7a7a7a",
-                    marginBottom: "8px",
-                    lineHeight: 1.3,
+                    marginBottom: "5px",
+                    lineHeight: 1.2,
                   }}
                 >
                   {item.label}
@@ -67,10 +68,10 @@ export default function PropertySpecsCard({ property }: Props) {
 
                 <div
                   style={{
-                    fontSize: "18px",
+                    fontSize: "16px",
                     fontWeight: 700,
                     color: "#111",
-                    lineHeight: 1.35,
+                    lineHeight: 1.2,
                     wordBreak: "break-word",
                   }}
                 >

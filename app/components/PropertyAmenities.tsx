@@ -12,13 +12,14 @@ export default function PropertyAmenities({ property }: Props) {
   if (amenities.length === 0) return null;
 
   return (
-    <section style={{ marginBottom: "24px" }}>
+    <section style={{ marginBottom: "18px" }}>
       <h2
         style={{
-          fontSize: "24px",
+          fontSize: "22px",
           fontWeight: 700,
-          marginBottom: "16px",
+          marginBottom: "12px",
           color: "#111",
+          lineHeight: 1.15,
         }}
       >
         Зручності та особливості
@@ -27,28 +28,28 @@ export default function PropertyAmenities({ property }: Props) {
       <div
         style={{
           border: "1px solid #e7e7e7",
-          borderRadius: "18px",
+          borderRadius: "16px",
+          padding: "12px",
           background: "#fff",
-          padding: "20px",
         }}
       >
         <div
           style={{
             display: "flex",
             flexWrap: "wrap",
-            gap: "10px",
+            gap: "8px",
           }}
         >
-          {amenities.map((item) => (
+          {amenities.map((item, index) => (
             <div
-              key={item}
+              key={index}
               style={{
-                padding: "10px 14px",
+                padding: "6px 10px",
                 borderRadius: "999px",
-                border: "1px solid #e5e5e5",
+                border: "1px solid #e3e3e3",
                 background: "#fafafa",
-                fontSize: "14px",
-                color: "#222",
+                fontSize: "13px",
+                color: "#333",
                 lineHeight: 1.2,
               }}
             >

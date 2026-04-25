@@ -12,89 +12,82 @@ export default function PropertyHeader({ property }: Props) {
   const meta = buildMeta(property);
 
   return (
-    <section style={{ marginBottom: "24px" }}>
+    <section style={{ marginBottom: "18px" }}>
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: "20px",
-          flexWrap: "wrap",
+          display: "grid",
+          gap: "8px",
         }}
       >
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <h1
-            style={{
-              fontSize: "28px",
-              fontWeight: 700,
-              lineHeight: 1.2,
-              color: "#111",
-              margin: 0,
-              marginBottom: "10px",
-            }}
-          >
-            {property.title}
-          </h1>
+        <h1
+          style={{
+            fontSize: "24px",
+            fontWeight: 700,
+            lineHeight: 1.15,
+            color: "#111",
+            margin: 0,
+          }}
+        >
+          {property.title}
+        </h1>
 
+        <div
+          style={{
+            fontSize: "13px",
+            color: "#666",
+            lineHeight: 1.35,
+            opacity: 0.9,
+          }}
+        >
+          {address}
+        </div>
+
+        {meta && (
           <div
             style={{
-              fontSize: "14px",
-              color: "#666",
-              marginBottom: "10px",
-              lineHeight: 1.5,
-              opacity: 0.85,
+              fontSize: "12.5px",
+              color: "#333",
+              lineHeight: 1.35,
             }}
           >
-            {address}
+            {meta}
+          </div>
+        )}
+
+        <div
+          style={{
+            marginTop: "6px",
+            display: "flex",
+            alignItems: "baseline",
+            gap: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "24px",
+              fontWeight: 700,
+              color: "#111",
+              lineHeight: 1.1,
+            }}
+          >
+            ${property.price.toLocaleString()}
+            {property.dealType === "rent" ? " / міс." : ""}
           </div>
 
-          {meta && (
+          {property.area > 0 && (
             <div
               style={{
                 fontSize: "13px",
-                color: "#333",
-                lineHeight: 1.5,
+                color: "#666",
+                lineHeight: 1.2,
               }}
             >
-              {meta}
+              ${Math.round(property.price / property.area).toLocaleString()}
+              {property.propertyType === "land" ? " / сот." : " / м²"}
             </div>
           )}
         </div>
-      </div>
-
-      <div
-        style={{
-          marginTop: "18px",
-          display: "flex",
-          alignItems: "baseline",
-          gap: "12px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "26px",
-            fontWeight: 700,
-            color: "#111",
-            lineHeight: 1.2,
-          }}
-        >
-          ${property.price.toLocaleString()}
-          {property.dealType === "rent" ? " / міс." : ""}
-        </div>
-
-        {property.area > 0 && (
-          <div
-            style={{
-              fontSize: "15px",
-              color: "#666",
-            }}
-          >
-            $
-            {Math.round(property.price / property.area).toLocaleString()}
-            {property.propertyType === "land" ? " / сот." : " / м²"}
-          </div>
-        )}
       </div>
     </section>
   );
@@ -110,7 +103,10 @@ function buildMeta(property: Property) {
       parts.push(`${property.rooms} ${getRoomWord(property.rooms)}`);
     }
 
-    if (property.livingArea !== undefined && property.kitchenArea !== undefined) {
+    if (
+      property.livingArea !== undefined &&
+      property.kitchenArea !== undefined
+    ) {
       parts.push(
         `${property.area} / ${property.livingArea} / ${property.kitchenArea} м²`,
       );
