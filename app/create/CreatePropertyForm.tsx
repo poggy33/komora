@@ -257,6 +257,7 @@ export default function CreatePropertyForm() {
             onChange={(e) => updateField("price", e.target.value)}
             style={inputStyle}
             placeholder="65000"
+            inputMode="numeric"
           />
         </div>
 
@@ -268,6 +269,7 @@ export default function CreatePropertyForm() {
             onChange={(e) => updateField("area", e.target.value)}
             style={inputStyle}
             placeholder={isLand ? "8" : "56"}
+            inputMode="numeric"
           />
         </div>
 
@@ -280,6 +282,7 @@ export default function CreatePropertyForm() {
               onChange={(e) => updateField("rooms", e.target.value)}
               style={inputStyle}
               placeholder="2"
+              inputMode="numeric"
             />
           </div>
         )}
@@ -293,6 +296,7 @@ export default function CreatePropertyForm() {
               onChange={(e) => updateField("floor", e.target.value)}
               style={inputStyle}
               placeholder="5"
+              inputMode="numeric"
             />
           </div>
         )}
@@ -306,6 +310,7 @@ export default function CreatePropertyForm() {
               onChange={(e) => updateField("totalFloors", e.target.value)}
               style={inputStyle}
               placeholder={isApartment ? "9" : "2"}
+              inputMode="numeric"
             />
           </div>
         )}
@@ -367,6 +372,8 @@ export default function CreatePropertyForm() {
             onChange={(e) => updateField("sellerPhone", e.target.value)}
             style={inputStyle}
             placeholder="+380671234567"
+            inputMode="tel"
+            autoComplete="tel"
           />
         </div>
       </div>
@@ -505,88 +512,6 @@ export default function CreatePropertyForm() {
   );
 }
 
-const formStyle: React.CSSProperties = {
-  display: "grid",
-  gap: "24px",
-};
-
-const titleStyle: React.CSSProperties = {
-  fontSize: "30px",
-  fontWeight: 800,
-  color: "#111",
-  margin: 0,
-};
-
-const gridStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-  gap: "16px",
-};
-
-const fieldStyle: React.CSSProperties = {
-  display: "grid",
-  gap: "8px",
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: "14px",
-  fontWeight: 700,
-  color: "#222",
-};
-
-const hintStyle: React.CSSProperties = {
-  fontSize: "13px",
-  color: "#666",
-  lineHeight: 1.45,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  height: "46px",
-  borderRadius: "14px",
-  border: "1px solid #ddd",
-  padding: "0 14px",
-  fontSize: "14px",
-  outline: "none",
-  background: "#fff",
-  boxSizing: "border-box",
-};
-
-const fileInputStyle: React.CSSProperties = {
-  width: "100%",
-  borderRadius: "14px",
-  border: "1px solid #ddd",
-  padding: "12px 14px",
-  fontSize: "14px",
-  outline: "none",
-  background: "#fff",
-  boxSizing: "border-box",
-};
-
-const textareaStyle: React.CSSProperties = {
-  width: "100%",
-  minHeight: "140px",
-  borderRadius: "14px",
-  border: "1px solid #ddd",
-  padding: "14px",
-  fontSize: "14px",
-  outline: "none",
-  background: "#fff",
-  resize: "vertical",
-  boxSizing: "border-box",
-  lineHeight: 1.5,
-};
-
-const submitButtonStyle: React.CSSProperties = {
-  height: "50px",
-  border: "none",
-  borderRadius: "14px",
-  background: "#111",
-  color: "#fff",
-  fontSize: "15px",
-  fontWeight: 700,
-};
-
 const errorStyle: React.CSSProperties = {
   padding: "12px 14px",
   borderRadius: "14px",
@@ -655,13 +580,102 @@ const removeImageButtonStyle: React.CSSProperties = {
   flexShrink: 0,
 };
 
-const secondarySubmitButtonStyle: React.CSSProperties = {
-  height: "50px",
+const formStyle: React.CSSProperties = {
+  display: "grid",
+  gap: "18px",
+};
+
+const titleStyle: React.CSSProperties = {
+  fontSize: "24px",
+  lineHeight: 1.15,
+  fontWeight: 800,
+  color: "#111",
+  margin: 0,
+};
+
+const gridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "12px",
+};
+
+const fieldStyle: React.CSSProperties = {
+  display: "grid",
+  gap: "6px",
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: "13px",
+  fontWeight: 700,
+  color: "#222",
+};
+
+const hintStyle: React.CSSProperties = {
+  fontSize: "13px",
+  color: "#666",
+  lineHeight: 1.35,
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  height: "44px",
+  borderRadius: "12px",
   border: "1px solid #ddd",
-  borderRadius: "14px",
+  padding: "0 12px",
+  fontSize: "16px",
+  lineHeight: "20px",
+  outline: "none",
+  background: "#fff",
+  boxSizing: "border-box",
+  WebkitTextSizeAdjust: "100%",
+};
+
+const fileInputStyle: React.CSSProperties = {
+  width: "100%",
+  borderRadius: "12px",
+  border: "1px solid #ddd",
+  padding: "10px 12px",
+  fontSize: "16px",
+  lineHeight: "20px",
+  outline: "none",
+  background: "#fff",
+  boxSizing: "border-box",
+  WebkitTextSizeAdjust: "100%",
+};
+
+const textareaStyle: React.CSSProperties = {
+  width: "100%",
+  minHeight: "112px",
+  borderRadius: "12px",
+  border: "1px solid #ddd",
+  padding: "12px",
+  fontSize: "16px",
+  lineHeight: 1.4,
+  outline: "none",
+  background: "#fff",
+  resize: "vertical",
+  boxSizing: "border-box",
+  WebkitTextSizeAdjust: "100%",
+};
+
+const submitButtonStyle: React.CSSProperties = {
+  height: "46px",
+  border: "none",
+  padding: "10px 10px",
+  borderRadius: "12px",
+  background: "#111",
+  color: "#fff",
+  fontSize: "15px",
+  fontWeight: 700,
+};
+
+const secondarySubmitButtonStyle: React.CSSProperties = {
+  height: "46px",
+  border: "1px solid #ddd",
+  borderRadius: "12px",
   background: "#fff",
   color: "#111",
   fontSize: "15px",
   fontWeight: 700,
-  padding: "0 16px",
+  padding: "0 14px",
 };

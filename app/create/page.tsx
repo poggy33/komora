@@ -12,9 +12,9 @@ export default async function CreatePage() {
   return (
     <main
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         background: "#f7f7f7",
-        padding: "32px 16px",
+        padding: "16px 12px",
         fontFamily: "Arial, sans-serif",
       }}
     >
@@ -24,23 +24,24 @@ export default async function CreatePage() {
           margin: "0 auto",
           background: "#fff",
           border: "1px solid #ececec",
-          borderRadius: "24px",
-          padding: "28px",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
+          borderRadius: "20px",
+          padding: "18px",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.04)",
         }}
       >
         {!user ? (
           <div
             style={{
               display: "grid",
-              gap: "18px",
+              gap: "14px",
               justifyItems: "start",
             }}
           >
             <h1
               style={{
                 margin: 0,
-                fontSize: "30px",
+                fontSize: "24px",
+                lineHeight: 1.15,
                 fontWeight: 800,
                 color: "#111",
               }}
@@ -50,9 +51,9 @@ export default async function CreatePage() {
 
             <div
               style={{
-                fontSize: "15px",
+                fontSize: "16px",
                 color: "#666",
-                lineHeight: 1.6,
+                lineHeight: 1.45,
                 maxWidth: "640px",
               }}
             >
@@ -67,9 +68,9 @@ export default async function CreatePage() {
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                height: "48px",
-                padding: "0 18px",
-                borderRadius: "14px",
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
                 background: "#111",
                 color: "#fff",
                 textDecoration: "none",
