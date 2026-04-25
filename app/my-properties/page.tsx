@@ -42,6 +42,7 @@ function mapDbPropertyToUi(row: any): Property {
     ownerType: "owner",
     coordinates: [row.lng, row.lat],
     images,
+    coverImage: row.cover_image_url ?? images[0] ?? null,
     location: {
       city: row.city,
       district: row.district ?? undefined,
@@ -187,36 +188,101 @@ export default async function MyPropertiesPage() {
               style={{
                 border: "1px solid #ececec",
                 borderRadius: "18px",
-                background: "#fff",
-                padding: "16px",
+                background: getCardBackground(property.status),
+                padding: "12px",
                 display: "grid",
-                gap: "12px",
+                gap: "10px",
               }}
             >
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
+                  display: "grid",
+                  gridTemplateColumns: "76px minmax(0, 1fr)",
                   gap: "12px",
-                  flexWrap: "wrap",
+                  alignItems: "start",
                 }}
               >
-                <div style={{ display: "grid", gap: "6px" }}>
+                <div
+                  style={{
+                    width: "76px",
+                    height: "76px",
+                    borderRadius: "14px",
+                    overflow: "hidden",
+                    background: "#f1f1f1",
+                    border: "1px solid rgba(0,0,0,0.04)",
+                  }}
+                >
+                  {property.coverImage ? (
+                    <img
+                      src={property.coverImage}
+                      alt={property.title}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        display: "grid",
+                        placeItems: "center",
+                        color: "#999",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                      }}
+                    >
+                      Немає фото
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ minWidth: 0, display: "grid", gap: "6px" }}>
                   <div
                     style={{
-                      fontSize: "18px",
-                      fontWeight: 700,
-                      color: "#111",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: "8px",
+                      alignItems: "flex-start",
                     }}
                   >
-                    {property.title}
+                    <div
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: 800,
+                        color: "#111",
+                        lineHeight: 1.15,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {property.title}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: 800,
+                        color: "#111",
+                        whiteSpace: "nowrap",
+                        lineHeight: 1.15,
+                      }}
+                    >
+                      ${property.price.toLocaleString()}
+                    </div>
                   </div>
 
                   <div
                     style={{
-                      fontSize: "14px",
+                      fontSize: "12px",
                       color: "#666",
+                      lineHeight: 1.25,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {property.location?.city}
@@ -224,85 +290,53 @@ export default async function MyPropertiesPage() {
                       ? `, ${property.location.district}`
                       : ""}
                   </div>
-                </div>
 
-                <div
-                  style={{
-                    fontSize: "18px",
-                    fontWeight: 800,
-                    color: "#111",
-                  }}
-                >
-                  ${property.price.toLocaleString()}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "6px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span style={statusChipStyle(property.status)}>
+                      {getStatusLabel(property.status)}
+                    </span>
+
+                    <span style={compactChipStyle}>
+                      {property.dealType === "sale" ? "Продаж" : "Оренда"}
+                    </span>
+
+                    <span style={compactChipStyle}>
+                      {property.propertyType === "apartment"
+                        ? "Квартира"
+                        : property.propertyType === "house"
+                          ? "Будинок"
+                          : property.propertyType === "land"
+                            ? "Земля"
+                            : "Комерція"}
+                    </span>
+
+                    {property.rooms && (
+                      <span style={compactChipStyle}>
+                        {property.rooms} кімн.
+                      </span>
+                    )}
+
+                    <span style={compactChipStyle}>{property.area} м²</span>
+                  </div>
                 </div>
               </div>
 
               <div
                 style={{
-                  display: "flex",
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
                   gap: "8px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <span
-                  style={{
-                    ...chipStyle,
-                    background:
-                      property.status === "archived"
-                        ? "#f3f4f6"
-                        : property.status === "draft"
-                          ? "#fff7ed"
-                          : "#ecfdf3",
-                    border:
-                      property.status === "archived"
-                        ? "1px solid #d1d5db"
-                        : property.status === "draft"
-                          ? "1px solid #fed7aa"
-                          : "1px solid #bbf7d0",
-                    color:
-                      property.status === "archived"
-                        ? "#374151"
-                        : property.status === "draft"
-                          ? "#9a3412"
-                          : "#166534",
-                  }}
-                >
-                  {property.status === "archived"
-                    ? "Архів"
-                    : property.status === "draft"
-                      ? "Чернетка"
-                      : "Активне"}
-                </span>
-
-                <span style={chipStyle}>
-                  {property.dealType === "sale" ? "Продаж" : "Оренда"}
-                </span>
-
-                <span style={chipStyle}>
-                  {property.propertyType === "apartment"
-                    ? "Квартира"
-                    : property.propertyType === "house"
-                      ? "Будинок"
-                      : "Земля"}
-                </span>
-
-                {property.rooms && (
-                  <span style={chipStyle}>{property.rooms} кімн.</span>
-                )}
-
-                <span style={chipStyle}>{property.area} м²</span>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  flexWrap: "wrap",
                 }}
               >
                 <Link
                   href={`/property/${property.id}`}
-                  style={primaryLinkStyle}
+                  style={compactPrimaryLinkStyle}
                 >
                   Відкрити
                 </Link>
@@ -310,21 +344,10 @@ export default async function MyPropertiesPage() {
                 <Link
                   href={`/property/${property.id}/edit`}
                   style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: "46px",
-                    padding: "0 16px",
-                    borderRadius: "14px",
-                    border: "1px solid #ddd",
-                    background: "#fff",
-                    color: "#111",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                    fontWeight: 700,
+                    ...compactSecondaryLinkStyle,
                     pointerEvents:
                       property.status === "archived" ? "none" : "auto",
-                    opacity: property.status === "archived" ? 0.6 : 1,
+                    opacity: property.status === "archived" ? 0.55 : 1,
                   }}
                 >
                   Редагувати
@@ -461,15 +484,78 @@ const primaryLinkStyle: React.CSSProperties = {
   fontWeight: 700,
 };
 
-const chipStyle: React.CSSProperties = {
+function getStatusLabel(status?: string) {
+  if (status === "archived") return "Архів";
+  if (status === "draft") return "Чернетка";
+  return "Активне";
+}
+
+function getCardBackground(status?: string) {
+  if (status === "archived") return "#fafafa";
+  if (status === "draft") return "#fffdf7";
+  return "#fff";
+}
+
+const compactChipStyle: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
-  height: "32px",
-  padding: "0 12px",
+  height: "26px",
+  padding: "0 9px",
   borderRadius: "999px",
   border: "1px solid #e5e5e5",
-  background: "#fafafa",
+  background: "#fff",
   color: "#111",
+  fontSize: "12px",
+  fontWeight: 700,
+};
+
+const statusChipStyle = (status?: string): React.CSSProperties => ({
+  ...compactChipStyle,
+  background:
+    status === "archived"
+      ? "#f3f4f6"
+      : status === "draft"
+        ? "#fff7ed"
+        : "#ecfdf3",
+  border:
+    status === "archived"
+      ? "1px solid #d1d5db"
+      : status === "draft"
+        ? "1px solid #fed7aa"
+        : "1px solid #bbf7d0",
+  color:
+    status === "archived"
+      ? "#374151"
+      : status === "draft"
+        ? "#9a3412"
+        : "#166534",
+});
+
+const compactPrimaryLinkStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "38px",
+  padding: "0 12px",
+  borderRadius: "12px",
+  background: "#111",
+  color: "#fff",
+  textDecoration: "none",
   fontSize: "13px",
-  fontWeight: 600,
+  fontWeight: 800,
+};
+
+const compactSecondaryLinkStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "38px",
+  padding: "0 12px",
+  borderRadius: "12px",
+  border: "1px solid #ddd",
+  background: "#fff",
+  color: "#111",
+  textDecoration: "none",
+  fontSize: "13px",
+  fontWeight: 800,
 };

@@ -32,7 +32,7 @@ export default function MoveToDraftButton({ propertyId }: Props) {
       disabled={isSubmitting}
       style={actionButtonStyle}
     >
-      {isSubmitting ? "..." : "Зняти з публікації"}
+      {isSubmitting ? "..." : "До чернеток"}
     </button>
   );
 }
