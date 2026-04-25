@@ -9,81 +9,157 @@ type Props = {
 export default function PropertySpecsCard({ property }: Props) {
   const items = buildSpecs(property);
 
-  return (
-    <section style={{ marginBottom: "14px" }}>
-      <h2
-        style={{
-          fontSize: "20px",
-          fontWeight: 700,
-          marginBottom: "10px",
-          color: "#111",
-          lineHeight: 1.1,
-        }}
-      >
-        Основна інформація
-      </h2>
+  // return (
+  //   <section style={{ marginBottom: "14px" }}>
+  //     <h2
+  //       style={{
+  //         fontSize: "20px",
+  //         fontWeight: 700,
+  //         marginBottom: "10px",
+  //         color: "#111",
+  //         lineHeight: 1.1,
+  //       }}
+  //     >
+  //       Основна інформація
+  //     </h2>
 
+  //     <div
+  //       style={{
+  //         border: "1px solid #e7e7e7",
+  //         borderRadius: "14px",
+  //         background: "#fff",
+  //         overflow: "hidden",
+  //       }}
+  //     >
+  //       <div
+  //         style={{
+  //           display: "grid",
+  //           gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  //         }}
+  //       >
+  //         {items.map((item, index) => {
+  //           const isLeft = index % 2 === 0;
+  //           const isLastRow =
+  //             index >= items.length - (items.length % 2 === 0 ? 2 : 1);
+
+  //           return (
+  //             <div
+  //               key={`${item.label}-${index}`}
+  //               style={{
+  //                 padding: "10px 12px",
+  //                 borderRight: isLeft ? "1px solid #f1f1f1" : "none",
+  //                 borderBottom: isLastRow ? "none" : "1px solid #f1f1f1",
+  //                 minHeight: "56px",
+  //                 display: "flex",
+  //                 flexDirection: "column",
+  //                 justifyContent: "center",
+  //               }}
+  //             >
+  //               <div
+  //                 style={{
+  //                   fontSize: "11px",
+  //                   color: "#7a7a7a",
+  //                   marginBottom: "3px",
+  //                   lineHeight: 1.1,
+  //                 }}
+  //               >
+  //                 {item.label}
+  //               </div>
+
+  //               <div
+  //                 style={{
+  //                   fontSize: "15px",
+  //                   fontWeight: 700,
+  //                   color: "#111",
+  //                   lineHeight: 1.15,
+  //                   wordBreak: "break-word",
+  //                 }}
+  //               >
+  //                 {item.value}
+  //               </div>
+  //             </div>
+  //           );
+  //         })}
+  //       </div>
+  //     </div>
+  //   </section>
+  // );
+
+  return (
+  <section style={{ marginBottom: "14px" }}>
+    <h2
+      style={{
+        fontSize: "20px",
+        fontWeight: 700,
+        marginBottom: "10px",
+        color: "#111",
+        lineHeight: 1.1,
+      }}
+    >
+      Основна інформація
+    </h2>
+
+    <div
+      style={{
+        border: "1px solid #e7e7e7",
+        borderRadius: "14px",
+        background: "#fff",
+        overflow: "hidden",
+      }}
+    >
       <div
         style={{
-          border: "1px solid #e7e7e7",
-          borderRadius: "14px",
-          background: "#fff",
-          overflow: "hidden",
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
         }}
       >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-          }}
-        >
-          {items.map((item, index) => {
-            const isLeft = index % 2 === 0;
-            const isLastRow =
-              index >= items.length - (items.length % 2 === 0 ? 2 : 1);
+        {items.map((item, index) => {
+          const isLeft = index % 2 === 0;
+          const isLastRow =
+            index >= items.length - (items.length % 2 === 0 ? 2 : 1);
 
-            return (
+          return (
+            <div
+              key={`${item.label}-${index}`}
+              style={{
+                padding: "10px 12px",
+                borderRight: isLeft ? "1px solid #f1f1f1" : "none",
+                borderBottom: isLastRow ? "none" : "1px solid #f1f1f1",
+                minHeight: "56px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+              }}
+            >
               <div
-                key={`${item.label}-${index}`}
                 style={{
-                  padding: "10px 12px",
-                  borderRight: isLeft ? "1px solid #f1f1f1" : "none",
-                  borderBottom: isLastRow ? "none" : "1px solid #f1f1f1",
-                  minHeight: "56px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
+                  fontSize: "11px",
+                  color: "#7a7a7a",
+                  marginBottom: "3px",
+                  lineHeight: 1.1,
                 }}
               >
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "#7a7a7a",
-                    marginBottom: "3px",
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {item.label}
-                </div>
-
-                <div
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: 700,
-                    color: "#111",
-                    lineHeight: 1.15,
-                    wordBreak: "break-word",
-                  }}
-                >
-                  {item.value}
-                </div>
+                {item.label}
               </div>
-            );
-          })}
-        </div>
+
+              <div
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 700,
+                  color: "#111",
+                  lineHeight: 1.15,
+                  wordBreak: "break-word",
+                }}
+              >
+                {item.value}
+              </div>
+            </div>
+          );
+        })}
       </div>
-    </section>
-  );
+    </div>
+  </section>
+);
 }
 
 function buildSpecs(property: Property) {

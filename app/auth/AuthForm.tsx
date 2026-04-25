@@ -83,7 +83,7 @@ export default function AuthForm() {
 
       <div
         style={{
-          fontSize: "14px",
+          fontSize: "16px",
           color: "#666",
           lineHeight: 1.5,
         }}
@@ -131,7 +131,7 @@ export default function AuthForm() {
         <div style={{ display: "grid", gap: "8px" }}>
           <label
             style={{
-              fontSize: "14px",
+              fontSize: "16px",
               fontWeight: 700,
               color: "#222",
             }}
@@ -187,7 +187,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: "14px",
   border: "1px solid #ddd",
   padding: "0 14px",
-  fontSize: "14px",
+  fontSize: "16px",
   outline: "none",
   boxSizing: "border-box",
   background: "#fff",
