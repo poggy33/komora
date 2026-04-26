@@ -153,11 +153,42 @@ export default function EditPropertyForm({
     }
   };
 
+  const isIdentityLocked =
+    property.status === "active" ||
+    property.status === "sold" ||
+    property.status === "rented" ||
+    property.status === "archived" ||
+    property.status === "expired";
+
+  const lockedFieldStyle: React.CSSProperties = {
+    opacity: 0.6,
+    cursor: "not-allowed",
+  };
+
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
       <h1 style={titleStyle}>Редагувати оголошення</h1>
 
       {error && <div style={errorStyle}>{error}</div>}
+
+      {isIdentityLocked && (
+        <div
+          style={{
+            padding: "12px 14px",
+            borderRadius: "14px",
+            background: "#fff7ed",
+            border: "1px solid #fed7aa",
+            color: "#9a3412",
+            fontSize: "14px",
+            lineHeight: 1.45,
+            fontWeight: 600,
+          }}
+        >
+          Частину полів заблоковано після публікації. Можна змінювати ціну,
+          опис, контакти, фото та характеристики, але не можна змінювати сам
+          обʼєкт, адресу або площу.
+        </div>
+      )}
 
       <div style={gridStyle}>
         <div style={fieldStyle}>
@@ -174,13 +205,12 @@ export default function EditPropertyForm({
           <label style={labelStyle}>Тип нерухомості</label>
           <select
             value={form.propertyType}
-            onChange={(e) =>
-              updateField(
-                "propertyType",
-                e.target.value as SupportedPropertyType,
-              )
-            }
-            style={inputStyle}
+            onChange={(e) => updateField("propertyType", e.target.value)}
+            disabled={isIdentityLocked}
+            style={{
+              ...inputStyle,
+              ...(isIdentityLocked ? lockedFieldStyle : {}),
+            }}
           >
             <option value="apartment">Квартира</option>
             <option value="house">Будинок</option>
@@ -195,7 +225,11 @@ export default function EditPropertyForm({
             onChange={(e) =>
               updateField("dealType", e.target.value as DealType)
             }
-            style={inputStyle}
+            disabled={isIdentityLocked}
+            style={{
+              ...inputStyle,
+              ...(isIdentityLocked ? lockedFieldStyle : {}),
+            }}
           >
             <option value="sale">Продаж</option>
             <option value="rent">Оренда</option>
@@ -219,7 +253,11 @@ export default function EditPropertyForm({
             type="number"
             value={form.area}
             onChange={(e) => updateField("area", e.target.value)}
-            style={inputStyle}
+            disabled={isIdentityLocked}
+            style={{
+              ...inputStyle,
+              ...(isIdentityLocked ? lockedFieldStyle : {}),
+            }}
             placeholder={isLand ? "8" : "56"}
           />
         </div>
@@ -231,7 +269,11 @@ export default function EditPropertyForm({
               type="number"
               value={form.rooms}
               onChange={(e) => updateField("rooms", e.target.value)}
-              style={inputStyle}
+              disabled={isIdentityLocked}
+              style={{
+                ...inputStyle,
+                ...(isIdentityLocked ? lockedFieldStyle : {}),
+              }}
               placeholder="2"
             />
           </div>
@@ -244,7 +286,11 @@ export default function EditPropertyForm({
               type="number"
               value={form.floor}
               onChange={(e) => updateField("floor", e.target.value)}
-              style={inputStyle}
+              disabled={isIdentityLocked}
+              style={{
+                ...inputStyle,
+                ...(isIdentityLocked ? lockedFieldStyle : {}),
+              }}
               placeholder="5"
             />
           </div>
@@ -257,7 +303,11 @@ export default function EditPropertyForm({
               type="number"
               value={form.totalFloors}
               onChange={(e) => updateField("totalFloors", e.target.value)}
-              style={inputStyle}
+              disabled={isIdentityLocked}
+              style={{
+                ...inputStyle,
+                ...(isIdentityLocked ? lockedFieldStyle : {}),
+              }}
               placeholder={isApartment ? "9" : "2"}
             />
           </div>
@@ -268,7 +318,11 @@ export default function EditPropertyForm({
           <input
             value={form.city}
             onChange={(e) => updateField("city", e.target.value)}
-            style={inputStyle}
+            disabled={isIdentityLocked}
+            style={{
+              ...inputStyle,
+              ...(isIdentityLocked ? lockedFieldStyle : {}),
+            }}
             placeholder="Івано-Франківськ"
           />
         </div>
@@ -278,7 +332,11 @@ export default function EditPropertyForm({
           <input
             value={form.region}
             onChange={(e) => updateField("region", e.target.value)}
-            style={inputStyle}
+            disabled={isIdentityLocked}
+            style={{
+              ...inputStyle,
+              ...(isIdentityLocked ? lockedFieldStyle : {}),
+            }}
             placeholder="Івано-Франківська область"
           />
         </div>
@@ -288,7 +346,11 @@ export default function EditPropertyForm({
           <input
             value={form.district}
             onChange={(e) => updateField("district", e.target.value)}
-            style={inputStyle}
+            disabled={isIdentityLocked}
+            style={{
+              ...inputStyle,
+              ...(isIdentityLocked ? lockedFieldStyle : {}),
+            }}
             placeholder="Центр"
           />
         </div>
@@ -298,7 +360,11 @@ export default function EditPropertyForm({
           <input
             value={form.addressLine}
             onChange={(e) => updateField("addressLine", e.target.value)}
-            style={inputStyle}
+            disabled={isIdentityLocked}
+            style={{
+              ...inputStyle,
+              ...(isIdentityLocked ? lockedFieldStyle : {}),
+            }}
             placeholder="вул. Незалежності, 10"
           />
         </div>
@@ -326,14 +392,19 @@ export default function EditPropertyForm({
 
       <div style={fieldStyle}>
         <label style={labelStyle}>Точка на мапі</label>
-        <LocationPickerMap
-          lat={form.lat ? Number(form.lat) : null}
-          lng={form.lng ? Number(form.lng) : null}
-          onPick={({ lat, lng }) => {
-            updateField("lat", String(lat));
-            updateField("lng", String(lng));
-          }}
-        />
+        {!isIdentityLocked && (
+          <LocationPickerMap
+            lat={form.lat ? Number(form.lat) : null}
+            lng={form.lng ? Number(form.lng) : null}
+            onPick={({ lat, lng }) => {
+              updateField("lat", String(lat));
+              updateField("lng", String(lng));
+            }}
+          />
+        )}
+        {isIdentityLocked && (
+          <div style={hintStyle}>Координати заблоковані після публікації.</div>
+        )}
         <div style={hintStyle}>Клікни на мапі, щоб змінити точку об’єкта.</div>
       </div>
 
@@ -364,7 +435,7 @@ export default function EditPropertyForm({
         initialMedia={media}
         initialCoverImageUrl={coverImageUrl}
       />
-      
+
       <div style={fieldStyle}>
         <label style={labelStyle}>Опис</label>
         <textarea

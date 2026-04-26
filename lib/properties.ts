@@ -780,26 +780,54 @@ export async function updatePropertyInSupabase(
     throw new Error("Unauthorized");
   }
 
-  const payload: Database["public"]["Tables"]["properties"]["Update"] = {
-    title: input.title,
-    description: input.description || null,
-    property_type: input.propertyType,
-    listing_type: input.dealType,
-    price: input.price,
-    area_total_m2: input.area,
-    rooms_count: input.propertyType === "land" ? null : (input.rooms ?? null),
-    floor: input.propertyType === "apartment" ? (input.floor ?? null) : null,
-    total_floors:
-      input.propertyType === "land" ? null : (input.totalFloors ?? null),
-    address_line: input.addressLine || null,
-    city: input.city,
-    region: input.region || null,
-    district: input.district || null,
-    lat: input.lat,
-    lng: input.lng,
-    seller_name: input.sellerName,
-    seller_phone: input.sellerPhone,
-  };
+  const { data: existingProperty, error: loadError } = await supabase
+    .from("properties")
+    .select("status")
+    .eq("id", input.id)
+    .eq("owner_id", user.id)
+    .single();
+
+  if (loadError) {
+    throw new Error(`Failed to load property before update: ${loadError.message}`);
+  }
+
+  const isLocked =
+    existingProperty.status === "active" ||
+    existingProperty.status === "sold" ||
+    existingProperty.status === "rented" ||
+    existingProperty.status === "archived" ||
+    existingProperty.status === "expired";
+
+  const payload: Database["public"]["Tables"]["properties"]["Update"] = isLocked
+    ? {
+        title: input.title,
+        description: input.description || null,
+        price: input.price,
+        seller_name: input.sellerName,
+        seller_phone: input.sellerPhone,
+      }
+    : {
+        title: input.title,
+        description: input.description || null,
+        property_type: input.propertyType,
+        listing_type: input.dealType,
+        price: input.price,
+        area_total_m2: input.area,
+        rooms_count:
+          input.propertyType === "land" ? null : (input.rooms ?? null),
+        floor:
+          input.propertyType === "apartment" ? (input.floor ?? null) : null,
+        total_floors:
+          input.propertyType === "land" ? null : (input.totalFloors ?? null),
+        address_line: input.addressLine || null,
+        city: input.city,
+        region: input.region || null,
+        district: input.district || null,
+        lat: input.lat,
+        lng: input.lng,
+        seller_name: input.sellerName,
+        seller_phone: input.sellerPhone,
+      };
 
   const { error } = await supabase
     .from("properties")
