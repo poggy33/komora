@@ -118,13 +118,6 @@ export default function AuthForm() {
           Телефон
         </label>
 
-        {/* <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="+380..."
-          disabled={step === "code"}
-          style={inputStyle}
-        /> */}
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
@@ -201,17 +194,6 @@ export default function AuthForm() {
   );
 }
 
-// const inputStyle: React.CSSProperties = {
-//   width: "100%",
-//   height: "46px",
-//   borderRadius: "14px",
-//   border: "1px solid #ddd",
-//   padding: "0 14px",
-//   fontSize: "16px",
-//   outline: "none",
-//   boxSizing: "border-box",
-//   background: "#fff",
-// };
 
 const inputStyle: React.CSSProperties = {
   width: "100%",

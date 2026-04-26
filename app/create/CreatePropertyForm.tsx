@@ -57,6 +57,17 @@ const initialState: FormState = {
   sellerPhone: "",
 };
 
+const LIMITS = {
+  title: 80,
+  description: 2000,
+  city: 60,
+  region: 60,
+  district: 80,
+  addressLine: 120,
+  sellerName: 60,
+  sellerPhone: 20,
+};
+
 export default function CreatePropertyForm() {
   const router = useRouter();
 
@@ -68,15 +79,56 @@ export default function CreatePropertyForm() {
   const isLand = form.propertyType === "land";
   const isApartment = form.propertyType === "apartment";
   const [user, setUser] = useState<any>(null);
-  const [submitMode, setSubmitMode] = useState<"draft" | "published">(
-    "published",
-  );
+  const [submitMode, setSubmitMode] = useState<"draft" | "active">("active");
+
+  // const updateField = (key: keyof FormState, value: string) => {
+  //   setForm((prev) => ({ ...prev, [key]: value }));
+  // };
 
   const updateField = (key: keyof FormState, value: string) => {
+    if (isSubmitting) return;
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  // const handleImagesChange = (files: FileList | null) => {
+  //   if (!files) return;
+
+  //   const incoming = Array.from(files).filter((file) =>
+  //     file.type.startsWith("image/"),
+  //   );
+
+  //   const oversized = incoming.find((file) => file.size > 5 * 1024 * 1024);
+  //   if (oversized) {
+  //     setError(`Файл "${oversized.name}" більший за 5 MB`);
+  //     return;
+  //   }
+
+  //   setImages((prev) => {
+  //     const combined = [...prev, ...incoming];
+
+  //     const deduped = combined.filter((file, index, arr) => {
+  //       return (
+  //         arr.findIndex(
+  //           (item) =>
+  //             item.name === file.name &&
+  //             item.size === file.size &&
+  //             item.lastModified === file.lastModified,
+  //         ) === index
+  //       );
+  //     });
+
+  //     if (deduped.length > 10) {
+  //       setError("Можна додати максимум 10 фото");
+  //       return deduped.slice(0, 10);
+  //     }
+
+  //     setError(null);
+  //     return deduped;
+  //   });
+  // };
+
   const handleImagesChange = (files: FileList | null) => {
+    if (isSubmitting) return;
     if (!files) return;
 
     const incoming = Array.from(files).filter((file) =>
@@ -113,7 +165,11 @@ export default function CreatePropertyForm() {
     });
   };
 
+  // const removeImage = (indexToRemove: number) => {
+  //   setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
+  // };
   const removeImage = (indexToRemove: number) => {
+    if (isSubmitting) return;
     setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
@@ -127,7 +183,7 @@ export default function CreatePropertyForm() {
     if (!form.sellerName.trim()) return "Вкажи ім’я продавця";
     if (!form.sellerPhone.trim()) return "Вкажи телефон продавця";
 
-    if (submitMode === "published" && images.length < 1) {
+    if (submitMode === "active" && images.length < 1) {
       return "Щоб опублікувати оголошення, додай хоча б одне фото";
     }
 
@@ -200,277 +256,333 @@ export default function CreatePropertyForm() {
     }
   };
 
+  const [imagePreviews, setImagePreviews] = useState<
+    { file: File; url: string }[]
+  >([]);
+
+  useEffect(() => {
+    const previews = images.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
+
+    setImagePreviews(previews);
+
+    return () => {
+      previews.forEach((preview) => URL.revokeObjectURL(preview.url));
+    };
+  }, [images]);
+
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
       <h1 style={titleStyle}>Створити оголошення</h1>
 
       {error && <div style={errorStyle}>{error}</div>}
 
-      <div style={gridStyle}>
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Назва</label>
-          <input
-            value={form.title}
-            onChange={(e) => updateField("title", e.target.value)}
-            style={inputStyle}
-            placeholder="Напр. 2-кімнатна квартира в центрі"
-          />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Тип нерухомості</label>
-          <select
-            value={form.propertyType}
-            onChange={(e) =>
-              updateField(
-                "propertyType",
-                e.target.value as SupportedPropertyType,
-              )
-            }
-            style={inputStyle}
-          >
-            <option value="apartment">Квартира</option>
-            <option value="house">Будинок</option>
-            <option value="land">Земля</option>
-          </select>
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Продаж / оренда</label>
-          <select
-            value={form.dealType}
-            onChange={(e) =>
-              updateField("dealType", e.target.value as DealType)
-            }
-            style={inputStyle}
-          >
-            <option value="sale">Продаж</option>
-            <option value="rent">Оренда</option>
-          </select>
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Ціна</label>
-          <input
-            type="number"
-            value={form.price}
-            onChange={(e) => updateField("price", e.target.value)}
-            style={inputStyle}
-            placeholder="65000"
-            inputMode="numeric"
-          />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Площа</label>
-          <input
-            type="number"
-            value={form.area}
-            onChange={(e) => updateField("area", e.target.value)}
-            style={inputStyle}
-            placeholder={isLand ? "8" : "56"}
-            inputMode="numeric"
-          />
-        </div>
-
-        {!isLand && (
+      <fieldset
+        disabled={isSubmitting}
+        style={{
+          border: "none",
+          padding: 0,
+          margin: 0,
+          display: "grid",
+          gap: "16px",
+          opacity: isSubmitting ? 0.75 : 1,
+        }}
+      >
+        <div style={gridStyle}>
           <div style={fieldStyle}>
-            <label style={labelStyle}>Кімнати</label>
+            <label style={labelStyle}>Назва</label>
+            <input
+              value={form.title}
+              onChange={(e) => updateField("title", e.target.value)}
+              maxLength={LIMITS.title}
+              disabled={isSubmitting}
+              style={inputStyle}
+              placeholder="Напр. 2-кімнатна квартира в центрі"
+            />
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Тип нерухомості</label>
+            <select
+              value={form.propertyType}
+              onChange={(e) =>
+                updateField(
+                  "propertyType",
+                  e.target.value as SupportedPropertyType,
+                )
+              }
+              style={inputStyle}
+            >
+              <option value="apartment">Квартира</option>
+              <option value="house">Будинок</option>
+              <option value="land">Земля</option>
+            </select>
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Продаж / оренда</label>
+            <select
+              value={form.dealType}
+              onChange={(e) =>
+                updateField("dealType", e.target.value as DealType)
+              }
+              style={inputStyle}
+            >
+              <option value="sale">Продаж</option>
+              <option value="rent">Оренда</option>
+            </select>
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Ціна</label>
             <input
               type="number"
-              value={form.rooms}
-              onChange={(e) => updateField("rooms", e.target.value)}
+              value={form.price}
+              onChange={(e) => updateField("price", e.target.value)}
               style={inputStyle}
-              placeholder="2"
+              placeholder="65000"
               inputMode="numeric"
             />
           </div>
-        )}
 
-        {isApartment && (
           <div style={fieldStyle}>
-            <label style={labelStyle}>Поверх</label>
+            <label style={labelStyle}>Площа</label>
             <input
               type="number"
-              value={form.floor}
-              onChange={(e) => updateField("floor", e.target.value)}
+              value={form.area}
+              onChange={(e) => updateField("area", e.target.value)}
               style={inputStyle}
-              placeholder="5"
+              placeholder={isLand ? "8" : "56"}
               inputMode="numeric"
             />
           </div>
-        )}
 
-        {!isLand && (
+          {!isLand && (
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Кімнати</label>
+              <input
+                type="number"
+                value={form.rooms}
+                onChange={(e) => updateField("rooms", e.target.value)}
+                style={inputStyle}
+                placeholder="2"
+                inputMode="numeric"
+              />
+            </div>
+          )}
+
+          {isApartment && (
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Поверх</label>
+              <input
+                type="number"
+                value={form.floor}
+                onChange={(e) => updateField("floor", e.target.value)}
+                style={inputStyle}
+                placeholder="5"
+                inputMode="numeric"
+              />
+            </div>
+          )}
+
+          {!isLand && (
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Всього поверхів</label>
+              <input
+                type="number"
+                value={form.totalFloors}
+                onChange={(e) => updateField("totalFloors", e.target.value)}
+                style={inputStyle}
+                placeholder={isApartment ? "9" : "2"}
+                inputMode="numeric"
+              />
+            </div>
+          )}
+
           <div style={fieldStyle}>
-            <label style={labelStyle}>Всього поверхів</label>
+            <label style={labelStyle}>Місто</label>
             <input
-              type="number"
-              value={form.totalFloors}
-              onChange={(e) => updateField("totalFloors", e.target.value)}
+              value={form.city}
+              onChange={(e) => updateField("city", e.target.value)}
               style={inputStyle}
-              placeholder={isApartment ? "9" : "2"}
-              inputMode="numeric"
+              placeholder="Івано-Франківськ"
             />
           </div>
-        )}
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Місто</label>
-          <input
-            value={form.city}
-            onChange={(e) => updateField("city", e.target.value)}
-            style={inputStyle}
-            placeholder="Івано-Франківськ"
-          />
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Область</label>
+            <input
+              value={form.region}
+              onChange={(e) => updateField("region", e.target.value)}
+              style={inputStyle}
+              placeholder="Івано-Франківська область"
+            />
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Район</label>
+            <input
+              value={form.district}
+              onChange={(e) => updateField("district", e.target.value)}
+              style={inputStyle}
+              placeholder="Центр"
+            />
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Адреса</label>
+            <input
+              value={form.addressLine}
+              onChange={(e) => updateField("addressLine", e.target.value)}
+              style={inputStyle}
+              placeholder="вул. Незалежності, 10"
+            />
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Ім’я продавця</label>
+            <input
+              value={form.sellerName}
+              onChange={(e) => updateField("sellerName", e.target.value)}
+              style={inputStyle}
+              placeholder="Іван"
+            />
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Телефон продавця</label>
+            <input
+              value={form.sellerPhone}
+              onChange={(e) => updateField("sellerPhone", e.target.value)}
+              style={inputStyle}
+              placeholder="+380671234567"
+              inputMode="tel"
+              autoComplete="tel"
+            />
+          </div>
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>Область</label>
-          <input
-            value={form.region}
-            onChange={(e) => updateField("region", e.target.value)}
-            style={inputStyle}
-            placeholder="Івано-Франківська область"
+          <label style={labelStyle}>Точка на мапі</label>
+          <LocationPickerMap
+            lat={form.lat ? Number(form.lat) : null}
+            lng={form.lng ? Number(form.lng) : null}
+            onPick={({ lat, lng }) => {
+              updateField("lat", String(lat));
+              updateField("lng", String(lng));
+            }}
           />
+          <div style={hintStyle}>
+            Клікни на мапі, щоб вибрати точку об’єкта.
+          </div>
+        </div>
+
+        <div style={gridStyle}>
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Latitude</label>
+            <input
+              value={form.lat}
+              readOnly
+              style={{ ...inputStyle, background: "#f8f8f8" }}
+              placeholder="Оберіть точку на мапі"
+            />
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Longitude</label>
+            <input
+              value={form.lng}
+              readOnly
+              style={{ ...inputStyle, background: "#f8f8f8" }}
+              placeholder="Оберіть точку на мапі"
+            />
+          </div>
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>Район</label>
+          <label style={labelStyle}>Фото оголошення</label>
           <input
-            value={form.district}
-            onChange={(e) => updateField("district", e.target.value)}
-            style={inputStyle}
-            placeholder="Центр"
+            type="file"
+            accept="image/*"
+            multiple
+            disabled={isSubmitting}
+            onChange={(e) => {
+              handleImagesChange(e.target.files);
+              e.currentTarget.value = "";
+            }}
+            style={{
+              ...fileInputStyle,
+              opacity: isSubmitting ? 0.6 : 1,
+              cursor: isSubmitting ? "not-allowed" : "pointer",
+            }}
           />
-        </div>
+          <div style={hintStyle}>
+            Додай від 1 до 10 фото. Перше фото стане головним.
+          </div>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Адреса</label>
-          <input
-            value={form.addressLine}
-            onChange={(e) => updateField("addressLine", e.target.value)}
-            style={inputStyle}
-            placeholder="вул. Незалежності, 10"
-          />
-        </div>
+          {images.length > 0 && (
+            <>
+              <div style={imagesGridStyle}>
+                {imagePreviews.map(({ file, url }, index) => (
+                  <div key={`${file.name}-${index}`} style={imageCardStyle}>
+                    <div style={imagePreviewWrapStyle}>
+                      <img
+                        src={url}
+                        alt={file.name}
+                        style={imagePreviewStyle}
+                      />
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Ім’я продавця</label>
-          <input
-            value={form.sellerName}
-            onChange={(e) => updateField("sellerName", e.target.value)}
-            style={inputStyle}
-            placeholder="Іван"
-          />
-        </div>
+                      <button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => removeImage(index)}
+                        style={{
+                          ...removeImageButtonStyle,
+                          opacity: isSubmitting ? 0.5 : 1,
+                          cursor: isSubmitting ? "not-allowed" : "pointer",
+                        }}
+                      >
+                        ✕
+                      </button>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Телефон продавця</label>
-          <input
-            value={form.sellerPhone}
-            onChange={(e) => updateField("sellerPhone", e.target.value)}
-            style={inputStyle}
-            placeholder="+380671234567"
-            inputMode="tel"
-            autoComplete="tel"
-          />
-        </div>
-      </div>
+                      {index === 0 && (
+                        <div style={mainPhotoBadgeStyle}>Головне</div>
+                      )}
+                    </div>
 
-      <div style={fieldStyle}>
-        <label style={labelStyle}>Точка на мапі</label>
-        <LocationPickerMap
-          lat={form.lat ? Number(form.lat) : null}
-          lng={form.lng ? Number(form.lng) : null}
-          onPick={({ lat, lng }) => {
-            updateField("lat", String(lat));
-            updateField("lng", String(lng));
-          }}
-        />
-        <div style={hintStyle}>Клікни на мапі, щоб вибрати точку об’єкта.</div>
-      </div>
-
-      <div style={gridStyle}>
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Latitude</label>
-          <input
-            value={form.lat}
-            readOnly
-            style={{ ...inputStyle, background: "#f8f8f8" }}
-            placeholder="Оберіть точку на мапі"
-          />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Longitude</label>
-          <input
-            value={form.lng}
-            readOnly
-            style={{ ...inputStyle, background: "#f8f8f8" }}
-            placeholder="Оберіть точку на мапі"
-          />
-        </div>
-      </div>
-
-      <div style={fieldStyle}>
-        <label style={labelStyle}>Фото оголошення</label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={(e) => {
-            handleImagesChange(e.target.files);
-            e.currentTarget.value = "";
-          }}
-          style={fileInputStyle}
-        />
-        <div style={hintStyle}>
-          Додай від 1 до 10 фото. Перше фото стане головним.
-        </div>
-
-        {images.length > 0 && (
-          <>
-            <div style={imagesMetaStyle}>Вибрано {images.length} з 10 фото</div>
-
-            <div style={imagesGridStyle}>
-              {images.map((file, index) => (
-                <div key={`${file.name}-${index}`} style={imageCardStyle}>
-                  <div style={imageCardHeaderStyle}>
                     <div style={imageCardTitleStyle}>
                       {index === 0 ? "Головне фото" : `Фото ${index + 1}`}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      style={removeImageButtonStyle}
-                    >
-                      ✕
-                    </button>
+                    <div style={imageCardNameStyle}>{file.name}</div>
+
+                    <div style={imageCardSizeStyle}>
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </div>
                   </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
 
-                  <div style={imageCardNameStyle}>{file.name}</div>
-                  <div style={imageCardSizeStyle}>
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
-      <div style={fieldStyle}>
-        <label style={labelStyle}>Опис</label>
-        <textarea
-          value={form.description}
-          onChange={(e) => updateField("description", e.target.value)}
-          style={textareaStyle}
-          placeholder="Короткий опис об’єкта"
-        />
-      </div>
-
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Опис</label>
+          <textarea
+            value={form.description}
+            onChange={(e) => updateField("description", e.target.value)}
+            maxLength={LIMITS.description}
+            disabled={isSubmitting}
+            style={textareaStyle}
+            placeholder="Короткий опис об’єкта"
+          />
+          <div style={hintStyle}>
+            {form.description.length}/{LIMITS.description}
+          </div>
+        </div>
+      </fieldset>
       <div
         style={{
           display: "flex",
@@ -496,14 +608,14 @@ export default function CreatePropertyForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          onClick={() => setSubmitMode("published")}
+          onClick={() => setSubmitMode("active")}
           style={{
             ...submitButtonStyle,
             opacity: isSubmitting ? 0.7 : 1,
             cursor: isSubmitting ? "not-allowed" : "pointer",
           }}
         >
-          {isSubmitting && submitMode === "published"
+          {isSubmitting && submitMode === "active"
             ? "Публікуємо..."
             : "Опублікувати"}
         </button>
@@ -519,65 +631,6 @@ const errorStyle: React.CSSProperties = {
   color: "#991b1b",
   fontSize: "14px",
   fontWeight: 600,
-};
-
-const imagesMetaStyle: React.CSSProperties = {
-  fontSize: "13px",
-  color: "#444",
-  fontWeight: 600,
-};
-
-const imagesGridStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-  gap: "12px",
-};
-
-const imageCardStyle: React.CSSProperties = {
-  border: "1px solid #ececec",
-  borderRadius: "14px",
-  padding: "12px",
-  fontSize: "12px",
-  color: "#444",
-  background: "#fafafa",
-  display: "grid",
-  gap: "8px",
-};
-
-const imageCardHeaderStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "8px",
-};
-
-const imageCardTitleStyle: React.CSSProperties = {
-  fontWeight: 700,
-  color: "#111",
-  fontSize: "12px",
-};
-
-const imageCardNameStyle: React.CSSProperties = {
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-  color: "#333",
-};
-
-const imageCardSizeStyle: React.CSSProperties = {
-  fontSize: "11px",
-  color: "#777",
-};
-
-const removeImageButtonStyle: React.CSSProperties = {
-  width: "28px",
-  height: "28px",
-  borderRadius: "999px",
-  border: "1px solid #ddd",
-  background: "#fff",
-  color: "#111",
-  cursor: "pointer",
-  flexShrink: 0,
 };
 
 const formStyle: React.CSSProperties = {
@@ -678,4 +731,84 @@ const secondarySubmitButtonStyle: React.CSSProperties = {
   fontSize: "15px",
   fontWeight: 700,
   padding: "0 14px",
+};
+
+const imagesGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+  gap: "12px",
+};
+
+const imageCardStyle: React.CSSProperties = {
+  position: "relative",
+  display: "grid",
+  gap: "8px",
+  padding: "10px",
+  border: "1px solid #e5e5e5",
+  borderRadius: "16px",
+  background: "#fff",
+  overflow: "hidden",
+};
+
+const imagePreviewWrapStyle: React.CSSProperties = {
+  position: "relative",
+  width: "100%",
+  aspectRatio: "1 / 1",
+  borderRadius: "12px",
+  overflow: "hidden",
+  background: "#f3f3f3",
+};
+
+const imagePreviewStyle: React.CSSProperties = {
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  display: "block",
+};
+
+const removeImageButtonStyle: React.CSSProperties = {
+  position: "absolute",
+  top: "8px",
+  right: "8px",
+  width: "30px",
+  height: "30px",
+  borderRadius: "999px",
+  border: "1px solid rgba(0,0,0,0.12)",
+  background: "rgba(255,255,255,0.95)",
+  color: "#111",
+  fontSize: "16px",
+  lineHeight: "28px",
+  fontWeight: 700,
+  boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+};
+
+const mainPhotoBadgeStyle: React.CSSProperties = {
+  position: "absolute",
+  left: "8px",
+  bottom: "8px",
+  padding: "4px 8px",
+  borderRadius: "999px",
+  background: "rgba(17,17,17,0.86)",
+  color: "#fff",
+  fontSize: "12px",
+  fontWeight: 700,
+};
+
+const imageCardTitleStyle: React.CSSProperties = {
+  fontSize: "13px",
+  fontWeight: 800,
+  color: "#111",
+};
+
+const imageCardNameStyle: React.CSSProperties = {
+  fontSize: "12px",
+  color: "#333",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+const imageCardSizeStyle: React.CSSProperties = {
+  fontSize: "12px",
+  color: "#777",
 };

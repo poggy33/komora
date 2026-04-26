@@ -263,7 +263,7 @@ export async function getPropertiesFromSupabase({
         position
       )
     `)
-    .eq("status", "published")
+    .eq("status", "active")
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
@@ -335,7 +335,7 @@ export async function getPropertyByIdFromSupabase(
       )
     `)
     .eq("id", id)
-    .eq("status", "published")
+    .eq("status", "active")
     .eq("is_published", true)
     .maybeSingle();
 
@@ -358,7 +358,7 @@ export async function getPropertiesCountFromSupabase({
   let query = supabase
     .from("properties")
     .select("*", { count: "exact", head: true })
-    .eq("status", "published")
+    .eq("status", "active")
     .eq("is_published", true);
 
   if (dealType) {
@@ -398,7 +398,7 @@ export type CreatePropertyInput = {
   lng: number;
   sellerName: string;
   sellerPhone: string;
-  publicationStatus: "draft" | "published";
+  publicationStatus: "draft" | "active";
 };
 
 export async function createPropertyInSupabase(
@@ -425,46 +425,68 @@ export async function createPropertyInSupabase(
     throw new Error("Draft limit reached");
   }
 
-  const payload: Database["public"]["Tables"]["properties"]["Insert"] = {
-    owner_id: user.id,
-    title: input.title,
-    description: input.description || null,
-    property_type: input.propertyType,
-    listing_type: input.dealType,
-    status: input.publicationStatus,
-    price: input.price,
-    currency: "USD",
-    area_total_m2: input.area,
-    rooms_count: input.propertyType === "land" ? null : (input.rooms ?? null),
-    floor: input.propertyType === "apartment" ? (input.floor ?? null) : null,
-    total_floors:
-      input.propertyType === "land" ? null : (input.totalFloors ?? null),
-    address_line: input.addressLine || null,
-    city: input.city,
-    region: input.region || null,
-    district: input.district || null,
-    lat: input.lat,
-    lng: input.lng,
-    seller_name: input.sellerName,
-    seller_phone: input.sellerPhone,
-    cover_image_url: null,
-    is_published: input.publicationStatus === "published",
+  const isActive = input.publicationStatus === "active";
 
-    market_type: null,
-    year_built: null,
-    heating_type: null,
-    parking_type: null,
-    renovation_type: null,
-    documents_ready: false,
-    pets_allowed: false,
-    is_furnished: false,
-    land_purpose: null,
-    lot_area: null,
-    living_area: null,
-    kitchen_area: null,
-  };
+  const now = new Date();
+  const publishedAt = isActive ? now.toISOString() : null;
+  const expiresAt = isActive
+    ? new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    : null;
 
-  const { data, error } = await (supabase as any)
+const payload: Database["public"]["Tables"]["properties"]["Insert"] = {
+  owner_id: user.id,
+
+  title: input.title,
+  description: input.description || null,
+
+  property_type: input.propertyType,
+  listing_type: input.dealType,
+
+  status: input.publicationStatus,
+  is_published: isActive,
+  published_at: publishedAt,
+  expires_at: expiresAt,
+
+  price: input.price,
+  currency: "USD",
+
+  area_total_m2: input.area,
+  rooms_count: input.propertyType === "land" ? null : (input.rooms ?? null),
+
+  floor: input.propertyType === "apartment" ? (input.floor ?? null) : null,
+  total_floors:
+    input.propertyType === "land" ? null : (input.totalFloors ?? null),
+
+  address_line: input.addressLine || null,
+  city: input.city,
+  region: input.region || null,
+  district: input.district || null,
+
+  lat: input.lat,
+  lng: input.lng,
+
+  seller_name: input.sellerName,
+  seller_phone: input.sellerPhone,
+
+  cover_image_url: null,
+
+  market_type: null,
+  year_built: null,
+  heating_type: null,
+  parking_type: null,
+  renovation_type: null,
+
+  documents_ready: false,
+  pets_allowed: false,
+  is_furnished: false,
+
+  land_purpose: null,
+  lot_area: null,
+  living_area: null,
+  kitchen_area: null,
+};
+
+  const { data, error } = await supabase
     .from("properties")
     .insert([payload])
     .select("id")
@@ -799,8 +821,10 @@ export async function restorePropertyInSupabase(id: string): Promise<void> {
   }
 
   const payload: Database["public"]["Tables"]["properties"]["Update"] = {
-    status: "published",
-    is_published: true,
+    status: "active",
+is_published: true,
+published_at: new Date().toISOString(),
+expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
   };
 
   const { error } = await supabase
@@ -1121,8 +1145,10 @@ export async function publishPropertyInSupabase(id: string): Promise<void> {
   }
 
   const payload: Database["public"]["Tables"]["properties"]["Update"] = {
-    status: "published",
-    is_published: true,
+status: "active",
+is_published: true,
+published_at: new Date().toISOString(),
+expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
   };
 
   const { error } = await supabase
