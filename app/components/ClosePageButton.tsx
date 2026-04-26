@@ -1,34 +1,26 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import BackIcon from "../components/icons/BackIcon";
+import CloseIcon from "../components/icons/CloseIcon";
 
 type Props = {
-  fallbackHref?: string;
+  href?: string;
 };
 
-export default function BackButton({ fallbackHref = "/" }: Props) {
+export default function ClosePageButton({ href = "/" }: Props) {
   const router = useRouter();
-
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      router.back(); // 👈 назад по історії
-    } else {
-      router.replace(fallbackHref); // 👈 fallback
-    }
-  };
 
   return (
     <button
       type="button"
-      onClick={handleBack}
-      aria-label="Назад"
+      onClick={() => router.replace(href)}
+      aria-label="Закрити"
       style={{
         ...floatingButtonStyle,
-        left: "12px",
+        right: "12px",
       }}
     >
-      <BackIcon size={18} />
+      <CloseIcon size={18} />
     </button>
   );
 }

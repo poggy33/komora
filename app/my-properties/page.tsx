@@ -6,6 +6,7 @@ import DeletePropertyButton from "./DeletePropertyButton";
 import type { Property } from "@/types/property";
 import PublishPropertyButton from "./PublishPropertyButton";
 import MoveToDraftButton from "./MoveToDraftButton";
+import ClosePageButton from "../components/ClosePageButton";
 
 function buildFullAddress(row: {
   address_line: string | null;
@@ -142,6 +143,11 @@ export default async function MyPropertiesPage() {
           gap: "14px",
         }}
       >
+
+<ClosePageButton />
+
+
+
         <div
           style={{
             display: "flex",
@@ -375,9 +381,9 @@ export default async function MyPropertiesPage() {
                   Редагувати
                 </Link>
 
-{property.status === "archived" && (
-  <DeletePropertyButton propertyId={property.id} />
-)}
+                {property.status === "archived" && (
+                  <DeletePropertyButton propertyId={property.id} />
+                )}
 
                 {property.status === "draft" ? (
                   <PublishPropertyButton propertyId={property.id} />

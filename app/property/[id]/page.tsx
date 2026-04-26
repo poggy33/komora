@@ -9,6 +9,7 @@ import PropertyAmenities from "@/components/PropertyAmenities";
 import PropertyLocationMapWrapper from "@/components/PropertyLocationMapWrapper";
 import PropertyPageActions from "@/components/PropertyPageActions";
 import PropertyMobileBottomBar from "@/components/PropertyMobileBottomBar";
+import ClosePageButton from "../../components/ClosePageButton";
 
 type PageProps = {
   params: Promise<{
@@ -36,6 +37,7 @@ export default async function PropertyPage({ params }: PageProps) {
         lineHeight: 1.45,
       }}
     >
+      <ClosePageButton />
       <div
         style={{
           marginBottom: "10px",

@@ -7,6 +7,9 @@ import type { DealType, Property } from "@/types/property";
 import { updatePropertyInSupabase } from "lib/properties";
 import type { EditablePropertyMediaItem } from "lib/properties";
 import PropertyPhotoManager from "./PropertyPhotoManager";
+import BackButton from "../../../components/BackButton";
+
+
 
 const LocationPickerMap = dynamic(
   () => import("app/create/LocationPickerMap"),
@@ -167,6 +170,7 @@ export default function EditPropertyForm({
 
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
+      <BackButton fallbackHref="/my" />
       <h1 style={titleStyle}>Редагувати оголошення</h1>
 
       {error && <div style={errorStyle}>{error}</div>}

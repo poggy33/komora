@@ -10,6 +10,7 @@ import {
   uploadPropertyImages,
 } from "lib/properties";
 import { createClient } from "lib/supabase/client";
+import ClosePageButton from "../components/ClosePageButton";
 
 const LocationPickerMap = dynamic(() => import("./LocationPickerMap"), {
   ssr: false,
@@ -307,6 +308,7 @@ export default function CreatePropertyForm() {
   }, [images]);
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
+      <ClosePageButton />
       <div style={{ display: "grid", gap: "6px" }}>
         <h1 style={titleStyle}>Створити оголошення</h1>
         <div style={hintStyle}>

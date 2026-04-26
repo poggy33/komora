@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "lib/supabase/server";
 import type { Property } from "@/types/property";
+import ClosePageButton from "../components/ClosePageButton";
 
 function buildFullAddress(row: {
   address_line: string | null;
@@ -126,6 +127,7 @@ export default async function SavedPage() {
         fontFamily: "Arial, sans-serif",
       }}
     >
+      <ClosePageButton />
       <div
         style={{
           maxWidth: "980px",

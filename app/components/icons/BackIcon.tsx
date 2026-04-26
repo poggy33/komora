@@ -4,7 +4,7 @@ type Props = {
   size?: number;
 };
 
-export default function CloseIcon({ size = 18 }: Props) {
+export default function BackIcon({ size = 18 }: Props) {
   return (
     <svg
       width={size}
@@ -16,9 +16,7 @@ export default function CloseIcon({ size = 18 }: Props) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M18 6 6 18" />
-      <path d="M6 6 18 18" />
+      <path d="M15 18 9 12 15 6" />
     </svg>
   );
 }
-

@@ -1,34 +1,36 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import BackIcon from "../components/icons/BackIcon";
+import CloseIcon from "@/components/icons/CloseIcon";
 
-type Props = {
-  fallbackHref?: string;
-};
-
-export default function BackButton({ fallbackHref = "/" }: Props) {
+export default function BackButton() {
   const router = useRouter();
-
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      router.back(); // 👈 назад по історії
-    } else {
-      router.replace(fallbackHref); // 👈 fallback
-    }
-  };
 
   return (
     <button
       type="button"
-      onClick={handleBack}
+      onClick={() => {
+        if (window.history.length > 1) {
+          router.back();
+        } else {
+          router.push("/");
+        }
+      }}
       aria-label="Назад"
       style={{
-        ...floatingButtonStyle,
-        left: "12px",
+        width: "40px",
+        height: "40px",
+        borderRadius: "999px",
+        border: "1px solid rgba(17,17,17,0.08)",
+        background: "rgba(255,255,255,0.96)",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
+        cursor: "pointer",
       }}
     >
-      <BackIcon size={18} />
+      <CloseIcon size={18} />
     </button>
   );
 }
