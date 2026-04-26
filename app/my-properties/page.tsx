@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "lib/supabase/server";
 import ArchivePropertyButton from "./ArchivePropertyButton";
 import RestorePropertyButton from "./RestorePropertyButton";
+import DeletePropertyButton from "./DeletePropertyButton";
 import type { Property } from "@/types/property";
 import PublishPropertyButton from "./PublishPropertyButton";
 import MoveToDraftButton from "./MoveToDraftButton";
@@ -116,7 +117,11 @@ export default async function MyPropertiesPage() {
   }
 
   const activeProperties = properties.filter(
-    (property) => property.status !== "draft" && property.status !== "archived",
+    (property) => property.status === "active",
+  );
+
+  const reviewProperties = properties.filter(
+    (property) => property.status === "pending_review",
   );
 
   const draftProperties = properties.filter(
@@ -334,12 +339,29 @@ export default async function MyPropertiesPage() {
                   gap: "8px",
                 }}
               >
-                <Link
-                  href={`/property/${property.id}`}
-                  style={compactPrimaryLinkStyle}
-                >
-                  Відкрити
-                </Link>
+                {property.status === "active" ? (
+                  <Link
+                    href={`/property/${property.id}`}
+                    style={compactPrimaryLinkStyle}
+                  >
+                    Відкрити
+                  </Link>
+                ) : (
+                  <span
+                    style={{
+                      ...compactPrimaryLinkStyle,
+                      opacity: 0.55,
+                      pointerEvents: "none",
+                      cursor: "not-allowed",
+                    }}
+                  >
+                    {property.status === "pending_review"
+                      ? "На перевірці"
+                      : property.status === "draft"
+                        ? "Чернетка"
+                        : "Неактивне"}
+                  </span>
+                )}
 
                 <Link
                   href={`/property/${property.id}/edit`}
@@ -352,6 +374,10 @@ export default async function MyPropertiesPage() {
                 >
                   Редагувати
                 </Link>
+
+{property.status === "archived" && (
+  <DeletePropertyButton propertyId={property.id} />
+)}
 
                 {property.status === "draft" ? (
                   <PublishPropertyButton propertyId={property.id} />
@@ -460,6 +486,7 @@ export default async function MyPropertiesPage() {
               }}
             >
               {renderSection("Активні", activeProperties)}
+              {renderSection("На перевірці", reviewProperties)}
               {renderSection("Чернетки", draftProperties)}
               {renderSection("Архів", archivedProperties)}
             </div>

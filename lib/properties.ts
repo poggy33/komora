@@ -2,6 +2,7 @@ import type { Property } from "@/types/property";
 import type { Database } from "@/types/database.types";
 import type { FiltersState } from "@/components/filters.types";
 import { createClient } from "../lib/supabase/client";
+import { moderatePropertyText } from "./moderation";
 
 function buildFullAddress(row: {
   address_line: string | null;
@@ -417,9 +418,14 @@ export type CreatePropertyInput = {
   landPurpose?: "residential" | "agricultural" | "commercial" | "";
 };
 
+type CreatePropertyResult = {
+  id: string;
+  status: "active" | "draft" | "pending_review";
+};
+
 export async function createPropertyInSupabase(
   input: CreatePropertyInput,
-): Promise<string> {
+): Promise<CreatePropertyResult> {
   const supabase = createClient();
 
   const {
@@ -441,7 +447,24 @@ export async function createPropertyInSupabase(
     throw new Error("Draft limit reached");
   }
 
-  const isActive = input.publicationStatus === "active";
+  const moderation = moderatePropertyText({
+    title: input.title,
+    description: input.description,
+    city: input.city,
+    addressLine: input.addressLine,
+  });
+
+  const shouldPublishImmediately =
+    input.publicationStatus === "active" && moderation.status === "passed";
+
+  const nextStatus: CreatePropertyResult["status"] =
+    input.publicationStatus === "draft"
+      ? "draft"
+      : shouldPublishImmediately
+        ? "active"
+        : "pending_review";
+
+  const isActive = nextStatus === "active";
 
   const now = new Date();
   const publishedAt = isActive ? now.toISOString() : null;
@@ -449,60 +472,62 @@ export async function createPropertyInSupabase(
     ? new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
     : null;
 
-const payload: Database["public"]["Tables"]["properties"]["Insert"] = {
-  owner_id: user.id,
+  const payload: Database["public"]["Tables"]["properties"]["Insert"] = {
+    owner_id: user.id,
 
-  title: input.title,
-  description: input.description || null,
+    title: input.title,
+    description: input.description || null,
 
-  property_type: input.propertyType,
-  listing_type: input.dealType,
+    property_type: input.propertyType,
+    listing_type: input.dealType,
 
-  status: input.publicationStatus,
-  is_published: isActive,
-  published_at: publishedAt,
-  expires_at: expiresAt,
+    status: nextStatus,
+    is_published: isActive,
+    published_at: publishedAt,
+    expires_at: expiresAt,
+    rejection_reason:
+      nextStatus === "pending_review" ? moderation.reason ?? null : null,
 
-  price: input.price,
-  currency: "USD",
+    price: input.price,
+    currency: "USD",
 
-  area_total_m2: input.area,
-  rooms_count: input.propertyType === "land" ? null : (input.rooms ?? null),
+    area_total_m2: input.area,
+    rooms_count: input.propertyType === "land" ? null : (input.rooms ?? null),
 
-  floor: input.propertyType === "apartment" ? (input.floor ?? null) : null,
-  total_floors:
-    input.propertyType === "land" ? null : (input.totalFloors ?? null),
+    floor: input.propertyType === "apartment" ? (input.floor ?? null) : null,
+    total_floors:
+      input.propertyType === "land" ? null : (input.totalFloors ?? null),
 
-  address_line: input.addressLine || null,
-  city: input.city,
-  region: input.region || null,
-  district: input.district || null,
+    address_line: input.addressLine || null,
+    city: input.city,
+    region: input.region || null,
+    district: input.district || null,
 
-  lat: input.lat,
-  lng: input.lng,
+    lat: input.lat,
+    lng: input.lng,
 
-  seller_name: input.sellerName,
-  seller_phone: input.sellerPhone,
+    seller_name: input.sellerName,
+    seller_phone: input.sellerPhone,
 
-  cover_image_url: null,
+    cover_image_url: null,
 
-  market_type: input.marketType || null,
-  year_built: input.yearBuilt ? Number(input.yearBuilt) : null,
+    market_type: input.marketType || null,
+    year_built: input.yearBuilt ? Number(input.yearBuilt) : null,
 
-  living_area: input.livingArea ? Number(input.livingArea) : null,
-  kitchen_area: input.kitchenArea ? Number(input.kitchenArea) : null,
+    living_area: input.livingArea ? Number(input.livingArea) : null,
+    kitchen_area: input.kitchenArea ? Number(input.kitchenArea) : null,
 
-  heating_type: input.heatingType || null,
-  parking_type: input.parkingType || null,
-  renovation_type: input.renovationType || null,
+    heating_type: input.heatingType || null,
+    parking_type: input.parkingType || null,
+    renovation_type: input.renovationType || null,
 
-  documents_ready: input.documentsReady ?? false,
-  pets_allowed: input.petsAllowed ?? false,
-  is_furnished: input.isFurnished ?? false,
+    documents_ready: input.documentsReady ?? false,
+    pets_allowed: input.petsAllowed ?? false,
+    is_furnished: input.isFurnished ?? false,
 
-  lot_area: input.lotArea ? Number(input.lotArea) : null,
-  land_purpose: input.landPurpose || null,
-};
+    lot_area: input.lotArea ? Number(input.lotArea) : null,
+    land_purpose: input.landPurpose || null,
+  };
 
   const { data, error } = await supabase
     .from("properties")
@@ -514,7 +539,10 @@ const payload: Database["public"]["Tables"]["properties"]["Insert"] = {
     throw new Error(`Failed to create property: ${error.message}`);
   }
 
-  return String(data.id);
+  return {
+    id: String(data.id),
+    status: nextStatus,
+  };
 }
 
 export async function uploadPropertyImages(
@@ -1248,4 +1276,17 @@ export async function getMyPropertyStatusCountsFromSupabase(): Promise<{
     draftCount: rows.filter((row) => row.status === "draft").length,
     archivedCount: rows.filter((row) => row.status === "archived").length,
   };
+}
+
+export async function deletePropertyInSupabase(id: string) {
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from("properties")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(`Failed to delete property: ${error.message}`);
+  }
 }

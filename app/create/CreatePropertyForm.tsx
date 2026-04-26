@@ -111,6 +111,8 @@ export default function CreatePropertyForm() {
   const [user, setUser] = useState<any>(null);
   const [submitMode, setSubmitMode] = useState<"draft" | "active">("active");
 
+  const [reviewMessage, setReviewMessage] = useState<string | null>(null);
+
   const updateField = (key: keyof FormState, value: string) => {
     if (isSubmitting) return;
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -206,25 +208,35 @@ export default function CreatePropertyForm() {
       setIsSubmitting(true);
       setError(null);
 
-      const id = await createPropertyInSupabase({
+      const createResult = await createPropertyInSupabase({
         title: form.title.trim(),
         description: form.description.trim(),
+
         propertyType: form.propertyType,
         dealType: form.dealType,
+
         price: Number(form.price),
         area: Number(form.area),
+
         rooms: isLand ? undefined : Number(form.rooms || 0) || undefined,
-        floor: isApartment ? Number(form.floor) : undefined,
-        totalFloors: !isLand ? Number(form.totalFloors) : undefined,
+        floor: isApartment ? Number(form.floor || 0) || undefined : undefined,
+        totalFloors: !isLand
+          ? Number(form.totalFloors || 0) || undefined
+          : undefined,
+
         city: form.city.trim(),
         region: form.region.trim() || undefined,
         district: form.district.trim() || undefined,
         addressLine: form.addressLine.trim() || undefined,
+
         lat: Number(form.lat),
         lng: Number(form.lng),
+
         sellerName: form.sellerName.trim(),
         sellerPhone: form.sellerPhone.trim(),
+
         publicationStatus: submitMode,
+
         marketType: form.marketType,
         yearBuilt: form.yearBuilt,
         livingArea: form.livingArea,
@@ -242,12 +254,27 @@ export default function CreatePropertyForm() {
         landPurpose: form.landPurpose,
       });
 
+      const propertyId = createResult.id;
+      const propertyStatus = createResult.status;
+
       if (images.length > 0) {
-        const uploadedImages = await uploadPropertyImages(id, images);
-        await attachPropertyImages(id, uploadedImages);
+        const uploadedImages = await uploadPropertyImages(propertyId, images);
+        await attachPropertyImages(propertyId, uploadedImages);
       }
 
-      router.replace(`/property/${id}`);
+      if (propertyStatus === "pending_review") {
+        setReviewMessage(
+          "Оголошення створено, але воно відправлене на перевірку. Після перевірки воно зʼявиться на карті.",
+        );
+        return;
+      }
+
+      if (propertyStatus === "draft") {
+        router.replace("/my");
+        return;
+      }
+
+      router.replace(`/property/${propertyId}`);
     } catch (err: any) {
       console.error(err);
 

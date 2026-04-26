@@ -34,11 +34,14 @@ export type PropertyLocation = {
 };
 
 export type PropertyStatus =
-  | "active"
   | "draft"
+  | "pending_review"
+  | "active"
+  | "rejected"
   | "sold"
   | "rented"
-  | "archived";
+  | "archived"
+  | "expired";
 
 export type Property = {
   id: string;
