@@ -399,6 +399,22 @@ export type CreatePropertyInput = {
   sellerName: string;
   sellerPhone: string;
   publicationStatus: "draft" | "active";
+    // --- нові поля ---
+  marketType?: "new_building" | "secondary" | "";
+  yearBuilt?: string;
+  livingArea?: string;
+  kitchenArea?: string;
+
+  heatingType?: "individual" | "central" | "electric" | "solid_fuel" | "";
+  parkingType?: "parking" | "underground" | "";
+  renovationType?: "no_repair" | "livable" | "good" | "euro" | "";
+
+  documentsReady?: boolean;
+  petsAllowed?: boolean;
+  isFurnished?: boolean;
+
+  lotArea?: string;
+  landPurpose?: "residential" | "agricultural" | "commercial" | "";
 };
 
 export async function createPropertyInSupabase(
@@ -470,20 +486,22 @@ const payload: Database["public"]["Tables"]["properties"]["Insert"] = {
 
   cover_image_url: null,
 
-  market_type: null,
-  year_built: null,
-  heating_type: null,
-  parking_type: null,
-  renovation_type: null,
+  market_type: input.marketType || null,
+  year_built: input.yearBuilt ? Number(input.yearBuilt) : null,
 
-  documents_ready: false,
-  pets_allowed: false,
-  is_furnished: false,
+  living_area: input.livingArea ? Number(input.livingArea) : null,
+  kitchen_area: input.kitchenArea ? Number(input.kitchenArea) : null,
 
-  land_purpose: null,
-  lot_area: null,
-  living_area: null,
-  kitchen_area: null,
+  heating_type: input.heatingType || null,
+  parking_type: input.parkingType || null,
+  renovation_type: input.renovationType || null,
+
+  documents_ready: input.documentsReady ?? false,
+  pets_allowed: input.petsAllowed ?? false,
+  is_furnished: input.isFurnished ?? false,
+
+  lot_area: input.lotArea ? Number(input.lotArea) : null,
+  land_purpose: input.landPurpose || null,
 };
 
   const { data, error } = await supabase
@@ -1145,11 +1163,11 @@ export async function publishPropertyInSupabase(id: string): Promise<void> {
   }
 
   const payload: Database["public"]["Tables"]["properties"]["Update"] = {
-status: "active",
-is_published: true,
-published_at: new Date().toISOString(),
-expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-  };
+  status: "active",
+  is_published: true,
+  published_at: new Date().toISOString(),
+  expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    };
 
   const { error } = await supabase
     .from("properties")

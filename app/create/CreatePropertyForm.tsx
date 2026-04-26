@@ -225,6 +225,21 @@ export default function CreatePropertyForm() {
         sellerName: form.sellerName.trim(),
         sellerPhone: form.sellerPhone.trim(),
         publicationStatus: submitMode,
+        marketType: form.marketType,
+        yearBuilt: form.yearBuilt,
+        livingArea: form.livingArea,
+        kitchenArea: form.kitchenArea,
+
+        heatingType: form.heatingType,
+        parkingType: form.parkingType,
+        renovationType: form.renovationType,
+
+        documentsReady: form.documentsReady,
+        petsAllowed: form.petsAllowed,
+        isFurnished: form.isFurnished,
+
+        lotArea: form.lotArea,
+        landPurpose: form.landPurpose,
       });
 
       if (images.length > 0) {
@@ -232,7 +247,7 @@ export default function CreatePropertyForm() {
         await attachPropertyImages(id, uploadedImages);
       }
 
-      router.push(`/property/${id}`);
+      router.replace(`/property/${id}`);
     } catch (err: any) {
       console.error(err);
 
@@ -649,6 +664,30 @@ export default function CreatePropertyForm() {
               />
             </label>
           </div>
+
+          <div style={mapPickerWrapStyle}>
+            <div style={{ display: "grid", gap: "4px" }}>
+              <div style={{ fontSize: "14px", fontWeight: 800, color: "#111" }}>
+                Вибери точку на карті
+              </div>
+
+              <div style={hintStyle}>
+                Натисни на карту, щоб поставити маркер. Координати заповняться
+                автоматично.
+              </div>
+            </div>
+
+            <LocationPickerMap
+              lat={form.lat ? Number(form.lat) : null}
+              lng={form.lng ? Number(form.lng) : null}
+              onPick={(next) => {
+                if (isSubmitting) return;
+
+                updateField("lat", String(next.lat));
+                updateField("lng", String(next.lng));
+              }}
+            />
+          </div>
         </section>
 
         {/* ===== Фото ===== */}
@@ -1029,4 +1068,9 @@ const labelStyle: React.CSSProperties = {
   fontSize: "14px",
   fontWeight: 700,
   color: "#333",
+};
+
+const mapPickerWrapStyle: React.CSSProperties = {
+  display: "grid",
+  gap: "10px",
 };
