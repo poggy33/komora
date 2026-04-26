@@ -430,6 +430,174 @@ export default function HomePage() {
   );
 }
 
+// function matchesAppliedFilters(
+//   property: Property,
+//   propertyType: SupportedPropertyType,
+//   dealType: DealType,
+//   filters: FiltersState,
+// ) {
+//   if (property.propertyType !== propertyType) return false;
+//   if (property.dealType !== dealType) return false;
+
+//   const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
+//   const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
+//   const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
+//   const areaMax = filters.areaMax ? Number(filters.areaMax) : null;
+//   const lotAreaMin = filters.lotAreaMin ? Number(filters.lotAreaMin) : null;
+//   const lotAreaMax = filters.lotAreaMax ? Number(filters.lotAreaMax) : null;
+//   const floorsMin = filters.floorsMin ? Number(filters.floorsMin) : null;
+//   const floorsMax = filters.floorsMax ? Number(filters.floorsMax) : null;
+//   const yearBuiltFrom = filters.yearBuiltFrom
+//     ? Number(filters.yearBuiltFrom)
+//     : null;
+//   const yearBuiltTo = filters.yearBuiltTo ? Number(filters.yearBuiltTo) : null;
+
+//   let publishedWithinDays: number | null = null;
+
+//   if (filters.publishedWithin === "1d") publishedWithinDays = 1;
+//   if (filters.publishedWithin === "3d") publishedWithinDays = 3;
+//   if (filters.publishedWithin === "7d") publishedWithinDays = 7;
+//   if (filters.publishedWithin === "30d") publishedWithinDays = 30;
+
+//   if (priceMin !== null && property.price < priceMin) return false;
+//   if (priceMax !== null && property.price > priceMax) return false;
+//   if (areaMin !== null && property.area < areaMin) return false;
+//   if (areaMax !== null && property.area > areaMax) return false;
+
+//   if (publishedWithinDays !== null) {
+//     if (!property.publishedAt) return false;
+
+//     const publishedAtMs = new Date(property.publishedAt).getTime();
+//     if (Number.isNaN(publishedAtMs)) return false;
+
+//     const nowMs = Date.now();
+//     const diffMs = nowMs - publishedAtMs;
+//     const maxAgeMs = publishedWithinDays * 24 * 60 * 60 * 1000;
+
+//     if (diffMs > maxAgeMs) return false;
+//   }
+
+//   if (propertyType !== "land" && propertyType !== "commercial") {
+//     if (filters.rooms.length > 0) {
+//       const normalizedRooms = filters.rooms.map((value) =>
+//         value === "5+" ? 5 : Number(value),
+//       );
+
+//       const propertyRooms = property.rooms;
+
+//       if (
+//         propertyRooms === undefined ||
+//         !normalizedRooms.some((value) =>
+//           value === 5 ? propertyRooms >= 5 : propertyRooms === value,
+//         )
+//       ) {
+//         return false;
+//       }
+//     }
+
+//     if (
+//       filters.notFirstFloor &&
+//       property.floor !== undefined &&
+//       property.floor <= 1
+//     ) {
+//       return false;
+//     }
+
+//     if (
+//       filters.notLastFloor &&
+//       property.floor !== undefined &&
+//       property.totalFloors !== undefined &&
+//       property.floor >= property.totalFloors
+//     ) {
+//       return false;
+//     }
+//   }
+
+//   if (lotAreaMin !== null) {
+//     if (property.lotArea === undefined || property.lotArea < lotAreaMin) {
+//       return false;
+//     }
+//   }
+
+//   if (lotAreaMax !== null) {
+//     if (property.lotArea === undefined || property.lotArea > lotAreaMax) {
+//       return false;
+//     }
+//   }
+
+//   const propertyFloors =
+//     property.propertyType === "house" ? property.floors : property.totalFloors;
+
+//   if (floorsMin !== null) {
+//     if (propertyFloors === undefined || propertyFloors < floorsMin) {
+//       return false;
+//     }
+//   }
+
+//   if (floorsMax !== null) {
+//     if (propertyFloors === undefined || propertyFloors > floorsMax) {
+//       return false;
+//     }
+//   }
+
+//   if (yearBuiltFrom !== null) {
+//     if (
+//       property.yearBuilt === undefined ||
+//       property.yearBuilt < yearBuiltFrom
+//     ) {
+//       return false;
+//     }
+//   }
+
+//   if (yearBuiltTo !== null) {
+//     if (property.yearBuilt === undefined || property.yearBuilt > yearBuiltTo) {
+//       return false;
+//     }
+//   }
+
+//   if (
+//     filters.marketType.length > 0 &&
+//     (!property.marketType || !filters.marketType.includes(property.marketType))
+//   ) {
+//     return false;
+//   }
+
+//   if (
+//     filters.heating.length > 0 &&
+//     (!property.heating || !filters.heating.includes(property.heating))
+//   ) {
+//     return false;
+//   }
+
+//   if (
+//     filters.parking.length > 0 &&
+//     (!property.parking || !filters.parking.includes(property.parking))
+//   ) {
+//     return false;
+//   }
+
+//   if (
+//     filters.renovation.length > 0 &&
+//     (!property.renovation || !filters.renovation.includes(property.renovation))
+//   ) {
+//     return false;
+//   }
+
+//   if (
+//     filters.landPurpose.length > 0 &&
+//     (!property.landPurpose ||
+//       !filters.landPurpose.includes(property.landPurpose))
+//   ) {
+//     return false;
+//   }
+
+//   if (filters.documentsReady && !property.documentsReady) return false;
+//   if (filters.furnished && !property.isFurnished) return false;
+//   if (filters.petsAllowed && !property.petsAllowed) return false;
+
+//   return true;
+// }
+
 function matchesAppliedFilters(
   property: Property,
   propertyType: SupportedPropertyType,
@@ -441,12 +609,23 @@ function matchesAppliedFilters(
 
   const priceMin = filters.priceMin ? Number(filters.priceMin) : null;
   const priceMax = filters.priceMax ? Number(filters.priceMax) : null;
+
+  const pricePerSqmMin = filters.pricePerSqmMin
+    ? Number(filters.pricePerSqmMin)
+    : null;
+  const pricePerSqmMax = filters.pricePerSqmMax
+    ? Number(filters.pricePerSqmMax)
+    : null;
+
   const areaMin = filters.areaMin ? Number(filters.areaMin) : null;
   const areaMax = filters.areaMax ? Number(filters.areaMax) : null;
+
   const lotAreaMin = filters.lotAreaMin ? Number(filters.lotAreaMin) : null;
   const lotAreaMax = filters.lotAreaMax ? Number(filters.lotAreaMax) : null;
+
   const floorsMin = filters.floorsMin ? Number(filters.floorsMin) : null;
   const floorsMax = filters.floorsMax ? Number(filters.floorsMax) : null;
+
   const yearBuiltFrom = filters.yearBuiltFrom
     ? Number(filters.yearBuiltFrom)
     : null;
@@ -461,8 +640,18 @@ function matchesAppliedFilters(
 
   if (priceMin !== null && property.price < priceMin) return false;
   if (priceMax !== null && property.price > priceMax) return false;
+
   if (areaMin !== null && property.area < areaMin) return false;
   if (areaMax !== null && property.area > areaMax) return false;
+
+  if (pricePerSqmMin !== null || pricePerSqmMax !== null) {
+    if (!property.area || property.area <= 0) return false;
+
+    const pricePerSqm = property.price / property.area;
+
+    if (pricePerSqmMin !== null && pricePerSqm < pricePerSqmMin) return false;
+    if (pricePerSqmMax !== null && pricePerSqm > pricePerSqmMax) return false;
+  }
 
   if (publishedWithinDays !== null) {
     if (!property.publishedAt) return false;
@@ -470,8 +659,7 @@ function matchesAppliedFilters(
     const publishedAtMs = new Date(property.publishedAt).getTime();
     if (Number.isNaN(publishedAtMs)) return false;
 
-    const nowMs = Date.now();
-    const diffMs = nowMs - publishedAtMs;
+    const diffMs = Date.now() - publishedAtMs;
     const maxAgeMs = publishedWithinDays * 24 * 60 * 60 * 1000;
 
     if (diffMs > maxAgeMs) return false;
