@@ -35,6 +35,21 @@ type FormState = {
   lng: string;
   sellerName: string;
   sellerPhone: string;
+  marketType: "" | "new_building" | "secondary";
+  yearBuilt: string;
+  livingArea: string;
+  kitchenArea: string;
+
+  heatingType: "" | "individual" | "central" | "electric" | "solid_fuel";
+  parkingType: "" | "parking" | "underground";
+  renovationType: "" | "no_repair" | "livable" | "good" | "euro";
+
+  documentsReady: boolean;
+  petsAllowed: boolean;
+  isFurnished: boolean;
+
+  lotArea: string;
+  landPurpose: "" | "residential" | "agricultural" | "commercial";
 };
 
 const initialState: FormState = {
@@ -55,6 +70,21 @@ const initialState: FormState = {
   lng: "",
   sellerName: "",
   sellerPhone: "",
+  marketType: "",
+  yearBuilt: "",
+  livingArea: "",
+  kitchenArea: "",
+
+  heatingType: "",
+  parkingType: "",
+  renovationType: "",
+
+  documentsReady: false,
+  petsAllowed: false,
+  isFurnished: false,
+
+  lotArea: "",
+  landPurpose: "",
 };
 
 const LIMITS = {
@@ -81,51 +111,15 @@ export default function CreatePropertyForm() {
   const [user, setUser] = useState<any>(null);
   const [submitMode, setSubmitMode] = useState<"draft" | "active">("active");
 
-  // const updateField = (key: keyof FormState, value: string) => {
-  //   setForm((prev) => ({ ...prev, [key]: value }));
-  // };
-
   const updateField = (key: keyof FormState, value: string) => {
     if (isSubmitting) return;
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // const handleImagesChange = (files: FileList | null) => {
-  //   if (!files) return;
-
-  //   const incoming = Array.from(files).filter((file) =>
-  //     file.type.startsWith("image/"),
-  //   );
-
-  //   const oversized = incoming.find((file) => file.size > 5 * 1024 * 1024);
-  //   if (oversized) {
-  //     setError(`Файл "${oversized.name}" більший за 5 MB`);
-  //     return;
-  //   }
-
-  //   setImages((prev) => {
-  //     const combined = [...prev, ...incoming];
-
-  //     const deduped = combined.filter((file, index, arr) => {
-  //       return (
-  //         arr.findIndex(
-  //           (item) =>
-  //             item.name === file.name &&
-  //             item.size === file.size &&
-  //             item.lastModified === file.lastModified,
-  //         ) === index
-  //       );
-  //     });
-
-  //     if (deduped.length > 10) {
-  //       setError("Можна додати максимум 10 фото");
-  //       return deduped.slice(0, 10);
-  //     }
-
-  //     setError(null);
-  //     return deduped;
-  //   });
-  // };
+  const updateBooleanField = (key: keyof FormState, value: boolean) => {
+    if (isSubmitting) return;
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleImagesChange = (files: FileList | null) => {
     if (isSubmitting) return;
@@ -165,9 +159,6 @@ export default function CreatePropertyForm() {
     });
   };
 
-  // const removeImage = (indexToRemove: number) => {
-  //   setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
-  // };
   const removeImage = (indexToRemove: number) => {
     if (isSubmitting) return;
     setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
@@ -272,10 +263,14 @@ export default function CreatePropertyForm() {
       previews.forEach((preview) => URL.revokeObjectURL(preview.url));
     };
   }, [images]);
-
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
-      <h1 style={titleStyle}>Створити оголошення</h1>
+      <div style={{ display: "grid", gap: "6px" }}>
+        <h1 style={titleStyle}>Створити оголошення</h1>
+        <div style={hintStyle}>
+          Заповни основну інформацію про об’єкт. Перше фото стане головним.
+        </div>
+      </div>
 
       {error && <div style={errorStyle}>{error}</div>}
 
@@ -286,223 +281,384 @@ export default function CreatePropertyForm() {
           padding: 0,
           margin: 0,
           display: "grid",
-          gap: "16px",
+          gap: "18px",
           opacity: isSubmitting ? 0.75 : 1,
         }}
       >
-        <div style={gridStyle}>
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Назва</label>
+        {/* ===== Основне ===== */}
+        <section style={sectionStyle}>
+          <h2 style={sectionTitleStyle}>Основне</h2>
+
+          <label style={fieldStyle}>
+            <span style={labelStyle}>Назва</span>
             <input
               value={form.title}
               onChange={(e) => updateField("title", e.target.value)}
               maxLength={LIMITS.title}
-              disabled={isSubmitting}
+              placeholder="Напр. 2-кімнатна квартира біля парку"
               style={inputStyle}
-              placeholder="Напр. 2-кімнатна квартира в центрі"
             />
-          </div>
+            <span style={hintStyle}>
+              {form.title.length}/{LIMITS.title}
+            </span>
+          </label>
 
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Тип нерухомості</label>
-            <select
-              value={form.propertyType}
-              onChange={(e) =>
-                updateField(
-                  "propertyType",
-                  e.target.value as SupportedPropertyType,
-                )
-              }
-              style={inputStyle}
-            >
-              <option value="apartment">Квартира</option>
-              <option value="house">Будинок</option>
-              <option value="land">Земля</option>
-            </select>
-          </div>
-
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Продаж / оренда</label>
-            <select
-              value={form.dealType}
-              onChange={(e) =>
-                updateField("dealType", e.target.value as DealType)
-              }
-              style={inputStyle}
-            >
-              <option value="sale">Продаж</option>
-              <option value="rent">Оренда</option>
-            </select>
-          </div>
-
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Ціна</label>
-            <input
-              type="number"
-              value={form.price}
-              onChange={(e) => updateField("price", e.target.value)}
-              style={inputStyle}
-              placeholder="65000"
-              inputMode="numeric"
-            />
-          </div>
-
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Площа</label>
-            <input
-              type="number"
-              value={form.area}
-              onChange={(e) => updateField("area", e.target.value)}
-              style={inputStyle}
-              placeholder={isLand ? "8" : "56"}
-              inputMode="numeric"
-            />
-          </div>
-
-          {!isLand && (
-            <div style={fieldStyle}>
-              <label style={labelStyle}>Кімнати</label>
-              <input
-                type="number"
-                value={form.rooms}
-                onChange={(e) => updateField("rooms", e.target.value)}
+          <div style={gridStyle}>
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Тип об’єкта</span>
+              <select
+                value={form.propertyType}
+                onChange={(e) => updateField("propertyType", e.target.value)}
                 style={inputStyle}
-                placeholder="2"
+              >
+                <option value="apartment">Квартира</option>
+                <option value="house">Будинок</option>
+                <option value="land">Земля</option>
+                <option value="commercial">Комерція</option>
+              </select>
+            </label>
+
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Тип угоди</span>
+              <select
+                value={form.dealType}
+                onChange={(e) => updateField("dealType", e.target.value)}
+                style={inputStyle}
+              >
+                <option value="sale">Продаж</option>
+                <option value="rent">Оренда</option>
+              </select>
+            </label>
+          </div>
+
+          <div style={gridStyle}>
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Ціна</span>
+              <input
+                value={form.price}
+                onChange={(e) => updateField("price", e.target.value)}
                 inputMode="numeric"
+                placeholder="Напр. 35000"
+                style={inputStyle}
               />
+            </label>
+
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Площа, м²</span>
+              <input
+                value={form.area}
+                onChange={(e) => updateField("area", e.target.value)}
+                inputMode="decimal"
+                placeholder="Напр. 56"
+                style={inputStyle}
+              />
+            </label>
+          </div>
+
+          {form.propertyType !== "land" && (
+            <div style={gridStyle}>
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Кімнати</span>
+                <input
+                  value={form.rooms}
+                  onChange={(e) => updateField("rooms", e.target.value)}
+                  inputMode="numeric"
+                  placeholder="Напр. 2"
+                  style={inputStyle}
+                />
+              </label>
+
+              {form.propertyType === "apartment" && (
+                <label style={fieldStyle}>
+                  <span style={labelStyle}>Поверх</span>
+                  <input
+                    value={form.floor}
+                    onChange={(e) => updateField("floor", e.target.value)}
+                    inputMode="numeric"
+                    placeholder="Напр. 5"
+                    style={inputStyle}
+                  />
+                </label>
+              )}
+
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Всього поверхів</span>
+                <input
+                  value={form.totalFloors}
+                  onChange={(e) => updateField("totalFloors", e.target.value)}
+                  inputMode="numeric"
+                  placeholder="Напр. 9"
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+          )}
+        </section>
+
+        {/* ===== Деталі обʼєкта ===== */}
+        <section style={sectionStyle}>
+          <h2 style={sectionTitleStyle}>Деталі об’єкта</h2>
+
+          {(form.propertyType === "apartment" ||
+            form.propertyType === "house") && (
+            <div style={gridStyle}>
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Ринок</span>
+                <select
+                  value={form.marketType}
+                  onChange={(e) => updateField("marketType", e.target.value)}
+                  style={inputStyle}
+                >
+                  <option value="">Не вказано</option>
+                  <option value="new_building">Новобудова</option>
+                  <option value="secondary">Вторинний ринок</option>
+                </select>
+              </label>
+
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Рік будівництва</span>
+                <input
+                  value={form.yearBuilt}
+                  onChange={(e) => updateField("yearBuilt", e.target.value)}
+                  inputMode="numeric"
+                  placeholder="Напр. 2018"
+                  style={inputStyle}
+                />
+              </label>
             </div>
           )}
 
-          {isApartment && (
-            <div style={fieldStyle}>
-              <label style={labelStyle}>Поверх</label>
-              <input
-                type="number"
-                value={form.floor}
-                onChange={(e) => updateField("floor", e.target.value)}
-                style={inputStyle}
-                placeholder="5"
-                inputMode="numeric"
-              />
+          {form.propertyType === "apartment" && (
+            <div style={gridStyle}>
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Житлова площа, м²</span>
+                <input
+                  value={form.livingArea}
+                  onChange={(e) => updateField("livingArea", e.target.value)}
+                  inputMode="decimal"
+                  placeholder="Напр. 38"
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Площа кухні, м²</span>
+                <input
+                  value={form.kitchenArea}
+                  onChange={(e) => updateField("kitchenArea", e.target.value)}
+                  inputMode="decimal"
+                  placeholder="Напр. 12"
+                  style={inputStyle}
+                />
+              </label>
             </div>
           )}
 
-          {!isLand && (
-            <div style={fieldStyle}>
-              <label style={labelStyle}>Всього поверхів</label>
+          {(form.propertyType === "house" || form.propertyType === "land") && (
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Площа ділянки, соток</span>
               <input
-                type="number"
-                value={form.totalFloors}
-                onChange={(e) => updateField("totalFloors", e.target.value)}
+                value={form.lotArea}
+                onChange={(e) => updateField("lotArea", e.target.value)}
+                inputMode="decimal"
+                placeholder="Напр. 10"
                 style={inputStyle}
-                placeholder={isApartment ? "9" : "2"}
-                inputMode="numeric"
               />
-            </div>
+            </label>
           )}
 
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Місто</label>
-            <input
-              value={form.city}
-              onChange={(e) => updateField("city", e.target.value)}
-              style={inputStyle}
-              placeholder="Івано-Франківськ"
-            />
+          {form.propertyType === "land" && (
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Призначення землі</span>
+              <select
+                value={form.landPurpose}
+                onChange={(e) => updateField("landPurpose", e.target.value)}
+                style={inputStyle}
+              >
+                <option value="">Не вказано</option>
+                <option value="residential">Під житлову забудову</option>
+                <option value="agricultural">Сільськогосподарська</option>
+                <option value="commercial">Комерційна</option>
+              </select>
+            </label>
+          )}
+
+          {form.propertyType !== "land" && (
+            <>
+              <div style={gridStyle}>
+                <label style={fieldStyle}>
+                  <span style={labelStyle}>Опалення</span>
+                  <select
+                    value={form.heatingType}
+                    onChange={(e) => updateField("heatingType", e.target.value)}
+                    style={inputStyle}
+                  >
+                    <option value="">Не вказано</option>
+                    <option value="individual">Індивідуальне</option>
+                    <option value="central">Центральне</option>
+                    <option value="electric">Електричне</option>
+                    <option value="solid_fuel">Твердопаливне</option>
+                  </select>
+                </label>
+
+                <label style={fieldStyle}>
+                  <span style={labelStyle}>Ремонт</span>
+                  <select
+                    value={form.renovationType}
+                    onChange={(e) =>
+                      updateField("renovationType", e.target.value)
+                    }
+                    style={inputStyle}
+                  >
+                    <option value="">Не вказано</option>
+                    <option value="no_repair">Без ремонту</option>
+                    <option value="livable">Житловий стан</option>
+                    <option value="good">Хороший ремонт</option>
+                    <option value="euro">Євроремонт</option>
+                  </select>
+                </label>
+              </div>
+
+              <label style={fieldStyle}>
+                <span style={labelStyle}>Паркінг</span>
+                <select
+                  value={form.parkingType}
+                  onChange={(e) => updateField("parkingType", e.target.value)}
+                  style={inputStyle}
+                >
+                  <option value="">Не вказано</option>
+                  <option value="parking">Паркомісце</option>
+                  <option value="underground">Підземний паркінг</option>
+                </select>
+              </label>
+            </>
+          )}
+
+          <div style={checkboxGridStyle}>
+            <label style={checkboxStyle}>
+              <input
+                type="checkbox"
+                checked={form.documentsReady}
+                onChange={(e) =>
+                  updateBooleanField("documentsReady", e.target.checked)
+                }
+              />
+              Документи готові
+            </label>
+
+            {form.propertyType !== "land" && (
+              <label style={checkboxStyle}>
+                <input
+                  type="checkbox"
+                  checked={form.isFurnished}
+                  onChange={(e) =>
+                    updateBooleanField("isFurnished", e.target.checked)
+                  }
+                />
+                З меблями
+              </label>
+            )}
+
+            {form.dealType === "rent" && form.propertyType !== "land" && (
+              <label style={checkboxStyle}>
+                <input
+                  type="checkbox"
+                  checked={form.petsAllowed}
+                  onChange={(e) =>
+                    updateBooleanField("petsAllowed", e.target.checked)
+                  }
+                />
+                Можна з тваринами
+              </label>
+            )}
+          </div>
+        </section>
+
+        {/* ===== Адреса ===== */}
+        <section style={sectionStyle}>
+          <h2 style={sectionTitleStyle}>Адреса</h2>
+
+          <div style={gridStyle}>
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Місто</span>
+              <input
+                value={form.city}
+                onChange={(e) => updateField("city", e.target.value)}
+                maxLength={LIMITS.city}
+                placeholder="Напр. Івано-Франківськ"
+                style={inputStyle}
+              />
+            </label>
+
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Регіон</span>
+              <input
+                value={form.region}
+                onChange={(e) => updateField("region", e.target.value)}
+                maxLength={LIMITS.region}
+                placeholder="Напр. Івано-Франківська область"
+                style={inputStyle}
+              />
+            </label>
           </div>
 
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Область</label>
-            <input
-              value={form.region}
-              onChange={(e) => updateField("region", e.target.value)}
-              style={inputStyle}
-              placeholder="Івано-Франківська область"
-            />
+          <div style={gridStyle}>
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Район</span>
+              <input
+                value={form.district}
+                onChange={(e) => updateField("district", e.target.value)}
+                maxLength={LIMITS.district}
+                placeholder="Напр. Центр"
+                style={inputStyle}
+              />
+            </label>
+
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Адреса</span>
+              <input
+                value={form.addressLine}
+                onChange={(e) => updateField("addressLine", e.target.value)}
+                maxLength={LIMITS.addressLine}
+                placeholder="Вулиця, будинок"
+                style={inputStyle}
+              />
+            </label>
           </div>
 
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Район</label>
-            <input
-              value={form.district}
-              onChange={(e) => updateField("district", e.target.value)}
-              style={inputStyle}
-              placeholder="Центр"
-            />
-          </div>
+          <div style={gridStyle}>
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Широта</span>
+              <input
+                value={form.lat}
+                onChange={(e) => updateField("lat", e.target.value)}
+                inputMode="decimal"
+                placeholder="48.9226"
+                style={inputStyle}
+              />
+            </label>
 
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Адреса</label>
-            <input
-              value={form.addressLine}
-              onChange={(e) => updateField("addressLine", e.target.value)}
-              style={inputStyle}
-              placeholder="вул. Незалежності, 10"
-            />
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Довгота</span>
+              <input
+                value={form.lng}
+                onChange={(e) => updateField("lng", e.target.value)}
+                inputMode="decimal"
+                placeholder="24.7111"
+                style={inputStyle}
+              />
+            </label>
           </div>
+        </section>
 
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Ім’я продавця</label>
-            <input
-              value={form.sellerName}
-              onChange={(e) => updateField("sellerName", e.target.value)}
-              style={inputStyle}
-              placeholder="Іван"
-            />
-          </div>
+        {/* ===== Фото ===== */}
+        <section style={sectionStyle}>
+          <h2 style={sectionTitleStyle}>Фото</h2>
 
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Телефон продавця</label>
-            <input
-              value={form.sellerPhone}
-              onChange={(e) => updateField("sellerPhone", e.target.value)}
-              style={inputStyle}
-              placeholder="+380671234567"
-              inputMode="tel"
-              autoComplete="tel"
-            />
-          </div>
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Точка на мапі</label>
-          <LocationPickerMap
-            lat={form.lat ? Number(form.lat) : null}
-            lng={form.lng ? Number(form.lng) : null}
-            onPick={({ lat, lng }) => {
-              updateField("lat", String(lat));
-              updateField("lng", String(lng));
-            }}
-          />
           <div style={hintStyle}>
-            Клікни на мапі, щоб вибрати точку об’єкта.
-          </div>
-        </div>
-
-        <div style={gridStyle}>
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Latitude</label>
-            <input
-              value={form.lat}
-              readOnly
-              style={{ ...inputStyle, background: "#f8f8f8" }}
-              placeholder="Оберіть точку на мапі"
-            />
+            Додай від 1 до 10 фото. Перше фото стане головним.
           </div>
 
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Longitude</label>
-            <input
-              value={form.lng}
-              readOnly
-              style={{ ...inputStyle, background: "#f8f8f8" }}
-              placeholder="Оберіть точку на мапі"
-            />
-          </div>
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Фото оголошення</label>
           <input
             type="file"
             accept="image/*"
@@ -518,12 +674,13 @@ export default function CreatePropertyForm() {
               cursor: isSubmitting ? "not-allowed" : "pointer",
             }}
           />
-          <div style={hintStyle}>
-            Додай від 1 до 10 фото. Перше фото стане головним.
-          </div>
 
           {images.length > 0 && (
             <>
+              <div style={{ ...hintStyle, fontWeight: 700, color: "#111" }}>
+                Вибрано {images.length} з 10 фото
+              </div>
+
               <div style={imagesGridStyle}>
                 {imagePreviews.map(({ file, url }, index) => (
                   <div key={`${file.name}-${index}`} style={imageCardStyle}>
@@ -566,45 +723,61 @@ export default function CreatePropertyForm() {
               </div>
             </>
           )}
-        </div>
+        </section>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Опис</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => updateField("description", e.target.value)}
-            maxLength={LIMITS.description}
-            disabled={isSubmitting}
-            style={textareaStyle}
-            placeholder="Короткий опис об’єкта"
-          />
-          <div style={hintStyle}>
-            {form.description.length}/{LIMITS.description}
+        {/* ===== Опис ===== */}
+        <section style={sectionStyle}>
+          <h2 style={sectionTitleStyle}>Опис</h2>
+
+          <label style={fieldStyle}>
+            <span style={labelStyle}>Опис оголошення</span>
+            <textarea
+              value={form.description}
+              onChange={(e) => updateField("description", e.target.value)}
+              maxLength={LIMITS.description}
+              placeholder="Опиши об’єкт, стан, переваги, інфраструктуру..."
+              style={textareaStyle}
+            />
+            <span style={hintStyle}>
+              {form.description.length}/{LIMITS.description}
+            </span>
+          </label>
+        </section>
+
+        {/* ===== Контакти ===== */}
+        <section style={sectionStyle}>
+          <h2 style={sectionTitleStyle}>Контакти</h2>
+
+          <div style={gridStyle}>
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Ім’я продавця</span>
+              <input
+                value={form.sellerName}
+                onChange={(e) => updateField("sellerName", e.target.value)}
+                maxLength={LIMITS.sellerName}
+                placeholder="Напр. Олег"
+                style={inputStyle}
+              />
+            </label>
+
+            <label style={fieldStyle}>
+              <span style={labelStyle}>Телефон</span>
+              <input
+                value={form.sellerPhone}
+                onChange={(e) => updateField("sellerPhone", e.target.value)}
+                maxLength={LIMITS.sellerPhone}
+                type="tel"
+                inputMode="tel"
+                placeholder="+380..."
+                style={inputStyle}
+              />
+            </label>
           </div>
-        </div>
+        </section>
       </fieldset>
-      <div
-        style={{
-          display: "flex",
-          gap: "12px",
-          flexWrap: "wrap",
-        }}
-      >
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          onClick={() => setSubmitMode("draft")}
-          style={{
-            ...secondarySubmitButtonStyle,
-            opacity: isSubmitting ? 0.7 : 1,
-            cursor: isSubmitting ? "not-allowed" : "pointer",
-          }}
-        >
-          {isSubmitting && submitMode === "draft"
-            ? "Зберігаємо..."
-            : "Зберегти як чернетку"}
-        </button>
 
+      {/* ===== Кнопки ===== */}
+      <div style={gridStyle}>
         <button
           type="submit"
           disabled={isSubmitting}
@@ -618,6 +791,21 @@ export default function CreatePropertyForm() {
           {isSubmitting && submitMode === "active"
             ? "Публікуємо..."
             : "Опублікувати"}
+        </button>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          onClick={() => setSubmitMode("draft")}
+          style={{
+            ...secondarySubmitButtonStyle,
+            opacity: isSubmitting ? 0.7 : 1,
+            cursor: isSubmitting ? "not-allowed" : "pointer",
+          }}
+        >
+          {isSubmitting && submitMode === "draft"
+            ? "Зберігаємо..."
+            : "Зберегти як чернетку"}
         </button>
       </div>
     </form>
@@ -650,17 +838,6 @@ const gridStyle: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
   gap: "12px",
-};
-
-const fieldStyle: React.CSSProperties = {
-  display: "grid",
-  gap: "6px",
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: "13px",
-  fontWeight: 700,
-  color: "#222",
 };
 
 const hintStyle: React.CSSProperties = {
@@ -712,9 +889,9 @@ const textareaStyle: React.CSSProperties = {
 };
 
 const submitButtonStyle: React.CSSProperties = {
+  width: "100%",
   height: "46px",
   border: "none",
-  padding: "10px 10px",
   borderRadius: "12px",
   background: "#111",
   color: "#fff",
@@ -723,6 +900,7 @@ const submitButtonStyle: React.CSSProperties = {
 };
 
 const secondarySubmitButtonStyle: React.CSSProperties = {
+  width: "100%",
   height: "46px",
   border: "1px solid #ddd",
   borderRadius: "12px",
@@ -730,7 +908,6 @@ const secondarySubmitButtonStyle: React.CSSProperties = {
   color: "#111",
   fontSize: "15px",
   fontWeight: 700,
-  padding: "0 14px",
 };
 
 const imagesGridStyle: React.CSSProperties = {
@@ -811,4 +988,45 @@ const imageCardNameStyle: React.CSSProperties = {
 const imageCardSizeStyle: React.CSSProperties = {
   fontSize: "12px",
   color: "#777",
+};
+
+const checkboxGridStyle: React.CSSProperties = {
+  display: "grid",
+  gap: "10px",
+};
+
+const checkboxStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  fontSize: "15px",
+  fontWeight: 600,
+  color: "#222",
+};
+
+const sectionStyle: React.CSSProperties = {
+  display: "grid",
+  gap: "12px",
+  padding: "16px",
+  border: "1px solid #e5e5e5",
+  borderRadius: "16px",
+  background: "#fff",
+};
+
+const sectionTitleStyle: React.CSSProperties = {
+  fontSize: "18px",
+  fontWeight: 800,
+  color: "#111",
+  margin: 0,
+};
+
+const fieldStyle: React.CSSProperties = {
+  display: "grid",
+  gap: "6px",
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: "14px",
+  fontWeight: 700,
+  color: "#333",
 };
