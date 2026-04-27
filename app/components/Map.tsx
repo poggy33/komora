@@ -171,6 +171,9 @@ export default function Map({
   const [mobileListDragOffset, setMobileListDragOffset] = useState(0);
   const [isMobileListDragging, setIsMobileListDragging] = useState(false);
 
+  const [mobileHeaderDragOffset, setMobileHeaderDragOffset] = useState(0);
+  const [isMobileHeaderDragging, setIsMobileHeaderDragging] = useState(false);
+
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const hasHydratedMobileViewModeRef = useRef(false);
   const mobileDragStartYRef = useRef<number | null>(null);
@@ -817,20 +820,61 @@ export default function Map({
     setMobileViewMode("list");
   };
 
-  const handleMobileHeaderDragStart = (clientY: number) => {
-    mobileDragStartYRef.current = clientY;
-    mobileDragCurrentYRef.current = clientY;
+  // const handleMobileHeaderDragStart = (clientY: number) => {
+  //   mobileDragStartYRef.current = clientY;
+  //   mobileDragCurrentYRef.current = clientY;
+  //   mobileDragMovedRef.current = false;
+  // };
+  const resetMobileHeaderDrag = () => {
+    setMobileHeaderDragOffset(0);
+    setIsMobileHeaderDragging(false);
+
+    mobileDragStartYRef.current = null;
+    mobileDragCurrentYRef.current = null;
+    mobileDragStartTimeRef.current = null;
     mobileDragMovedRef.current = false;
   };
 
+  const handleMobileHeaderDragStart = (clientY: number) => {
+    mobileDragStartYRef.current = clientY;
+    mobileDragCurrentYRef.current = clientY;
+    mobileDragStartTimeRef.current = Date.now();
+    mobileDragMovedRef.current = false;
+
+    setIsMobileHeaderDragging(true);
+  };
+
+  // const handleMobileHeaderDragMove = (clientY: number) => {
+  //   if (mobileDragStartYRef.current === null) return;
+  //   mobileDragCurrentYRef.current = clientY;
+
+  //   const deltaY = clientY - mobileDragStartYRef.current;
+  //   if (Math.abs(deltaY) > 8) {
+  //     mobileDragMovedRef.current = true;
+  //   }
+  // };
+
   const handleMobileHeaderDragMove = (clientY: number) => {
     if (mobileDragStartYRef.current === null) return;
-    mobileDragCurrentYRef.current = clientY;
 
     const deltaY = clientY - mobileDragStartYRef.current;
-    if (Math.abs(deltaY) > 8) {
+
+    // swipe up only
+    if (deltaY >= 0) {
+      setMobileHeaderDragOffset(0);
+      return;
+    }
+
+    mobileDragCurrentYRef.current = clientY;
+
+    if (Math.abs(deltaY) > 6) {
       mobileDragMovedRef.current = true;
     }
+
+    const distance = Math.abs(deltaY);
+    const dampedDistance = Math.min(distance * 0.9, window.innerHeight * 0.92);
+
+    setMobileHeaderDragOffset(dampedDistance);
   };
 
   const resetMobileListDrag = () => {
@@ -842,27 +886,50 @@ export default function Map({
     mobileDragStartTimeRef.current = null;
   };
 
+  // const handleMobileHeaderDragEnd = () => {
+  //   if (
+  //     mobileDragStartYRef.current === null ||
+  //     mobileDragCurrentYRef.current === null
+  //   ) {
+  //     mobileDragStartYRef.current = null;
+  //     mobileDragCurrentYRef.current = null;
+  //     mobileDragMovedRef.current = false;
+  //     return;
+  //   }
+
+  //   const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
+
+  //   // свайп вгору
+  //   if (deltaY < -36) {
+  //     openMobileList();
+  //   }
+
+  //   mobileDragStartYRef.current = null;
+  //   mobileDragCurrentYRef.current = null;
+  //   mobileDragMovedRef.current = false;
+  // };
+
   const handleMobileHeaderDragEnd = () => {
     if (
       mobileDragStartYRef.current === null ||
-      mobileDragCurrentYRef.current === null
+      mobileDragCurrentYRef.current === null ||
+      mobileDragStartTimeRef.current === null
     ) {
-      mobileDragStartYRef.current = null;
-      mobileDragCurrentYRef.current = null;
-      mobileDragMovedRef.current = false;
+      resetMobileHeaderDrag();
       return;
     }
 
     const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
+    const deltaTime = Math.max(Date.now() - mobileDragStartTimeRef.current, 1);
+    const velocity = Math.abs(deltaY) / deltaTime;
 
-    // свайп вгору
-    if (deltaY < -36) {
+    const shouldOpen = deltaY < -70 || velocity > 0.45;
+
+    if (shouldOpen) {
       openMobileList();
     }
 
-    mobileDragStartYRef.current = null;
-    mobileDragCurrentYRef.current = null;
-    mobileDragMovedRef.current = false;
+    resetMobileHeaderDrag();
   };
 
   // const handleMobileListDragStart = (clientY: number) => {
@@ -1110,13 +1177,23 @@ export default function Map({
           inset: 0,
           background: "#fff",
           zIndex: 20,
+          // transform:
+          //   mobileViewMode === "list"
+          //     ? `translateY(${mobileListDragOffset}px)`
+          //     : undefined,
           transform:
             mobileViewMode === "list"
               ? `translateY(${mobileListDragOffset}px)`
-              : undefined,
-          transition: isMobileListDragging
-            ? "none"
-            : "transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)",
+              : isMobileHeaderDragging
+                ? `translateY(calc(100% - ${mobileHeaderDragOffset}px))`
+                : "translateY(100%)",
+          // transition: isMobileListDragging
+          //   ? "none"
+          //   : "transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)",
+          transition:
+            isMobileListDragging || isMobileHeaderDragging
+              ? "none"
+              : "transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)",
           willChange: "transform, opacity",
         }}
       >
