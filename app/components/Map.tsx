@@ -1008,17 +1008,6 @@ export default function Map({
             // height: mobileViewMode === "map" ? "90px" : "100%",
           }}
         >
-          {/* <div
-            style={{
-              width: "36px",
-              height: "4px",
-              borderRadius: "999px",
-              background: "#d4d4d4",
-              margin: "8px auto 4px",
-              flexShrink: 0,
-            }}
-          /> */}
-
           <MobileMapHeader
             count={mobileMapHeaderProperties.length}
             title={showFavoritesOnly ? "в обраному" : "оголошень"}
@@ -1063,23 +1052,26 @@ export default function Map({
           onTouchEnd={handleMobileListDragEnd}
           style={{
             width: "100%",
-            padding: "8px 0 6px",
+            minHeight: "52px",
+            padding: "12px 0 10px",
             display: "flex",
             justifyContent: "center",
+            alignItems: "flex-start",
             flexShrink: 0,
             touchAction: "none",
-            cursor: "grab",
+            cursor: isMobileListDragging ? "grabbing" : "grab",
+            boxSizing: "border-box",
           }}
         >
           <div
             style={{
-              width: isMobileListDragging ? "40px" : "34px",
-              height: "4px",
+              width: "44px",
+              height: "5px",
               borderRadius: "999px",
               background: isMobileListDragging
                 ? "rgba(17,17,17,0.22)"
-                : "rgba(17,17,17,0.14)",
-              transition: "width 0.18s ease, background 0.18s ease",
+                : "rgba(17,17,17,0.18)",
+              transition: "background 0.18s ease",
             }}
           />
         </div>
