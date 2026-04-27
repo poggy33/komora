@@ -833,6 +833,15 @@ export default function Map({
     }
   };
 
+  const resetMobileListDrag = () => {
+    setMobileListDragOffset(0);
+    setIsMobileListDragging(false);
+
+    mobileDragStartYRef.current = null;
+    mobileDragCurrentYRef.current = null;
+    mobileDragStartTimeRef.current = null;
+  };
+
   const handleMobileHeaderDragEnd = () => {
     if (
       mobileDragStartYRef.current === null ||
@@ -881,6 +890,7 @@ export default function Map({
       return;
     }
 
+    mobileDragCurrentYRef.current = clientY;
     // легкий "rubber band" ефект
     const dampedDelta = deltaY * 0.75;
     setMobileListDragOffset(dampedDelta);
@@ -921,30 +931,53 @@ export default function Map({
     mobileDragStartTimeRef.current = null;
   };
 
+  // const handleMobileListDragEnd = () => {
+  //   if (
+  //     mobileDragStartYRef.current === null ||
+  //     mobileDragCurrentYRef.current === null ||
+  //     mobileDragStartTimeRef.current === null
+  //   ) {
+  //     resetDrag();
+  //     return;
+  //   }
+
+  //   const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
+
+  //   const deltaTime = Date.now() - mobileDragStartTimeRef.current;
+
+  //   const velocity = deltaY / deltaTime; // px per ms
+
+  //   // 🔥 умови закриття (як в Airbnb)
+  //   const shouldClose = deltaY > 80 || velocity > 0.5;
+
+  //   if (shouldClose) {
+  //     setMobileViewMode("map");
+  //   }
+
+  //   resetDrag();
+  // };
+
   const handleMobileListDragEnd = () => {
     if (
       mobileDragStartYRef.current === null ||
       mobileDragCurrentYRef.current === null ||
       mobileDragStartTimeRef.current === null
     ) {
-      resetDrag();
+      resetMobileListDrag();
       return;
     }
 
     const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
+    const deltaTime = Math.max(Date.now() - mobileDragStartTimeRef.current, 1);
+    const velocity = deltaY / deltaTime;
 
-    const deltaTime = Date.now() - mobileDragStartTimeRef.current;
-
-    const velocity = deltaY / deltaTime; // px per ms
-
-    // 🔥 умови закриття (як в Airbnb)
     const shouldClose = deltaY > 80 || velocity > 0.5;
 
     if (shouldClose) {
       setMobileViewMode("map");
     }
 
-    resetDrag();
+    resetMobileListDrag();
   };
 
   if (isMobile === null) {
