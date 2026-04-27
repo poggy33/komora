@@ -149,6 +149,7 @@ export default function Map({
   const markerRefs = useRef<globalThis.Map<string, mapboxgl.Marker>>(
     new globalThis.Map(),
   );
+  const mobileDragStartTimeRef = useRef<number | null>(null);
   const searchPropertiesRef = useRef<Property[]>([]);
   const rawPropertiesRef = useRef<Property[]>([]);
   const favoriteIdsRef = useRef<string[]>([]);
@@ -855,9 +856,15 @@ export default function Map({
     mobileDragMovedRef.current = false;
   };
 
+  // const handleMobileListDragStart = (clientY: number) => {
+  //   mobileDragStartYRef.current = clientY;
+  //   mobileDragCurrentYRef.current = clientY;
+  //   setIsMobileListDragging(true);
+  // };
   const handleMobileListDragStart = (clientY: number) => {
     mobileDragStartYRef.current = clientY;
     mobileDragCurrentYRef.current = clientY;
+    mobileDragStartTimeRef.current = Date.now();
     setIsMobileListDragging(true);
   };
 
@@ -875,35 +882,69 @@ export default function Map({
     }
 
     // легкий "rubber band" ефект
-    const dampedDelta = deltaY * 0.92;
+    const dampedDelta = deltaY * 0.75;
     setMobileListDragOffset(dampedDelta);
   };
 
-  const handleMobileListDragEnd = () => {
-    if (
-      mobileDragStartYRef.current === null ||
-      mobileDragCurrentYRef.current === null
-    ) {
-      mobileDragStartYRef.current = null;
-      mobileDragCurrentYRef.current = null;
-      setIsMobileListDragging(false);
-      setMobileListDragOffset(0);
-      return;
-    }
+  // const handleMobileListDragEnd = () => {
+  //   if (
+  //     mobileDragStartYRef.current === null ||
+  //     mobileDragCurrentYRef.current === null
+  //   ) {
+  //     mobileDragStartYRef.current = null;
+  //     mobileDragCurrentYRef.current = null;
+  //     setIsMobileListDragging(false);
+  //     setMobileListDragOffset(0);
+  //     return;
+  //   }
 
-    const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
+  //   const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
 
-    // якщо добре потягнули вниз — закриваємо
-    if (deltaY > 72) {
-      setMobileViewMode("map");
-    }
+  //   // якщо добре потягнули вниз — закриваємо
+  //   if (deltaY > 72) {
+  //     setMobileViewMode("map");
+  //   }
 
-    // якщо не дотягнули — повертаємо назад
+  //   // якщо не дотягнули — повертаємо назад
+  //   setMobileListDragOffset(0);
+  //   setIsMobileListDragging(false);
+
+  //   mobileDragStartYRef.current = null;
+  //   mobileDragCurrentYRef.current = null;
+  // };
+  const resetDrag = () => {
     setMobileListDragOffset(0);
     setIsMobileListDragging(false);
 
     mobileDragStartYRef.current = null;
     mobileDragCurrentYRef.current = null;
+    mobileDragStartTimeRef.current = null;
+  };
+
+  const handleMobileListDragEnd = () => {
+    if (
+      mobileDragStartYRef.current === null ||
+      mobileDragCurrentYRef.current === null ||
+      mobileDragStartTimeRef.current === null
+    ) {
+      resetDrag();
+      return;
+    }
+
+    const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
+
+    const deltaTime = Date.now() - mobileDragStartTimeRef.current;
+
+    const velocity = deltaY / deltaTime; // px per ms
+
+    // 🔥 умови закриття (як в Airbnb)
+    const shouldClose = deltaY > 80 || velocity > 0.5;
+
+    if (shouldClose) {
+      setMobileViewMode("map");
+    }
+
+    resetDrag();
   };
 
   if (isMobile === null) {
@@ -1042,40 +1083,10 @@ export default function Map({
               : undefined,
           transition: isMobileListDragging
             ? "none"
-            : "opacity 0.25s ease, transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)",
+            : "transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)",
           willChange: "transform, opacity",
         }}
       >
-        {/* <div
-          onTouchStart={(e) => handleMobileListDragStart(e.touches[0].clientY)}
-          onTouchMove={(e) => handleMobileListDragMove(e.touches[0].clientY)}
-          onTouchEnd={handleMobileListDragEnd}
-          style={{
-            width: "100%",
-            minHeight: "52px",
-            padding: "12px 0 10px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "flex-start",
-            flexShrink: 0,
-            touchAction: "none",
-            cursor: isMobileListDragging ? "grabbing" : "grab",
-            boxSizing: "border-box",
-          }}
-        >
-          <div
-            style={{
-              width: "44px",
-              height: "5px",
-              borderRadius: "999px",
-              background: isMobileListDragging
-                ? "rgba(17,17,17,0.22)"
-                : "rgba(17,17,17,0.18)",
-              transition: "background 0.18s ease",
-            }}
-          />
-        </div> */}
-
         {/* invisible swipe zone */}
         <div
           onTouchStart={(e) => handleMobileListDragStart(e.touches[0].clientY)}
