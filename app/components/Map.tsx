@@ -1046,7 +1046,7 @@ export default function Map({
           willChange: "transform, opacity",
         }}
       >
-        <div
+        {/* <div
           onTouchStart={(e) => handleMobileListDragStart(e.touches[0].clientY)}
           onTouchMove={(e) => handleMobileListDragMove(e.touches[0].clientY)}
           onTouchEnd={handleMobileListDragEnd}
@@ -1074,7 +1074,42 @@ export default function Map({
               transition: "background 0.18s ease",
             }}
           />
-        </div>
+        </div> */}
+
+        {/* invisible swipe zone */}
+        <div
+          onTouchStart={(e) => handleMobileListDragStart(e.touches[0].clientY)}
+          onTouchMove={(e) => handleMobileListDragMove(e.touches[0].clientY)}
+          onTouchEnd={handleMobileListDragEnd}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "56px",
+            zIndex: 40,
+            touchAction: "none",
+            cursor: isMobileListDragging ? "grabbing" : "grab",
+          }}
+        />
+
+        {/* visible handle */}
+        <div
+          style={{
+            position: "absolute",
+            top: "7px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "44px",
+            height: "5px",
+            borderRadius: "999px",
+            background: isMobileListDragging
+              ? "rgba(17,17,17,0.22)"
+              : "rgba(17,17,17,0.18)",
+            zIndex: 41,
+            pointerEvents: "none",
+          }}
+        />
 
         <SidebarV2
           properties={mobileSnapshotProperties}

@@ -3,6 +3,7 @@
 import type { Property } from "../types/property";
 import SidebarShell from "./SidebarShell";
 import SidebarList from "./SidebarList";
+import LoadingPill from "@/components/ui/LoadingPill";
 
 type Props = {
   properties: Property[];
@@ -47,8 +48,18 @@ export default function SidebarV2({
       isRefreshing={isRefreshing}
       onHeaderClick={onUserInteract}
     >
-      {isBootLoading || isRefreshing ? (
+      {isBootLoading ? (
         <SidebarSkeleton />
+      ) : isRefreshing ? (
+        <div
+          style={{
+            padding: "18px",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <LoadingPill size="sm" label="" />
+        </div>
       ) : properties.length === 0 ? (
         <EmptyState isFavorites={showFavoritesOnly} />
       ) : (

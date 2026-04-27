@@ -44,7 +44,8 @@ export default function SidebarShell({
       <div
         className="sidebar-header"
         style={{
-          padding: compactHeaderOnly ? "10px 16px 12px" : "14px 16px",
+          padding: compactHeaderOnly ? "6px 16px 8px" : "22px 16px 4px",
+          minHeight: compactHeaderOnly ? "46px" : "68px",
           borderBottom: "1px solid #eee",
           background: "rgba(255,255,255,0.96)",
           backdropFilter: "blur(8px)",
@@ -55,7 +56,6 @@ export default function SidebarShell({
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          minHeight: compactHeaderOnly ? "72px" : "auto",
           boxSizing: "border-box",
           cursor: compactHeaderOnly ? "pointer" : "default",
         }}
@@ -63,55 +63,48 @@ export default function SidebarShell({
           if (compactHeaderOnly) onHeaderClick?.();
         }}
       >
-{(isBootLoading || isRefreshing) ? (
-  <>
-    <div
-      style={{
-        fontSize: compactHeaderOnly ? "13px" : "14px",
-        fontWeight: 700,
-        color: "#111",
-        marginBottom: "2px",
-        lineHeight: 1.25,
-      }}
-    >
-      Завантажуємо список...
-    </div>
+        {isBootLoading || isRefreshing ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: compactHeaderOnly ? "34px" : "40px",
+            }}
+          >
+            <LoadingPill size="sm" label="" />
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gap: "1px",
+              justifyItems: "center",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: compactHeaderOnly ? "13.5px" : "13px",
+                fontWeight: 800,
+                color: "#111",
+                lineHeight: 1.2,
+              }}
+            >
+              {count} {title}
+            </div>
 
-    <div
-      style={{
-        fontSize: compactHeaderOnly ? "11px" : "12px",
-        color: "#666",
-        lineHeight: 1.25,
-      }}
-    >
-      Оновлюємо оголошення для поточного режиму
-    </div>
-  </>
-) : (
-  <>
-    <div
-      style={{
-        fontSize: compactHeaderOnly ? "13px" : "14px",
-        fontWeight: 700,
-        color: "#111",
-        marginBottom: "2px",
-        lineHeight: 1.25,
-      }}
-    >
-      {count} {title}
-    </div>
-
-    <div
-      style={{
-        fontSize: compactHeaderOnly ? "11px" : "12px",
-        color: "#666",
-        lineHeight: 1.25,
-      }}
-    >
-      {subtitle}
-    </div>
-  </>
-)}
+            <div
+              style={{
+                fontSize: compactHeaderOnly ? "11.5px" : "11.5px",
+                color: "#666",
+                lineHeight: 1.2,
+              }}
+            >
+              {subtitle}
+            </div>
+          </div>
+        )}
       </div>
 
       {compactHeaderOnly ? null : (
