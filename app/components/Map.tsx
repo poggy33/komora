@@ -1008,7 +1008,7 @@ export default function Map({
             // height: mobileViewMode === "map" ? "90px" : "100%",
           }}
         >
-          <div
+          {/* <div
             style={{
               width: "36px",
               height: "4px",
@@ -1017,7 +1017,7 @@ export default function Map({
               margin: "8px auto 4px",
               flexShrink: 0,
             }}
-          />
+          /> */}
 
           <MobileMapHeader
             count={mobileMapHeaderProperties.length}
