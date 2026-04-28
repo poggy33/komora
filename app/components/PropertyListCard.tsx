@@ -29,7 +29,7 @@ export default function PropertyListCard({
       ? property.images
       : ["https://via.placeholder.com/600x400?text=No+image"];
 
-  const [isImageLoading, setIsImageLoading] = useState(true);
+  // const [isImageLoading, setIsImageLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [previousImageIndex, setPreviousImageIndex] = useState(0);
   const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next");
@@ -51,7 +51,7 @@ export default function PropertyListCard({
 
     window.setTimeout(() => {
       setIsTransitioningImage(false);
-    }, 280);
+    }, 420);
   };
 
   const next = () => {
@@ -123,9 +123,9 @@ export default function PropertyListCard({
     property.description?.trim() ||
     "Зручна локація, хороше планування та приваблива ціна.";
 
-  useEffect(() => {
-    setIsImageLoading(true);
-  }, [currentImageIndex]);
+  // useEffect(() => {
+  //   setIsImageLoading(true);
+  // }, [currentImageIndex]);
 
   useEffect(() => {
     setCurrentImageIndex(0);
@@ -204,7 +204,7 @@ export default function PropertyListCard({
                     : "translateX(18%)",
                 opacity: 0,
                 transition:
-                  "transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease",
+                  "transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
               }}
             />
           )}
@@ -212,7 +212,7 @@ export default function PropertyListCard({
           <img
             src={safeImages[currentImageIndex]}
             alt={property.title}
-            onLoad={() => setIsImageLoading(false)}
+            // onLoad={() => setIsImageLoading(false)}
             style={{
               position: "absolute",
               inset: 0,
@@ -222,13 +222,13 @@ export default function PropertyListCard({
               transform: isTransitioningImage
                 ? "translateX(0)"
                 : "translateX(0)",
-              opacity: isImageLoading ? 0 : 1,
+              opacity: 1,
               animation: isTransitioningImage
                 ? slideDirection === "next"
-                  ? "photoSlideInFromRight 280ms cubic-bezier(0.22, 1, 0.36, 1)"
-                  : "photoSlideInFromLeft 280ms cubic-bezier(0.22, 1, 0.36, 1)"
+                  ? "photoSlideInFromRight 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                  : "photoSlideInFromLeft 420ms cubic-bezier(0.22, 1, 0.36, 1)"
                 : undefined,
-              transition: "opacity 180ms ease",
+              transition: "opacity 260ms ease",
             }}
           />
         </div>
