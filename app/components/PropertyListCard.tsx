@@ -31,25 +31,38 @@ export default function PropertyListCard({
 
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [previousImageIndex, setPreviousImageIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next");
+  const [isTransitioningImage, setIsTransitioningImage] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
   const [didSwipe, setDidSwipe] = useState(false);
 
+  const goToImage = (nextImageIndex: number, direction: "next" | "prev") => {
+    if (nextImageIndex === currentImageIndex) return;
+
+    setPreviousImageIndex(currentImageIndex);
+    setSlideDirection(direction);
+    setCurrentImageIndex(nextImageIndex);
+    setIsTransitioningImage(true);
+
+    preloadNeighborImages(safeImages, nextImageIndex);
+
+    window.setTimeout(() => {
+      setIsTransitioningImage(false);
+    }, 280);
+  };
+
   const next = () => {
-    setCurrentImageIndex((prevIndex) => {
-      const nextIndex = (prevIndex + 1) % safeImages.length;
-      preloadNeighborImages(safeImages, nextIndex);
-      return nextIndex;
-    });
+    const nextImageIndex = (currentImageIndex + 1) % safeImages.length;
+    goToImage(nextImageIndex, "next");
   };
 
   const prev = () => {
-    setCurrentImageIndex((prevIndex) => {
-      const nextIndex = (prevIndex - 1 + safeImages.length) % safeImages.length;
-      preloadNeighborImages(safeImages, nextIndex);
-      return nextIndex;
-    });
+    const nextImageIndex =
+      (currentImageIndex - 1 + safeImages.length) % safeImages.length;
+    goToImage(nextImageIndex, "prev");
   };
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -167,19 +180,58 @@ export default function PropertyListCard({
           background: "#f3f3f3",
         }}
       >
-        <img
-          src={safeImages[currentImageIndex]}
-          alt={property.title}
-          onLoad={() => setIsImageLoading(false)}
+        <div
           style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
-            opacity: isImageLoading ? 0 : 1,
-            transition: "opacity 260ms ease",
+            position: "absolute",
+            inset: 0,
+            overflow: "hidden",
+            background: "#f3f3f3",
           }}
-        />
+        >
+          {isTransitioningImage && (
+            <img
+              src={safeImages[previousImageIndex]}
+              alt={property.title}
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform:
+                  slideDirection === "next"
+                    ? "translateX(-18%)"
+                    : "translateX(18%)",
+                opacity: 0,
+                transition:
+                  "transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease",
+              }}
+            />
+          )}
+
+          <img
+            src={safeImages[currentImageIndex]}
+            alt={property.title}
+            onLoad={() => setIsImageLoading(false)}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: isTransitioningImage
+                ? "translateX(0)"
+                : "translateX(0)",
+              opacity: isImageLoading ? 0 : 1,
+              animation: isTransitioningImage
+                ? slideDirection === "next"
+                  ? "photoSlideInFromRight 280ms cubic-bezier(0.22, 1, 0.36, 1)"
+                  : "photoSlideInFromLeft 280ms cubic-bezier(0.22, 1, 0.36, 1)"
+                : undefined,
+              transition: "opacity 180ms ease",
+            }}
+          />
+        </div>
 
         <div
           style={{
@@ -348,6 +400,29 @@ export default function PropertyListCard({
           {property.dealType === "rent" ? " / міс." : ""}
         </div>
       </div>
+      <style jsx>{`
+        @keyframes photoSlideInFromRight {
+          from {
+            transform: translateX(18%);
+            opacity: 0.92;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes photoSlideInFromLeft {
+          from {
+            transform: translateX(-18%);
+            opacity: 0.92;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </a>
   );
 }
