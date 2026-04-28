@@ -29,11 +29,13 @@ export default function PropertyListCard({
       ? property.images
       : ["https://via.placeholder.com/600x400?text=No+image"];
 
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
   const [didSwipe, setDidSwipe] = useState(false);
+
   const next = () => {
     setCurrentImageIndex((prevIndex) => {
       const nextIndex = (prevIndex + 1) % safeImages.length;
@@ -109,8 +111,13 @@ export default function PropertyListCard({
     "Зручна локація, хороше планування та приваблива ціна.";
 
   useEffect(() => {
+    setIsImageLoading(true);
+  }, [currentImageIndex]);
+
+  useEffect(() => {
     setCurrentImageIndex(0);
   }, [property.id]);
+
   return (
     <a
       href={`/property/${property.id}`}
@@ -161,16 +168,16 @@ export default function PropertyListCard({
         }}
       >
         <img
-          key={currentImageIndex}
           src={safeImages[currentImageIndex]}
           alt={property.title}
+          onLoad={() => setIsImageLoading(false)}
           style={{
             width: "100%",
             height: "100%",
             objectFit: "cover",
             display: "block",
-            transition:
-              "opacity 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1)",
+            opacity: isImageLoading ? 0 : 1,
+            transition: "opacity 260ms ease",
           }}
         />
 

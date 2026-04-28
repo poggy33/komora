@@ -1103,7 +1103,7 @@ export default function Map({
             <div
               style={{
                 position: "absolute",
-                top: 12,
+                top: 42,
                 right: 12,
                 padding: "10px 14px",
                 borderRadius: "999px",
