@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import { preloadNeighborImages } from "../../lib/preloadImage";
+import ImageNavButton from "@/components/ui/ImageNavButton";
+
 type Props = {
   images: string[];
   title: string;
@@ -14,33 +16,42 @@ export default function PropertyGallery({ images, title }: Props) {
       : ["https://via.placeholder.com/1200x700?text=No+image"];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [previousIndex, setPreviousIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next");
+  const [isTransitioningImage, setIsTransitioningImage] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const touchStartXRef = useRef<number | null>(null);
   const touchEndXRef = useRef<number | null>(null);
 
+  const goToImage = (nextIndex: number, direction: "next" | "prev") => {
+    if (nextIndex === currentIndex) return;
+
+    setPreviousIndex(currentIndex);
+    setSlideDirection(direction);
+    setCurrentIndex(nextIndex);
+    setIsTransitioningImage(true);
+
+    preloadNeighborImages(safeImages, nextIndex);
+
+    window.setTimeout(() => {
+      setIsTransitioningImage(false);
+    }, 420);
+  };
+
   const goNext = () => {
-    // setCurrentIndex((prev) => (prev + 1) % safeImages.length);
-    setCurrentIndex((prev) => {
-      const next = Math.min(prev + 1, images.length - 1);
-      preloadNeighborImages(images, next);
-      return next;
-    });
+    const nextIndex = (currentIndex + 1) % safeImages.length;
+    goToImage(nextIndex, "next");
   };
 
   const goPrev = () => {
-    // setCurrentIndex(
-    //   (prev) => (prev - 1 + safeImages.length) % safeImages.length,
-    // );
-
-    setCurrentIndex((prev) => {
-      const next = Math.max(prev - 1, 0);
-      preloadNeighborImages(images, next);
-      return next;
-    });
+    const nextIndex =
+      (currentIndex - 1 + safeImages.length) % safeImages.length;
+    goToImage(nextIndex, "prev");
   };
 
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
+  const goToSlide = (nextIndex: number) => {
+    const direction = nextIndex > currentIndex ? "next" : "prev";
+    goToImage(nextIndex, direction);
   };
 
   const openModal = (index?: number) => {
@@ -90,6 +101,10 @@ export default function PropertyGallery({ images, title }: Props) {
   }, [images]);
 
   useEffect(() => {
+    preloadNeighborImages(safeImages, currentIndex);
+  }, [safeImages, currentIndex]);
+
+  useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -131,45 +146,74 @@ export default function PropertyGallery({ images, title }: Props) {
         }}
         onClick={() => openModal(currentIndex)}
       >
-        <img
-          key={currentIndex}
-          src={safeImages[currentIndex]}
-          alt={title}
+        <div
           style={{
+            position: "relative",
             width: "100%",
             height: "520px",
-            objectFit: "cover",
-            display: "block",
-            transition:
-              "opacity 260ms cubic-bezier(0.22, 1, 0.36, 1), transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
+            overflow: "hidden",
+            background: "#f5f5f5",
           }}
-        />
+        >
+          {isTransitioningImage && (
+            <img
+              src={safeImages[previousIndex]}
+              alt={title}
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform:
+                  slideDirection === "next"
+                    ? "translateX(-12%)"
+                    : "translateX(12%)",
+                opacity: 0,
+                transition:
+                  "transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
+              }}
+            />
+          )}
+
+          <img
+            src={safeImages[currentIndex]}
+            alt={title}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              opacity: 1,
+              animation: isTransitioningImage
+                ? slideDirection === "next"
+                  ? "photoSlideInFromRight 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                  : "photoSlideInFromLeft 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                : undefined,
+            }}
+          />
+        </div>
 
         {safeImages.length > 1 && (
           <>
-            <button
-              type="button"
+            <ImageNavButton
+              direction="prev"
+              ariaLabel="Попереднє фото"
               onClick={(e) => {
                 e.stopPropagation();
                 goPrev();
               }}
-              aria-label="Попереднє фото"
-              style={navButtonLeftStyle}
-            >
-              ‹
-            </button>
+            />
 
-            <button
-              type="button"
+            <ImageNavButton
+              direction="next"
+              ariaLabel="Наступне фото"
               onClick={(e) => {
                 e.stopPropagation();
                 goNext();
               }}
-              aria-label="Наступне фото"
-              style={navButtonRightStyle}
-            >
-              ›
-            </button>
+            />
 
             <div
               style={{
@@ -256,7 +300,7 @@ export default function PropertyGallery({ images, title }: Props) {
         </div>
       )}
 
-      {isOpen && (
+      {/* {isOpen && (
         <div
           onClick={closeModal}
           style={{
@@ -278,8 +322,11 @@ export default function PropertyGallery({ images, title }: Props) {
             style={{
               width: "100%",
               maxWidth: "1200px",
-              maxHeight: "100%",
+              height: "min(78vh, 760px)",
               position: "relative",
+              display: "grid",
+              gridTemplateRows: "1fr auto auto",
+              gap: "14px",
             }}
           >
             <button
@@ -306,54 +353,81 @@ export default function PropertyGallery({ images, title }: Props) {
 
             {safeImages.length > 1 && (
               <>
-                <button
-                  type="button"
-                  onClick={goPrev}
-                  aria-label="Попереднє фото"
-                  style={{
-                    ...modalNavButtonStyle,
-                    left: "16px",
+                <ImageNavButton
+                  direction="prev"
+                  ariaLabel="Попереднє фото"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goPrev();
                   }}
-                >
-                  ‹
-                </button>
+                />
 
-                <button
-                  type="button"
-                  onClick={goNext}
-                  aria-label="Наступне фото"
-                  style={{
-                    ...modalNavButtonStyle,
-                    right: "16px",
+                <ImageNavButton
+                  direction="next"
+                  ariaLabel="Наступне фото"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goNext();
                   }}
-                >
-                  ›
-                </button>
+                />
               </>
             )}
-
-            <img
-              key={`modal-${currentIndex}`}
-              src={safeImages[currentIndex]}
-              alt={`${title} ${currentIndex + 1}`}
+            <div
               style={{
+                position: "relative",
                 width: "100%",
-                maxHeight: "80vh",
-                objectFit: "contain",
-                borderRadius: "18px",
-                display: "block",
+                minHeight: 0,
+                overflow: "hidden",
                 background: "#111",
-                transition:
-                  "opacity 260ms cubic-bezier(0.22, 1, 0.36, 1), transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
+                borderRadius: "18px",
               }}
-            />
+            >
+              {isTransitioningImage && (
+                <img
+                  src={safeImages[previousIndex]}
+                  alt={title}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    transform:
+                      slideDirection === "next"
+                        ? "translateX(-12%)"
+                        : "translateX(12%)",
+                    opacity: 0,
+                    transition:
+                      "transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
+                  }}
+                />
+              )}
+
+              <img
+                src={safeImages[currentIndex]}
+                alt={title}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  opacity: 1,
+                  animation: isTransitioningImage
+                    ? slideDirection === "next"
+                      ? "photoSlideInFromRight 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                      : "photoSlideInFromLeft 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                    : undefined,
+                }}
+              />
+            </div>
 
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginTop: "14px",
+                marginTop: 0,
                 color: "#fff",
                 gap: "16px",
                 flexWrap: "wrap",
@@ -383,7 +457,208 @@ export default function PropertyGallery({ images, title }: Props) {
                 style={{
                   display: "flex",
                   gap: "10px",
-                  marginTop: "16px",
+                  marginTop: 0,
+                  overflowX: "auto",
+                  paddingBottom: "6px",
+                }}
+              >
+                {safeImages.map((image, index) => (
+                  <button
+                    key={`modal-${image}-${index}`}
+                    type="button"
+                    onClick={() => goToSlide(index)}
+                    aria-label={`Фото ${index + 1}`}
+                    style={{
+                      border:
+                        index === currentIndex
+                          ? "2px solid #fff"
+                          : "2px solid transparent",
+                      borderRadius: "12px",
+                      padding: 0,
+                      background: "transparent",
+                      cursor: "pointer",
+                      flex: "0 0 auto",
+                      opacity: index === currentIndex ? 1 : 0.75,
+                    }}
+                  >
+                    <img
+                      src={image}
+                      alt={`${title} thumb ${index + 1}`}
+                      style={{
+                        width: "96px",
+                        height: "68px",
+                        objectFit: "cover",
+                        borderRadius: "10px",
+                        display: "block",
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )} */}
+
+      {isOpen && (
+        <div
+          onClick={closeModal}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.88)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{
+              width: "100%",
+              maxWidth: "1200px",
+              height: "min(78vh, 760px)",
+              position: "relative",
+              display: "grid",
+              gridTemplateRows: "1fr auto auto",
+              gap: "14px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={closeModal}
+              aria-label="Закрити галерею"
+              style={{
+                position: "absolute",
+                top: "-8px",
+                right: "-8px",
+                width: "44px",
+                height: "44px",
+                borderRadius: "999px",
+                border: "none",
+                background: "#fff",
+                color: "#111",
+                fontSize: "20px",
+                cursor: "pointer",
+                zIndex: 10,
+              }}
+            >
+              ✕
+            </button>
+
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                minHeight: 0,
+                overflow: "hidden",
+                background: "#111",
+                borderRadius: "18px",
+              }}
+            >
+              {safeImages.length > 1 && (
+                <>
+                  <ImageNavButton
+                    direction="prev"
+                    ariaLabel="Попереднє фото"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goPrev();
+                    }}
+                  />
+
+                  <ImageNavButton
+                    direction="next"
+                    ariaLabel="Наступне фото"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goNext();
+                    }}
+                  />
+                </>
+              )}
+
+              {isTransitioningImage && (
+                <img
+                  src={safeImages[previousIndex]}
+                  alt={title}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    transform:
+                      slideDirection === "next"
+                        ? "translateX(-12%)"
+                        : "translateX(12%)",
+                    opacity: 0,
+                    transition:
+                      "transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
+                  }}
+                />
+              )}
+
+              <img
+                src={safeImages[currentIndex]}
+                alt={title}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  opacity: 1,
+                  animation: isTransitioningImage
+                    ? slideDirection === "next"
+                      ? "photoSlideInFromRight 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                      : "photoSlideInFromLeft 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                    : undefined,
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: 0,
+                color: "#fff",
+                gap: "16px",
+                flexWrap: "wrap",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 600,
+                }}
+              >
+                {title}
+              </div>
+
+              <div
+                style={{
+                  fontSize: "14px",
+                  opacity: 0.9,
+                }}
+              >
+                {currentIndex + 1} / {safeImages.length}
+              </div>
+            </div>
+
+            {safeImages.length > 1 && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  marginTop: 0,
                   overflowX: "auto",
                   paddingBottom: "6px",
                 }}
@@ -425,6 +700,29 @@ export default function PropertyGallery({ images, title }: Props) {
           </div>
         </div>
       )}
+      <style jsx>{`
+        @keyframes photoSlideInFromRight {
+          from {
+            transform: translateX(12%);
+            opacity: 0.96;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes photoSlideInFromLeft {
+          from {
+            transform: translateX(-12%);
+            opacity: 0.96;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import type { Property } from "../types/property";
 import HeartIcon from "./ui/HeartIcon";
 import { preloadNeighborImages } from "../../lib/preloadImage";
+import ImageNavButton from "./ui/ImageNavButton";
 
 type Props = {
   property: Property;
@@ -276,39 +277,27 @@ export default function PropertyListCard({
 
         {safeImages.length > 1 && (
           <>
-            <button
-              type="button"
+            <ImageNavButton
+              direction="prev"
+              size="sm"
+              ariaLabel="Попереднє фото"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 prev();
               }}
-              aria-label="Попереднє фото"
-              className="property-list-card__nav property-list-card__nav--left"
-              style={{
-                ...cardNavButtonStyle,
-                left: "10px",
-              }}
-            >
-              &#8249;
-            </button>
+            />
 
-            <button
-              type="button"
+            <ImageNavButton
+              direction="next"
+              size="sm"
+              ariaLabel="Наступне фото"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 next();
               }}
-              aria-label="Наступне фото"
-              className="property-list-card__nav property-list-card__nav--right"
-              style={{
-                ...cardNavButtonStyle,
-                right: "10px",
-              }}
-            >
-              &#8250;
-            </button>
+            />
 
             <div
               style={{
@@ -422,23 +411,3 @@ export default function PropertyListCard({
   );
 }
 
-const cardNavButtonStyle: React.CSSProperties = {
-  position: "absolute",
-  top: "50%",
-  transform: "translateY(-50%)",
-  width: "32px",
-  height: "32px",
-  borderRadius: "999px",
-  border: "none",
-  outline: "none",
-  background: "rgba(255,255,255,0.94)",
-  color: "#111",
-  cursor: "pointer",
-  fontSize: "22px",
-  lineHeight: 1,
-  display: "grid",
-  placeItems: "center",
-  boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
-  appearance: "none",
-  WebkitAppearance: "none",
-};
