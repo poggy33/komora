@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import type { Property } from "@/types/property";
 import HeartIcon from "./ui/HeartIcon";
+import ImageNavButton from "./ui/ImageNavButton";
+import { preloadNeighborImages } from "../../lib/preloadImage";
 
 type Props = {
   property: Property | null;
@@ -19,6 +21,9 @@ export default function MobilePropertyOverlay({
   onToggleFavorite,
 }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [previousIndex, setPreviousIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next");
+  const [isTransitioningImage, setIsTransitioningImage] = useState(false);
   const touchStartXRef = useRef<number | null>(null);
   const touchEndXRef = useRef<number | null>(null);
 
@@ -53,19 +58,43 @@ export default function MobilePropertyOverlay({
     setCurrentIndex(0);
   }, [property?.id]);
 
+  useEffect(() => {
+    if (!property?.images?.length) return;
+    preloadNeighborImages(property.images, currentIndex);
+  }, [property?.images, currentIndex]);
+
   if (!property) return null;
 
   const images = property.images?.length ? property.images : [];
   const hasImages = images.length > 0;
 
+  const goToImage = (nextIndex: number, direction: "next" | "prev") => {
+    if (!hasImages || nextIndex === currentIndex) return;
+
+    setPreviousIndex(currentIndex);
+    setSlideDirection(direction);
+    setCurrentIndex(nextIndex);
+    setIsTransitioningImage(true);
+
+    preloadNeighborImages(images, nextIndex);
+
+    window.setTimeout(() => {
+      setIsTransitioningImage(false);
+    }, 420);
+  };
+
   const goPrev = () => {
     if (!hasImages) return;
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+
+    const nextIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+    goToImage(nextIndex, "prev");
   };
 
   const goNext = () => {
     if (!hasImages) return;
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+
+    const nextIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+    goToImage(nextIndex, "next");
   };
 
   const showPricePerSqm =
@@ -173,62 +202,87 @@ export default function MobilePropertyOverlay({
               background: "#f3f3f3",
             }}
           >
+            {images.length > 1 && (
+              <>
+                <ImageNavButton
+                  direction="prev"
+                  size="sm"
+                  ariaLabel="Попереднє фото"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goPrev();
+                  }}
+                />
+
+                <ImageNavButton
+                  direction="next"
+                  size="sm"
+                  ariaLabel="Наступне фото"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goNext();
+                  }}
+                />
+              </>
+            )}
+
+            {isTransitioningImage && (
+              <img
+                src={images[previousIndex]}
+                alt={`${property.title} ${previousIndex + 1}`}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  transform:
+                    slideDirection === "next"
+                      ? "translateX(-12%)"
+                      : "translateX(12%)",
+                  opacity: 0,
+                  transition:
+                    "transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
+                }}
+              />
+            )}
+
             <img
-              key={`${property.id}-${currentIndex}`}
               src={images[currentIndex]}
               alt={`${property.title} ${currentIndex + 1}`}
               style={{
+                position: "absolute",
+                inset: 0,
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
-                display: "block",
-                transition:
-                  "opacity 260ms cubic-bezier(0.22, 1, 0.36, 1), transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
+                opacity: 1,
+                animation: isTransitioningImage
+                  ? slideDirection === "next"
+                    ? "photoSlideInFromRight 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                    : "photoSlideInFromLeft 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                  : undefined,
               }}
             />
 
             {images.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={goPrev}
-                  style={{
-                    ...navButtonStyle,
-                    left: "10px",
-                  }}
-                  aria-label="Попереднє фото"
-                >
-                  ‹
-                </button>
-
-                <button
-                  type="button"
-                  onClick={goNext}
-                  style={{
-                    ...navButtonStyle,
-                    right: "10px",
-                  }}
-                  aria-label="Наступне фото"
-                >
-                  ›
-                </button>
-
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "10px",
-                    right: "10px",
-                    padding: "4px 8px",
-                    borderRadius: "999px",
-                    background: "rgba(17,17,17,0.72)",
-                    color: "#fff",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                  }}
-                >
-                  {currentIndex + 1} / {images.length}
-                </div>
-              </>
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "10px",
+                  right: "10px",
+                  padding: "4px 8px",
+                  borderRadius: "999px",
+                  background: "rgba(17,17,17,0.72)",
+                  color: "#fff",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                }}
+              >
+                {currentIndex + 1} / {images.length}
+              </div>
             )}
           </div>
         ) : (
@@ -363,6 +417,29 @@ export default function MobilePropertyOverlay({
           Відкрити оголошення
         </Link>
       </div>
+      <style jsx>{`
+        @keyframes photoSlideInFromRight {
+          from {
+            transform: translateX(12%);
+            opacity: 0.96;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes photoSlideInFromLeft {
+          from {
+            transform: translateX(-12%);
+            opacity: 0.96;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }
@@ -380,20 +457,4 @@ const chipStyle: React.CSSProperties = {
   fontWeight: 600,
 };
 
-const navButtonStyle: React.CSSProperties = {
-  position: "absolute",
-  top: "50%",
-  transform: "translateY(-50%)",
-  width: "34px",
-  height: "34px",
-  borderRadius: "999px",
-  border: "1px solid rgba(255,255,255,0.75)",
-  background: "rgba(255,255,255,0.88)",
-  color: "#111",
-  fontSize: "20px",
-  lineHeight: 1,
-  cursor: "pointer",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
+
