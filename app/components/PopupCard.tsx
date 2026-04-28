@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import type { DealType, PropertyType } from "@/types/property";
+import { useEffect, useState } from "react";
 import HeartIcon from "./ui/HeartIcon";
+import ImageNavButton from "./ui/ImageNavButton";
+import { preloadNeighborImages } from "../../lib/preloadImage";
+import type { DealType, PropertyType } from "@/types/property";
 
 type Props = {
   id: string;
@@ -30,9 +32,20 @@ export default function PopupCard({
   const safeImages =
     images?.length > 0 ? images : ["https://via.placeholder.com/400x260"];
 
-  const [index, setIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [previousImageIndex, setPreviousImageIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next");
+  const [isTransitioningImage, setIsTransitioningImage] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [id]);
+
+  useEffect(() => {
+    preloadNeighborImages(safeImages, currentImageIndex);
+  }, [safeImages, currentImageIndex]);
 
   const showPricePerSqm =
     dealType === "sale" &&
@@ -40,12 +53,31 @@ export default function PopupCard({
     area > 0;
 
   const pricePerSqm = showPricePerSqm ? Math.round(price / area) : null;
+
+  const goToImage = (nextImageIndex: number, direction: "next" | "prev") => {
+    if (nextImageIndex === currentImageIndex) return;
+
+    setPreviousImageIndex(currentImageIndex);
+    setSlideDirection(direction);
+    setCurrentImageIndex(nextImageIndex);
+    setIsTransitioningImage(true);
+
+    preloadNeighborImages(safeImages, nextImageIndex);
+
+    window.setTimeout(() => {
+      setIsTransitioningImage(false);
+    }, 420);
+  };
+
   const next = () => {
-    setIndex((prev) => (prev + 1) % safeImages.length);
+    const nextImageIndex = (currentImageIndex + 1) % safeImages.length;
+    goToImage(nextImageIndex, "next");
   };
 
   const prev = () => {
-    setIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
+    const nextImageIndex =
+      (currentImageIndex - 1 + safeImages.length) % safeImages.length;
+    goToImage(nextImageIndex, "prev");
   };
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -108,17 +140,42 @@ export default function PopupCard({
             background: "#f3f3f3",
           }}
         >
+          {isTransitioningImage && (
+            <img
+              src={safeImages[previousImageIndex]}
+              alt=""
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform:
+                  slideDirection === "next"
+                    ? "translateX(-12%)"
+                    : "translateX(12%)",
+                opacity: 0,
+                transition:
+                  "transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
+              }}
+            />
+          )}
+
           <img
-            key={index}
-            src={safeImages[index]}
+            src={safeImages[currentImageIndex]}
             alt=""
             style={{
+              position: "absolute",
+              inset: 0,
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              display: "block",
-              transition:
-                "opacity 260ms cubic-bezier(0.22, 1, 0.36, 1), transform 260ms cubic-bezier(0.22, 1, 0.36, 1)",
+              opacity: 1,
+              animation: isTransitioningImage
+                ? slideDirection === "next"
+                  ? "photoSlideInFromRight 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                  : "photoSlideInFromLeft 420ms cubic-bezier(0.22, 1, 0.36, 1)"
+                : undefined,
             }}
           />
 
@@ -141,37 +198,27 @@ export default function PopupCard({
 
           {safeImages.length > 1 && (
             <>
-              <button
-                type="button"
+              <ImageNavButton
+                direction="prev"
+                size="sm"
+                ariaLabel="Попереднє фото"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   prev();
                 }}
-                aria-label="Попереднє фото"
-                style={{
-                  ...navButtonStyle,
-                  left: "10px",
-                }}
-              >
-                &#8249;
-              </button>
+              />
 
-              <button
-                type="button"
+              <ImageNavButton
+                direction="next"
+                size="sm"
+                ariaLabel="Наступне фото"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   next();
                 }}
-                aria-label="Наступне фото"
-                style={{
-                  ...navButtonStyle,
-                  right: "10px",
-                }}
-              >
-                &#8250;
-              </button>
+              />
 
               <div
                 style={{
@@ -187,7 +234,7 @@ export default function PopupCard({
                   lineHeight: 1,
                 }}
               >
-                {index + 1} / {safeImages.length}
+                {currentImageIndex + 1} / {safeImages.length}
               </div>
             </>
           )}
@@ -198,7 +245,6 @@ export default function PopupCard({
             padding: "14px 14px 16px",
           }}
         >
-
           <div
             style={{
               display: "flex",
@@ -301,27 +347,30 @@ export default function PopupCard({
           </div>
         </div>
       </div>
+      <style jsx>{`
+        @keyframes photoSlideInFromRight {
+          from {
+            transform: translateX(12%);
+            opacity: 0.96;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes photoSlideInFromLeft {
+          from {
+            transform: translateX(-12%);
+            opacity: 0.96;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </a>
   );
 }
 
-const navButtonStyle: React.CSSProperties = {
-  position: "absolute",
-  top: "50%",
-  transform: "translateY(-50%)",
-  width: "32px",
-  height: "32px",
-  borderRadius: "999px",
-  border: "none",
-  outline: "none",
-  background: "rgba(255,255,255,0.94)",
-  color: "#111",
-  cursor: "pointer",
-  fontSize: "22px",
-  lineHeight: 1,
-  display: "grid",
-  placeItems: "center",
-  boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
-  appearance: "none",
-  WebkitAppearance: "none",
-};
