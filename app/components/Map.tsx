@@ -1168,7 +1168,7 @@ export default function Map({
       {/* LIST LAYER */}
       <div
         className={`mobile-view ${
-          mobileViewMode === "list"
+          mobileViewMode === "list" || isMobileHeaderDragging
             ? "mobile-view--visible"
             : "mobile-view--hidden"
         }`}
@@ -1177,23 +1177,17 @@ export default function Map({
           inset: 0,
           background: "#fff",
           zIndex: 20,
-          // transform:
-          //   mobileViewMode === "list"
-          //     ? `translateY(${mobileListDragOffset}px)`
-          //     : undefined,
+          opacity: mobileViewMode === "list" || isMobileHeaderDragging ? 1 : 0,
           transform:
             mobileViewMode === "list"
               ? `translateY(${mobileListDragOffset}px)`
               : isMobileHeaderDragging
                 ? `translateY(calc(100% - ${mobileHeaderDragOffset}px))`
                 : "translateY(100%)",
-          // transition: isMobileListDragging
-          //   ? "none"
-          //   : "transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)",
           transition:
             isMobileListDragging || isMobileHeaderDragging
               ? "none"
-              : "transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)",
+              : "transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease",
           willChange: "transform, opacity",
         }}
       >
