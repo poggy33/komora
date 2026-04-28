@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { Property } from "../types/property";
 import HeartIcon from "./ui/HeartIcon";
+import { preloadNeighborImages } from "../../lib/preloadImage";
 
 type Props = {
   property: Property;
@@ -28,17 +29,25 @@ export default function PropertyListCard({
       ? property.images
       : ["https://via.placeholder.com/600x400?text=No+image"];
 
-  const [index, setIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
   const [didSwipe, setDidSwipe] = useState(false);
   const next = () => {
-    setIndex((prev) => (prev + 1) % safeImages.length);
+    setCurrentImageIndex((prevIndex) => {
+      const nextIndex = (prevIndex + 1) % safeImages.length;
+      preloadNeighborImages(safeImages, nextIndex);
+      return nextIndex;
+    });
   };
 
   const prev = () => {
-    setIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
+    setCurrentImageIndex((prevIndex) => {
+      const nextIndex = (prevIndex - 1 + safeImages.length) % safeImages.length;
+      preloadNeighborImages(safeImages, nextIndex);
+      return nextIndex;
+    });
   };
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -71,6 +80,10 @@ export default function PropertyListCard({
     setTouchEndX(null);
   };
 
+  useEffect(() => {
+    preloadNeighborImages(safeImages, currentImageIndex);
+  }, [safeImages, currentImageIndex]);
+
   const typeLabel =
     property.propertyType === "apartment"
       ? "Квартира"
@@ -96,7 +109,7 @@ export default function PropertyListCard({
     "Зручна локація, хороше планування та приваблива ціна.";
 
   useEffect(() => {
-    setIndex(0);
+    setCurrentImageIndex(0);
   }, [property.id]);
   return (
     <a
@@ -148,8 +161,8 @@ export default function PropertyListCard({
         }}
       >
         <img
-          key={index}
-          src={safeImages[index]}
+          key={currentImageIndex}
+          src={safeImages[currentImageIndex]}
           alt={property.title}
           style={{
             width: "100%",
@@ -257,7 +270,7 @@ export default function PropertyListCard({
                 lineHeight: 1,
               }}
             >
-              {index + 1} / {safeImages.length}
+              {currentImageIndex + 1} / {safeImages.length}
             </div>
           </>
         )}

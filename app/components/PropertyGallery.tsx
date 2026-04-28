@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-
+import { preloadNeighborImages } from "../../lib/preloadImage";
 type Props = {
   images: string[];
   title: string;
@@ -19,13 +19,24 @@ export default function PropertyGallery({ images, title }: Props) {
   const touchEndXRef = useRef<number | null>(null);
 
   const goNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % safeImages.length);
+    // setCurrentIndex((prev) => (prev + 1) % safeImages.length);
+    setCurrentIndex((prev) => {
+      const next = Math.min(prev + 1, images.length - 1);
+      preloadNeighborImages(images, next);
+      return next;
+    });
   };
 
   const goPrev = () => {
-    setCurrentIndex(
-      (prev) => (prev - 1 + safeImages.length) % safeImages.length,
-    );
+    // setCurrentIndex(
+    //   (prev) => (prev - 1 + safeImages.length) % safeImages.length,
+    // );
+
+    setCurrentIndex((prev) => {
+      const next = Math.max(prev - 1, 0);
+      preloadNeighborImages(images, next);
+      return next;
+    });
   };
 
   const goToSlide = (index: number) => {
@@ -69,6 +80,10 @@ export default function PropertyGallery({ images, title }: Props) {
     touchStartXRef.current = null;
     touchEndXRef.current = null;
   };
+
+  useEffect(() => {
+    preloadNeighborImages(images, currentIndex);
+  }, [images, currentIndex]);
 
   useEffect(() => {
     setCurrentIndex(0);
