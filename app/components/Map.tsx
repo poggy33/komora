@@ -820,11 +820,7 @@ export default function Map({
     setMobileViewMode("list");
   };
 
-  // const handleMobileHeaderDragStart = (clientY: number) => {
-  //   mobileDragStartYRef.current = clientY;
-  //   mobileDragCurrentYRef.current = clientY;
-  //   mobileDragMovedRef.current = false;
-  // };
+
   const resetMobileHeaderDrag = () => {
     setMobileHeaderDragOffset(0);
     setIsMobileHeaderDragging(false);
@@ -844,15 +840,6 @@ export default function Map({
     setIsMobileHeaderDragging(true);
   };
 
-  // const handleMobileHeaderDragMove = (clientY: number) => {
-  //   if (mobileDragStartYRef.current === null) return;
-  //   mobileDragCurrentYRef.current = clientY;
-
-  //   const deltaY = clientY - mobileDragStartYRef.current;
-  //   if (Math.abs(deltaY) > 8) {
-  //     mobileDragMovedRef.current = true;
-  //   }
-  // };
 
   const handleMobileHeaderDragMove = (clientY: number) => {
     if (mobileDragStartYRef.current === null) return;
@@ -886,29 +873,6 @@ export default function Map({
     mobileDragStartTimeRef.current = null;
   };
 
-  // const handleMobileHeaderDragEnd = () => {
-  //   if (
-  //     mobileDragStartYRef.current === null ||
-  //     mobileDragCurrentYRef.current === null
-  //   ) {
-  //     mobileDragStartYRef.current = null;
-  //     mobileDragCurrentYRef.current = null;
-  //     mobileDragMovedRef.current = false;
-  //     return;
-  //   }
-
-  //   const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
-
-  //   // свайп вгору
-  //   if (deltaY < -36) {
-  //     openMobileList();
-  //   }
-
-  //   mobileDragStartYRef.current = null;
-  //   mobileDragCurrentYRef.current = null;
-  //   mobileDragMovedRef.current = false;
-  // };
-
   const handleMobileHeaderDragEnd = () => {
     if (
       mobileDragStartYRef.current === null ||
@@ -932,11 +896,6 @@ export default function Map({
     resetMobileHeaderDrag();
   };
 
-  // const handleMobileListDragStart = (clientY: number) => {
-  //   mobileDragStartYRef.current = clientY;
-  //   mobileDragCurrentYRef.current = clientY;
-  //   setIsMobileListDragging(true);
-  // };
   const handleMobileListDragStart = (clientY: number) => {
     mobileDragStartYRef.current = clientY;
     mobileDragCurrentYRef.current = clientY;
@@ -963,32 +922,6 @@ export default function Map({
     setMobileListDragOffset(dampedDelta);
   };
 
-  // const handleMobileListDragEnd = () => {
-  //   if (
-  //     mobileDragStartYRef.current === null ||
-  //     mobileDragCurrentYRef.current === null
-  //   ) {
-  //     mobileDragStartYRef.current = null;
-  //     mobileDragCurrentYRef.current = null;
-  //     setIsMobileListDragging(false);
-  //     setMobileListDragOffset(0);
-  //     return;
-  //   }
-
-  //   const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
-
-  //   // якщо добре потягнули вниз — закриваємо
-  //   if (deltaY > 72) {
-  //     setMobileViewMode("map");
-  //   }
-
-  //   // якщо не дотягнули — повертаємо назад
-  //   setMobileListDragOffset(0);
-  //   setIsMobileListDragging(false);
-
-  //   mobileDragStartYRef.current = null;
-  //   mobileDragCurrentYRef.current = null;
-  // };
   const resetDrag = () => {
     setMobileListDragOffset(0);
     setIsMobileListDragging(false);
@@ -997,32 +930,6 @@ export default function Map({
     mobileDragCurrentYRef.current = null;
     mobileDragStartTimeRef.current = null;
   };
-
-  // const handleMobileListDragEnd = () => {
-  //   if (
-  //     mobileDragStartYRef.current === null ||
-  //     mobileDragCurrentYRef.current === null ||
-  //     mobileDragStartTimeRef.current === null
-  //   ) {
-  //     resetDrag();
-  //     return;
-  //   }
-
-  //   const deltaY = mobileDragCurrentYRef.current - mobileDragStartYRef.current;
-
-  //   const deltaTime = Date.now() - mobileDragStartTimeRef.current;
-
-  //   const velocity = deltaY / deltaTime; // px per ms
-
-  //   // 🔥 умови закриття (як в Airbnb)
-  //   const shouldClose = deltaY > 80 || velocity > 0.5;
-
-  //   if (shouldClose) {
-  //     setMobileViewMode("map");
-  //   }
-
-  //   resetDrag();
-  // };
 
   const handleMobileListDragEnd = () => {
     if (
