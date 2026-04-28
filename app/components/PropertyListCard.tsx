@@ -123,10 +123,6 @@ export default function PropertyListCard({
     property.description?.trim() ||
     "Зручна локація, хороше планування та приваблива ціна.";
 
-  // useEffect(() => {
-  //   setIsImageLoading(true);
-  // }, [currentImageIndex]);
-
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [property.id]);
@@ -200,8 +196,8 @@ export default function PropertyListCard({
                 objectFit: "cover",
                 transform:
                   slideDirection === "next"
-                    ? "translateX(-18%)"
-                    : "translateX(18%)",
+                    ? "translateX(-12%)"
+                    : "translateX(12%)",
                 opacity: 0,
                 transition:
                   "transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease",
@@ -212,7 +208,6 @@ export default function PropertyListCard({
           <img
             src={safeImages[currentImageIndex]}
             alt={property.title}
-            // onLoad={() => setIsImageLoading(false)}
             style={{
               position: "absolute",
               inset: 0,
@@ -403,8 +398,8 @@ export default function PropertyListCard({
       <style jsx>{`
         @keyframes photoSlideInFromRight {
           from {
-            transform: translateX(18%);
-            opacity: 0.92;
+            transform: translateX(12%);
+            opacity: 0.96;
           }
           to {
             transform: translateX(0);
@@ -414,8 +409,8 @@ export default function PropertyListCard({
 
         @keyframes photoSlideInFromLeft {
           from {
-            transform: translateX(-18%);
-            opacity: 0.92;
+            transform: translateX(-12%);
+            opacity: 0.96;
           }
           to {
             transform: translateX(0);
