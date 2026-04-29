@@ -536,9 +536,15 @@ export default function Map({
         layout: {
           "text-field": ["get", "point_count_abbreviated"],
           "text-size": 14,
+          "text-allow-overlap": true,
+          "text-ignore-placement": true,
         },
         paint: {
           "text-color": "#111111",
+          "text-opacity-transition": {
+            duration: 0,
+            delay: 0,
+          },
         },
       });
 
@@ -820,7 +826,6 @@ export default function Map({
     setMobileViewMode("list");
   };
 
-
   const resetMobileHeaderDrag = () => {
     setMobileHeaderDragOffset(0);
     setIsMobileHeaderDragging(false);
@@ -839,7 +844,6 @@ export default function Map({
 
     setIsMobileHeaderDragging(true);
   };
-
 
   const handleMobileHeaderDragMove = (clientY: number) => {
     if (mobileDragStartYRef.current === null) return;

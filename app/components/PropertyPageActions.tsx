@@ -66,7 +66,6 @@ export default function PropertyPageActions({ propertyId }: Props) {
         aria-label={favorite ? "Прибрати з обраного" : "Додати в обране"}
         style={{
           ...iconButtonStyle,
-          // color: favorite ? "#e11d48" : "#111",
         }}
         onClick={() => toggleFavorite(propertyId)}
       >

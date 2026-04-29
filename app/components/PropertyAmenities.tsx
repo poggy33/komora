@@ -66,11 +66,11 @@ function buildAmenities(property: Property) {
   const items: string[] = [];
 
   if (property.renovation) {
-    items.push(capitalize(property.renovation));
+    items.push(capitalize(renovationLabel(property.renovation)));
   }
 
   if (property.heating) {
-    items.push(`${capitalize(property.heating)} опалення`);
+    items.push(`${capitalize(heatingLabel(property.heating))} опалення`);
   }
 
   if (property.yearBuilt) {
@@ -117,4 +117,34 @@ function getFloorWord(count: number) {
 function capitalize(value: string) {
   if (!value) return value;
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function renovationLabel(value: string) {
+  switch (value) {
+    case "no_repair":
+      return "без ремонту";
+    case "livable":
+      return "житловий стан";
+    case "good":
+      return "хороший стан";
+    case "euro":
+      return "євроремонт";
+    default:
+      return value;
+  }
+}
+
+function heatingLabel(value: string) {
+  switch (value) {
+    case "individual":
+      return "індивідуальне";
+    case "central":
+      return "центральне";
+    case "electric":
+      return "електричне";
+    case "solid_fuel":
+      return "твердопаливне";
+    default:
+      return value;
+  }
 }
