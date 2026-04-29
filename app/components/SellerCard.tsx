@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Property } from "../types/property";
+import ReportPropertyButton from "../components/ReportPropertyButton";
 
 type Props = {
   property: Property;
@@ -21,7 +22,8 @@ export default function SellerCard({ property }: Props) {
     return Math.round(property.price / property.area);
   }, [property.price, property.area]);
 
-  const pricePerUnitLabel = property.propertyType === "land" ? " / сот." : " / м²";
+  const pricePerUnitLabel =
+    property.propertyType === "land" ? " / сот." : " / м²";
 
   const initials = ownerName
     .split(" ")
@@ -204,54 +206,7 @@ export default function SellerCard({ property }: Props) {
         >
           {displayedPhone}
         </button>
-
-        {/* <button
-          type="button"
-          style={{
-            width: "100%",
-            padding: "14px",
-            borderRadius: "14px",
-            border: "none",
-            background: "#111",
-            color: "#fff",
-            fontSize: "16px",
-            fontWeight: 700,
-            cursor: "pointer",
-            marginBottom: "14px",
-          }}
-        >
-          Написати
-        </button> */}
-
-        <button
-          type="button"
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "12px",
-            border: "none",
-            background: "transparent",
-            color: "#666",
-            fontSize: "14px",
-            cursor: "pointer",
-            textDecoration: "underline",
-          }}
-        >
-          Поскаржитися на оголошення
-        </button>
-
-        {/* <div
-          style={{
-            marginTop: "14px",
-            paddingTop: "14px",
-            borderTop: "1px solid #f0f0f0",
-            fontSize: "12px",
-            color: "#888",
-            lineHeight: 1.5,
-          }}
-        >
-          Розміщено через платформу
-        </div> */}
+        <ReportPropertyButton propertyId={String(property.id)} />
       </div>
     </aside>
   );

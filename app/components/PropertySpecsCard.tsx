@@ -10,80 +10,80 @@ export default function PropertySpecsCard({ property }: Props) {
   const items = buildSpecs(property);
 
   return (
-  <section style={{ marginBottom: "14px" }}>
-    <h2
-      style={{
-        fontSize: "20px",
-        fontWeight: 700,
-        marginBottom: "10px",
-        color: "#111",
-        lineHeight: 1.1,
-      }}
-    >
-      Основна інформація
-    </h2>
-
-    <div
-      style={{
-        border: "1px solid #e7e7e7",
-        borderRadius: "14px",
-        background: "#fff",
-        overflow: "hidden",
-      }}
-    >
-      <div
+    <section style={{ marginBottom: "14px" }}>
+      <h2
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          fontSize: "20px",
+          fontWeight: 700,
+          marginBottom: "10px",
+          color: "#111",
+          lineHeight: 1.1,
         }}
       >
-        {items.map((item, index) => {
-          const isLeft = index % 2 === 0;
-          const isLastRow =
-            index >= items.length - (items.length % 2 === 0 ? 2 : 1);
+        Основна інформація
+      </h2>
 
-          return (
-            <div
-              key={`${item.label}-${index}`}
-              style={{
-                padding: "10px 12px",
-                borderRight: isLeft ? "1px solid #f1f1f1" : "none",
-                borderBottom: isLastRow ? "none" : "1px solid #f1f1f1",
-                minHeight: "56px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-              }}
-            >
+      <div
+        style={{
+          border: "1px solid #e7e7e7",
+          borderRadius: "14px",
+          background: "#fff",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          }}
+        >
+          {items.map((item, index) => {
+            const isLeft = index % 2 === 0;
+            const isLastRow =
+              index >= items.length - (items.length % 2 === 0 ? 2 : 1);
+
+            return (
               <div
+                key={`${item.label}-${index}`}
                 style={{
-                  fontSize: "11px",
-                  color: "#7a7a7a",
-                  marginBottom: "3px",
-                  lineHeight: 1.1,
+                  padding: "10px 12px",
+                  borderRight: isLeft ? "1px solid #f1f1f1" : "none",
+                  borderBottom: isLastRow ? "none" : "1px solid #f1f1f1",
+                  minHeight: "56px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
                 }}
               >
-                {item.label}
-              </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#7a7a7a",
+                    marginBottom: "3px",
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {item.label}
+                </div>
 
-              <div
-                style={{
-                  fontSize: "15px",
-                  fontWeight: 700,
-                  color: "#111",
-                  lineHeight: 1.15,
-                  wordBreak: "break-word",
-                }}
-              >
-                {item.value}
+                <div
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: 700,
+                    color: "#111",
+                    lineHeight: 1.15,
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {item.value}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
 }
 
 function buildSpecs(property: Property) {
@@ -144,14 +144,14 @@ function buildSpecs(property: Property) {
   if (property.renovation) {
     items.push({
       label: "Стан",
-      value: capitalize(property.renovation),
+      value: capitalize(renovationLabel(property.renovation)),
     });
   }
 
   if (property.heating) {
     items.push({
       label: "Опалення",
-      value: capitalize(property.heating),
+      value: capitalize(heatingLabel(property.heating)),
     });
   }
 
@@ -215,4 +215,34 @@ function getFloorWord(count: number) {
 function capitalize(value: string) {
   if (!value) return value;
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function renovationLabel(value: string) {
+  switch (value) {
+    case "no_repair":
+      return "без ремонту";
+    case "livable":
+      return "житловий стан";
+    case "good":
+      return "хороший стан";
+    case "euro":
+      return "євроремонт";
+    default:
+      return value;
+  }
+}
+
+function heatingLabel(value: string) {
+  switch (value) {
+    case "individual":
+      return "індивідуальне";
+    case "central":
+      return "центральне";
+    case "electric":
+      return "електричне";
+    case "solid_fuel":
+      return "твердопаливне";
+    default:
+      return value;
+  }
 }
