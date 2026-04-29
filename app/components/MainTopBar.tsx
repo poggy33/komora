@@ -39,6 +39,8 @@ export default function MainTopBar({
   const [favoritesBadgePop, setFavoritesBadgePop] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
   const { user, isAuthenticated } = useAuthUser();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -66,6 +68,15 @@ export default function MainTopBar({
     transform: "scale(1)",
     transition: "transform 0.15s ease",
   };
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+
+    check();
+    window.addEventListener("resize", check);
+
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     if (activeFiltersCount <= 0) return;
@@ -122,7 +133,6 @@ export default function MainTopBar({
       <div
         style={{
           maxWidth: "100%",
-          // padding: "10px 16px 12px",
           padding: "8px 12px 6px",
           display: "grid",
           gap: "10px",
@@ -212,14 +222,15 @@ export default function MainTopBar({
             )}
           </div>
         </div>
-
+   {/* row 2 */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "flex-start",
             gap: "6px",
-            marginTop: "-6px",
+            rowGap: "6px",
+            marginTop: "-4px",
             flexWrap: "wrap",
           }}
         >
@@ -231,8 +242,8 @@ export default function MainTopBar({
             disabled={controlsDisabled}
             style={{
               ...selectStyle,
-              minWidth: "140px",
-              width: "auto",
+              minWidth: isMobile ? "104px" : "140px",
+              width: isMobile ? "104px" : "auto",
               opacity: controlsDisabled ? 0.5 : 1,
               cursor: controlsDisabled ? "not-allowed" : "pointer",
             }}
@@ -242,6 +253,73 @@ export default function MainTopBar({
             <option value="land">Земля</option>
             <option value="commercial">Комерція</option>
           </select>
+
+          {!isMobile ? (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                background: "#f3f3f3",
+                borderRadius: "999px",
+                padding: "3px",
+                gap: "3px",
+                flexShrink: 0,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  if (controlsDisabled) return;
+                  setDealType("sale");
+                }}
+                disabled={controlsDisabled}
+                style={{
+                  ...toggleButtonStyle,
+                  background: dealType === "sale" ? "#111" : "transparent",
+                  color: dealType === "sale" ? "#fff" : "#111",
+                  opacity: controlsDisabled ? 0.5 : 1,
+                  cursor: controlsDisabled ? "not-allowed" : "pointer",
+                }}
+              >
+                Продаж
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (controlsDisabled) return;
+                  setDealType("rent");
+                }}
+                disabled={controlsDisabled}
+                style={{
+                  ...toggleButtonStyle,
+                  background: dealType === "rent" ? "#111" : "transparent",
+                  color: dealType === "rent" ? "#fff" : "#111",
+                  opacity: controlsDisabled ? 0.5 : 1,
+                  cursor: controlsDisabled ? "not-allowed" : "pointer",
+                }}
+              >
+                Оренда
+              </button>
+            </div>
+          ) : (
+            <select
+              value={dealType}
+              onChange={(e) => setDealType(e.target.value as DealType)}
+              disabled={controlsDisabled}
+              style={{
+                ...selectStyle,
+                minWidth: "92px",
+                width: "92px",
+                opacity: controlsDisabled ? 0.5 : 1,
+                cursor: controlsDisabled ? "not-allowed" : "pointer",
+                flexShrink: 0,
+              }}
+            >
+              <option value="sale">Продаж</option>
+              <option value="rent">Оренда</option>
+            </select>
+          )}
 
           <div
             style={{
@@ -329,43 +407,7 @@ export default function MainTopBar({
               padding: "3px",
               gap: "3px",
             }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                if (controlsDisabled) return;
-                setDealType("sale");
-              }}
-              disabled={controlsDisabled}
-              style={{
-                ...toggleButtonStyle,
-                background: dealType === "sale" ? "#111" : "transparent",
-                color: dealType === "sale" ? "#fff" : "#111",
-                opacity: controlsDisabled ? 0.5 : 1,
-                cursor: controlsDisabled ? "not-allowed" : "pointer",
-              }}
-            >
-              Продаж
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (controlsDisabled) return;
-                setDealType("rent");
-              }}
-              disabled={controlsDisabled}
-              style={{
-                ...toggleButtonStyle,
-                background: dealType === "rent" ? "#111" : "transparent",
-                color: dealType === "rent" ? "#fff" : "#111",
-                opacity: controlsDisabled ? 0.5 : 1,
-                cursor: controlsDisabled ? "not-allowed" : "pointer",
-              }}
-            >
-              Оренда
-            </button>
-          </div>
+          ></div>
         </div>
       </div>
     </header>
@@ -374,22 +416,23 @@ export default function MainTopBar({
 
 const selectStyle: React.CSSProperties = {
   height: "34px",
-  padding: "0 12px",
+  padding: "0 10px",
   borderRadius: "999px",
   border: "1px solid #ddd",
   background: "#fff",
-  fontSize: "13px",
+  fontSize: "12px",
   fontWeight: 600,
   color: "#111",
   outline: "none",
+  flexShrink: 0,
 };
 
 const toggleButtonStyle: React.CSSProperties = {
   height: "34px",
   border: "none",
   borderRadius: "999px",
-  padding: "0 12px",
-  fontSize: "13px",
+  padding: "0 10px",
+  fontSize: "12px",
   fontWeight: 600,
   cursor: "pointer",
   transition: "all 0.2s ease",
@@ -397,17 +440,18 @@ const toggleButtonStyle: React.CSSProperties = {
 
 const pillButtonStyle: React.CSSProperties = {
   height: "34px",
-  padding: "0 12px",
+  padding: "0 10px",
   borderRadius: "999px",
   background: "#fff",
   color: "#111",
-  fontSize: "13px",
+  fontSize: "12px",
   fontWeight: 600,
   cursor: "pointer",
   display: "inline-flex",
   alignItems: "center",
   gap: "6px",
   whiteSpace: "nowrap",
+  flexShrink: 0,
 };
 
 const userButtonStyle: React.CSSProperties = {
