@@ -120,9 +120,11 @@ export default function PropertyListCard({
           } пов.`
         : `${property.rooms ?? "—"} кімн. • ${property.area} м²`;
 
-  const description =
-    property.description?.trim() ||
-    "Зручна локація, хороше планування та приваблива ціна.";
+  const description = truncateText(
+    property.description ||
+      "Зручна локація, хороше планування та приваблива ціна.",
+    110,
+  );
 
   useEffect(() => {
     setCurrentImageIndex(0);
@@ -411,3 +413,10 @@ export default function PropertyListCard({
   );
 }
 
+function truncateText(text: string, maxLength = 130) {
+  const normalized = text.trim().replace(/\s+/g, " ");
+
+  if (normalized.length <= maxLength) return normalized;
+
+  return `${normalized.slice(0, maxLength).trim()}...`;
+}
