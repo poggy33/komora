@@ -120,6 +120,18 @@ export default function MainTopBar({
     };
   }, [isUserMenuOpen]);
 
+  if (isMobile === null) {
+    return (
+      <header
+        style={{
+          height: "88px",
+          background: "#fff",
+          borderBottom: "1px solid #eaeaea",
+        }}
+      />
+    );
+  }
+
   return (
     <header
       style={{
@@ -222,7 +234,7 @@ export default function MainTopBar({
             )}
           </div>
         </div>
-   {/* row 2 */}
+        {/* row 2 */}
         <div
           style={{
             display: "flex",
