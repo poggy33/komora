@@ -150,7 +150,7 @@ export default async function SavedPage() {
           <h1
             style={{
               margin: 0,
-              fontSize: "30px",
+              fontSize: "26px",
               fontWeight: 800,
               color: "#111",
             }}
@@ -191,158 +191,175 @@ export default async function SavedPage() {
                 gap: "14px",
               }}
             >
-              {properties.map((property) => (
-                <div
-                  key={property.id}
-                  style={{
-                    border: "1px solid #ececec",
-                    borderRadius: "18px",
-                    background: "#fff",
-                    padding: "12px",
-                    display: "grid",
-                    gap: "10px",
-                  }}
-                >
+              {properties.map((property) => {
+                const showPricePerSqm =
+                  property.dealType === "sale" &&
+                  (property.propertyType === "apartment" ||
+                    property.propertyType === "commercial") &&
+                  property.area > 0;
+
+                const pricePerSqm = showPricePerSqm
+                  ? Math.round(property.price / property.area)
+                  : null;
+
+                return (
                   <div
+                    key={property.id}
                     style={{
+                      border: "1px solid #ececec",
+                      borderRadius: "18px",
+                      background: "#fff",
+                      padding: "12px",
                       display: "grid",
-                      gridTemplateColumns: "76px minmax(0, 1fr)",
-                      gap: "12px",
-                      alignItems: "start",
+                      gap: "10px",
                     }}
                   >
                     <div
                       style={{
-                        width: "76px",
-                        height: "76px",
-                        borderRadius: "14px",
-                        overflow: "hidden",
-                        background: "#f1f1f1",
-                        border: "1px solid rgba(0,0,0,0.04)",
+                        display: "grid",
+                        gap: "10px",
                       }}
                     >
-                      {property.coverImage ? (
-                        <img
-                          src={property.coverImage}
-                          alt={property.title}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            display: "block",
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            display: "grid",
-                            placeItems: "center",
-                            color: "#999",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            textAlign: "center",
-                            padding: "6px",
-                            boxSizing: "border-box",
-                          }}
-                        >
-                          Немає фото
-                        </div>
-                      )}
-                    </div>
-
-                    <div style={{ minWidth: 0, display: "grid", gap: "6px" }}>
                       <div
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: "8px",
-                          alignItems: "flex-start",
+                          width: "100%",
+                          aspectRatio: "16 / 9",
+                          borderRadius: "16px",
+                          overflow: "hidden",
+                          background: "#f1f1f1",
+                          border: "1px solid rgba(0,0,0,0.04)",
                         }}
                       >
+                        {property.coverImage ? (
+                          <img
+                            src={property.coverImage}
+                            alt={property.title}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: "block",
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              display: "grid",
+                              placeItems: "center",
+                              color: "#999",
+                              fontSize: "11px",
+                              fontWeight: 700,
+                              textAlign: "center",
+                              padding: "6px",
+                              boxSizing: "border-box",
+                            }}
+                          >
+                            Немає фото
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ minWidth: 0, display: "grid", gap: "6px" }}>
                         <div
                           style={{
-                            fontSize: "16px",
-                            fontWeight: 800,
-                            color: "#111",
-                            lineHeight: 1.15,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            gap: "8px",
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: "16px",
+                              fontWeight: 800,
+                              color: "#111",
+                              lineHeight: 1.15,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {property.title}
+                          </div>
+
+                          <div
+                            style={{
+                              fontSize: "16px",
+                              fontWeight: 800,
+                              color: "#111",
+                              whiteSpace: "nowrap",
+                              lineHeight: 1.15,
+                            }}
+                          >
+                            ${property.price.toLocaleString()}
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            color: "#666",
+                            lineHeight: 1.25,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
                           }}
                         >
-                          {property.title}
+                          {property.location?.city}
+                          {property.location?.district
+                            ? `, ${property.location.district}`
+                            : ""}
                         </div>
 
                         <div
                           style={{
-                            fontSize: "16px",
-                            fontWeight: 800,
-                            color: "#111",
-                            whiteSpace: "nowrap",
-                            lineHeight: 1.15,
+                            display: "flex",
+                            gap: "6px",
+                            flexWrap: "wrap",
                           }}
                         >
-                          ${property.price.toLocaleString()}
+                          <span style={compactChipStyle}>
+                            {property.dealType === "sale" ? "Продаж" : "Оренда"}
+                          </span>
+
+                          <span style={compactChipStyle}>
+                            {property.propertyType === "apartment"
+                              ? "Квартира"
+                              : property.propertyType === "house"
+                                ? "Будинок"
+                                : property.propertyType === "land"
+                                  ? "Земля"
+                                  : "Комерція"}
+                          </span>
+
+                          {property.rooms ? (
+                            <span style={compactChipStyle}>
+                              {property.rooms} кімн.
+                            </span>
+                          ) : null}
+
+                          <span style={compactChipStyle}>
+                            {property.area} м²
+                          </span>
+                          {pricePerSqm !== null ? (
+                            <span style={compactChipStyle}>
+                              ${pricePerSqm.toLocaleString()}/м²
+                            </span>
+                          ) : null}
                         </div>
                       </div>
-
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          color: "#666",
-                          lineHeight: 1.25,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {property.location?.city}
-                        {property.location?.district
-                          ? `, ${property.location.district}`
-                          : ""}
-                      </div>
-
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "6px",
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <span style={compactChipStyle}>
-                          {property.dealType === "sale" ? "Продаж" : "Оренда"}
-                        </span>
-
-                        <span style={compactChipStyle}>
-                          {property.propertyType === "apartment"
-                            ? "Квартира"
-                            : property.propertyType === "house"
-                              ? "Будинок"
-                              : property.propertyType === "land"
-                                ? "Земля"
-                                : "Комерція"}
-                        </span>
-
-                        {property.rooms ? (
-                          <span style={compactChipStyle}>
-                            {property.rooms} кімн.
-                          </span>
-                        ) : null}
-
-                        <span style={compactChipStyle}>{property.area} м²</span>
-                      </div>
                     </div>
-                  </div>
 
-                  <Link
-                    href={`/property/${property.id}`}
-                    style={compactPrimaryLinkStyle}
-                  >
-                    Відкрити
-                  </Link>
-                </div>
-              ))}
+                    <Link
+                      href={`/property/${property.id}`}
+                      style={compactPrimaryLinkStyle}
+                    >
+                      Відкрити
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -365,30 +382,30 @@ const primaryLinkStyle: React.CSSProperties = {
   fontWeight: 700,
 };
 
-const chipStyle: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  height: "32px",
-  padding: "0 12px",
-  borderRadius: "999px",
-  border: "1px solid #e5e5e5",
-  background: "#fafafa",
-  color: "#111",
-  fontSize: "13px",
-  fontWeight: 600,
-};
+// const chipStyle: React.CSSProperties = {
+//   display: "inline-flex",
+//   alignItems: "center",
+//   height: "32px",
+//   padding: "0 12px",
+//   borderRadius: "999px",
+//   border: "1px solid #e5e5e5",
+//   background: "#fafafa",
+//   color: "#111",
+//   fontSize: "13px",
+//   fontWeight: 600,
+// };
 
 const compactChipStyle: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   height: "26px",
-  padding: "0 9px",
+  padding: "0 6px",
   borderRadius: "999px",
   border: "1px solid #e5e5e5",
   background: "#fff",
   color: "#111",
-  fontSize: "12px",
-  fontWeight: 700,
+  fontSize: "10px",
+  fontWeight: 600,
 };
 
 const compactPrimaryLinkStyle: React.CSSProperties = {
