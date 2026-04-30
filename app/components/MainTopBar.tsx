@@ -242,8 +242,8 @@ export default function MainTopBar({
             disabled={controlsDisabled}
             style={{
               ...selectStyle,
-              minWidth: isMobile ? "104px" : "140px",
-              width: isMobile ? "104px" : "auto",
+              minWidth: isMobile ? "96px" : "140px",
+              width: isMobile ? "96px" : "auto",
               opacity: controlsDisabled ? 0.5 : 1,
               cursor: controlsDisabled ? "not-allowed" : "pointer",
             }}
@@ -420,7 +420,7 @@ const selectStyle: React.CSSProperties = {
   borderRadius: "999px",
   border: "1px solid #ddd",
   background: "#fff",
-  fontSize: "12px",
+  fontSize: "13px",
   fontWeight: 600,
   color: "#111",
   outline: "none",
@@ -432,7 +432,7 @@ const toggleButtonStyle: React.CSSProperties = {
   border: "none",
   borderRadius: "999px",
   padding: "0 10px",
-  fontSize: "12px",
+  fontSize: "13px",
   fontWeight: 600,
   cursor: "pointer",
   transition: "all 0.2s ease",
@@ -444,7 +444,7 @@ const pillButtonStyle: React.CSSProperties = {
   borderRadius: "999px",
   background: "#fff",
   color: "#111",
-  fontSize: "12px",
+  fontSize: "13px",
   fontWeight: 600,
   cursor: "pointer",
   display: "inline-flex",
