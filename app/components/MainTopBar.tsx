@@ -449,7 +449,7 @@ const pillButtonStyle: React.CSSProperties = {
   cursor: "pointer",
   display: "inline-flex",
   alignItems: "center",
-  gap: "6px",
+  gap: "4px",
   whiteSpace: "nowrap",
   flexShrink: 0,
 };
