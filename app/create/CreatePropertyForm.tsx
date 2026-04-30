@@ -99,6 +99,11 @@ const LIMITS = {
   sellerPhone: 20,
 };
 
+const MINIMUMS = {
+  title: 10,
+  description: 80,
+};
+
 export default function CreatePropertyForm() {
   const router = useRouter();
 
@@ -113,6 +118,40 @@ export default function CreatePropertyForm() {
   const [submitMode, setSubmitMode] = useState<"draft" | "active">("active");
 
   const [reviewMessage, setReviewMessage] = useState<string | null>(null);
+
+  const [submitOverlayMode, setSubmitOverlayMode] = useState<
+    "publishing" | "review"
+  >("publishing");
+
+  const titleLength = form.title.trim().length;
+  const descriptionLength = form.description.trim().length;
+
+  const isTitleReady = titleLength >= MINIMUMS.title;
+  const isDescriptionReady = descriptionLength >= MINIMUMS.description;
+
+  const hasRequiredBaseFields =
+    isTitleReady &&
+    isDescriptionReady &&
+    form.price.trim() &&
+    form.area.trim() &&
+    form.city.trim() &&
+    form.lat.trim() &&
+    form.lng.trim() &&
+    form.sellerName.trim() &&
+    isValidPhone(form.sellerPhone);
+
+  const hasRequiredPropertyFields =
+    isLand || (form.totalFloors.trim() && (!isApartment || form.floor.trim()));
+
+  const hasRequiredPhotos = images.length >= 1;
+
+  const canPublish =
+    Boolean(hasRequiredBaseFields) &&
+    Boolean(hasRequiredPropertyFields) &&
+    hasRequiredPhotos &&
+    !isSubmitting;
+
+  const canSaveDraft = Boolean(form.title.trim()) && !isSubmitting;
 
   const updateField = (key: keyof FormState, value: string) => {
     if (isSubmitting) return;
@@ -169,6 +208,19 @@ export default function CreatePropertyForm() {
 
   const validate = () => {
     if (!form.title.trim()) return "Вкажи назву оголошення";
+
+    if (form.title.trim().length < MINIMUMS.title) {
+      return `Назва має містити щонайменше ${MINIMUMS.title} символів`;
+    }
+
+    if (submitMode === "active") {
+      if (!form.description.trim()) return "Додай опис оголошення";
+
+      if (form.description.trim().length < MINIMUMS.description) {
+        return `Опис має містити щонайменше ${MINIMUMS.description} символів`;
+      }
+    }
+
     if (!form.price.trim()) return "Вкажи ціну";
     if (!form.area.trim()) return "Вкажи площу";
     if (!form.city.trim()) return "Вкажи місто";
@@ -177,13 +229,15 @@ export default function CreatePropertyForm() {
     if (!form.sellerName.trim()) return "Вкажи ім’я продавця";
     if (!form.sellerPhone.trim()) return "Вкажи телефон продавця";
 
+    if (!isValidPhone(form.sellerPhone)) {
+      return "Телефон має містити 10–15 цифр. Можна почати з +";
+    }
+
     if (submitMode === "active" && images.length < 1) {
       return "Щоб опублікувати оголошення, додай хоча б одне фото";
     }
 
-    if (images.length > 10) {
-      return "Максимум 10 фото";
-    }
+    if (images.length > 10) return "Максимум 10 фото";
 
     if (!isLand && !form.totalFloors.trim()) {
       return "Вкажи кількість поверхів";
@@ -205,8 +259,11 @@ export default function CreatePropertyForm() {
       return;
     }
 
+    let shouldKeepOverlay = false;
+
     try {
       setIsSubmitting(true);
+      setSubmitOverlayMode("publishing");
       setError(null);
 
       const createResult = await createPropertyInSupabase({
@@ -264,9 +321,13 @@ export default function CreatePropertyForm() {
       }
 
       if (propertyStatus === "pending_review") {
-        setReviewMessage(
-          "Оголошення створено, але воно відправлене на перевірку. Після перевірки воно зʼявиться на карті.",
-        );
+        shouldKeepOverlay = true;
+        setSubmitOverlayMode("review");
+
+        window.setTimeout(() => {
+          router.replace("/");
+        }, 2200);
+
         return;
       }
 
@@ -286,7 +347,9 @@ export default function CreatePropertyForm() {
 
       setError("Не вдалося створити оголошення");
     } finally {
-      setIsSubmitting(false);
+      if (!shouldKeepOverlay) {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -306,6 +369,7 @@ export default function CreatePropertyForm() {
       previews.forEach((preview) => URL.revokeObjectURL(preview.url));
     };
   }, [images]);
+
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
       <ClosePageButton />
@@ -317,6 +381,42 @@ export default function CreatePropertyForm() {
       </div>
 
       {error && <div style={errorStyle}>{error}</div>}
+
+      {reviewMessage && (
+        <div
+          style={{
+            padding: "14px",
+            borderRadius: "16px",
+            background: "#fff7ed",
+            color: "#9a3412",
+            border: "1px solid #fed7aa",
+            display: "grid",
+            gap: "10px",
+            fontSize: "14px",
+            lineHeight: 1.45,
+            fontWeight: 600,
+          }}
+        >
+          <div>{reviewMessage}</div>
+
+          <button
+            type="button"
+            onClick={() => router.replace("/my")}
+            style={{
+              height: "40px",
+              borderRadius: "12px",
+              border: "none",
+              background: "#111",
+              color: "#fff",
+              fontSize: "14px",
+              fontWeight: 800,
+              cursor: "pointer",
+            }}
+          >
+            Перейти до моїх оголошень
+          </button>
+        </div>
+      )}
 
       <fieldset
         disabled={isSubmitting}
@@ -334,7 +434,9 @@ export default function CreatePropertyForm() {
           <h2 style={sectionTitleStyle}>Основне</h2>
 
           <label style={fieldStyle}>
-            <span style={labelStyle}>Назва</span>
+            <span style={labelStyle}>
+              Назва <RequiredBadge />
+            </span>
             <input
               value={form.title}
               onChange={(e) => updateField("title", e.target.value)}
@@ -342,8 +444,16 @@ export default function CreatePropertyForm() {
               placeholder="Напр. 2-кімнатна квартира біля парку"
               style={inputStyle}
             />
-            <span style={hintStyle}>
-              {form.title.length}/{LIMITS.title}
+            <span
+              style={{
+                ...hintStyle,
+                color: getTextProgressColor(titleLength, MINIMUMS.title),
+                fontWeight: titleLength > 0 ? 700 : 400,
+              }}
+            >
+              {titleLength < MINIMUMS.title
+                ? `Ще ${MINIMUMS.title - titleLength} символів для публікації`
+                : `Добре · ${titleLength}/${LIMITS.title}`}
             </span>
           </label>
 
@@ -377,7 +487,10 @@ export default function CreatePropertyForm() {
 
           <div style={gridStyle}>
             <label style={fieldStyle}>
-              <span style={labelStyle}>Ціна</span>
+              <span style={labelStyle}>
+                {" "}
+                Ціна <RequiredBadge />
+              </span>
               <input
                 value={form.price}
                 onChange={(e) => updateField("price", e.target.value)}
@@ -388,7 +501,9 @@ export default function CreatePropertyForm() {
             </label>
 
             <label style={fieldStyle}>
-              <span style={labelStyle}>Площа, м²</span>
+              <span style={labelStyle}>
+                Площа, м² <RequiredBadge />
+              </span>
               <input
                 value={form.area}
                 onChange={(e) => updateField("area", e.target.value)}
@@ -402,7 +517,9 @@ export default function CreatePropertyForm() {
           {form.propertyType !== "land" && (
             <div style={gridStyle}>
               <label style={fieldStyle}>
-                <span style={labelStyle}>Кімнати</span>
+                <span style={labelStyle}>
+                  Кімнати <RequiredBadge />
+                </span>
                 <input
                   value={form.rooms}
                   onChange={(e) => updateField("rooms", e.target.value)}
@@ -414,7 +531,9 @@ export default function CreatePropertyForm() {
 
               {form.propertyType === "apartment" && (
                 <label style={fieldStyle}>
-                  <span style={labelStyle}>Поверх</span>
+                  <span style={labelStyle}>
+                    Поверх <RequiredBadge />
+                  </span>
                   <input
                     value={form.floor}
                     onChange={(e) => updateField("floor", e.target.value)}
@@ -426,7 +545,9 @@ export default function CreatePropertyForm() {
               )}
 
               <label style={fieldStyle}>
-                <span style={labelStyle}>Всього поверхів</span>
+                <span style={labelStyle}>
+                  Всього поверхів <RequiredBadge />
+                </span>
                 <input
                   value={form.totalFloors}
                   onChange={(e) => updateField("totalFloors", e.target.value)}
@@ -447,7 +568,9 @@ export default function CreatePropertyForm() {
             form.propertyType === "house") && (
             <div style={gridStyle}>
               <label style={fieldStyle}>
-                <span style={labelStyle}>Ринок</span>
+                <span style={labelStyle}>
+                  Тип <RequiredBadge />
+                </span>
                 <select
                   value={form.marketType}
                   onChange={(e) => updateField("marketType", e.target.value)}
@@ -624,7 +747,9 @@ export default function CreatePropertyForm() {
 
           <div style={gridStyle}>
             <label style={fieldStyle}>
-              <span style={labelStyle}>Місто</span>
+              <span style={labelStyle}>
+                Місто <RequiredBadge />
+              </span>
               <input
                 value={form.city}
                 onChange={(e) => updateField("city", e.target.value)}
@@ -679,6 +804,7 @@ export default function CreatePropertyForm() {
                 inputMode="decimal"
                 placeholder="48.9226"
                 style={inputStyle}
+                readOnly
               />
             </label>
 
@@ -690,6 +816,7 @@ export default function CreatePropertyForm() {
                 inputMode="decimal"
                 placeholder="24.7111"
                 style={inputStyle}
+                readOnly
               />
             </label>
           </div>
@@ -725,6 +852,11 @@ export default function CreatePropertyForm() {
 
           <div style={hintStyle}>
             Додай від 1 до 10 фото. Перше фото стане головним.
+          </div>
+          <div style={images.length > 0 ? successHintStyle : warningHintStyle}>
+            {images.length > 0
+              ? `Фото додано: ${images.length}/10`
+              : "Хоча б 1 фото"}
           </div>
 
           <input
@@ -795,10 +927,12 @@ export default function CreatePropertyForm() {
 
         {/* ===== Опис ===== */}
         <section style={sectionStyle}>
-          <h2 style={sectionTitleStyle}>Опис</h2>
+          <h2 style={sectionTitleStyle}>Опис </h2>
 
           <label style={fieldStyle}>
-            <span style={labelStyle}>Опис оголошення</span>
+            <span style={labelStyle}>
+              Опис оголошення <RequiredBadge />
+            </span>
             <textarea
               value={form.description}
               onChange={(e) => updateField("description", e.target.value)}
@@ -806,8 +940,19 @@ export default function CreatePropertyForm() {
               placeholder="Опиши об’єкт, стан, переваги, інфраструктуру..."
               style={textareaStyle}
             />
-            <span style={hintStyle}>
-              {form.description.length}/{LIMITS.description}
+            <span
+              style={{
+                ...hintStyle,
+                color: getTextProgressColor(
+                  descriptionLength,
+                  MINIMUMS.description,
+                ),
+                fontWeight: descriptionLength > 0 ? 700 : 400,
+              }}
+            >
+              {descriptionLength < MINIMUMS.description
+                ? `Ще ${MINIMUMS.description - descriptionLength} символів. Додай стан, переваги, інфраструктуру.`
+                : `Опис достатній · ${descriptionLength}/${LIMITS.description}`}
             </span>
           </label>
         </section>
@@ -818,7 +963,9 @@ export default function CreatePropertyForm() {
 
           <div style={gridStyle}>
             <label style={fieldStyle}>
-              <span style={labelStyle}>Ім’я продавця</span>
+              <span style={labelStyle}>
+                Ім’я продавця <RequiredBadge />
+              </span>
               <input
                 value={form.sellerName}
                 onChange={(e) => updateField("sellerName", e.target.value)}
@@ -829,7 +976,9 @@ export default function CreatePropertyForm() {
             </label>
 
             <label style={fieldStyle}>
-              <span style={labelStyle}>Телефон</span>
+              <span style={labelStyle}>
+                Телефон <RequiredBadge />
+              </span>
               <input
                 value={form.sellerPhone}
                 onChange={(e) => updateField("sellerPhone", e.target.value)}
@@ -839,6 +988,21 @@ export default function CreatePropertyForm() {
                 placeholder="+380..."
                 style={inputStyle}
               />
+              <span
+                style={
+                  !form.sellerPhone.trim()
+                    ? hintStyle
+                    : isValidPhone(form.sellerPhone)
+                      ? successHintStyle
+                      : warningHintStyle
+                }
+              >
+                {/* {!form.sellerPhone.trim()
+                  ? "Напр. +380671112233"
+                  : isValidPhone(form.sellerPhone)
+                    ? "Телефон виглядає коректно"
+                    : "Використовуй тільки цифри або + на початку"} */}
+              </span>
             </label>
           </div>
         </section>
@@ -848,12 +1012,12 @@ export default function CreatePropertyForm() {
       <div style={gridStyle}>
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={!canPublish}
           onClick={() => setSubmitMode("active")}
           style={{
             ...submitButtonStyle,
-            opacity: isSubmitting ? 0.7 : 1,
-            cursor: isSubmitting ? "not-allowed" : "pointer",
+            opacity: canPublish ? 1 : 0.45,
+            cursor: canPublish ? "pointer" : "not-allowed",
           }}
         >
           {isSubmitting && submitMode === "active"
@@ -863,12 +1027,12 @@ export default function CreatePropertyForm() {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={!canSaveDraft}
           onClick={() => setSubmitMode("draft")}
           style={{
             ...secondarySubmitButtonStyle,
-            opacity: isSubmitting ? 0.7 : 1,
-            cursor: isSubmitting ? "not-allowed" : "pointer",
+            opacity: canSaveDraft ? 1 : 0.45,
+            cursor: canSaveDraft ? "pointer" : "not-allowed",
           }}
         >
           {isSubmitting && submitMode === "draft"
@@ -876,8 +1040,176 @@ export default function CreatePropertyForm() {
             : "Зберегти як чернетку"}
         </button>
       </div>
+      {!canPublish && (
+        <div
+          style={{
+            fontSize: "13px",
+            color: "#666",
+            lineHeight: 1.45,
+            textAlign: "center",
+          }}
+        >
+          Щоб опублікувати, заповни обовʼязкові поля, додай опис і хоча б одне
+          фото.
+        </div>
+      )}
+
+      {isSubmitting && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(255,255,255,0.86)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            display: "grid",
+            placeItems: "center",
+            padding: "24px",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "360px",
+              borderRadius: "24px",
+              background: "#fff",
+              border: "1px solid rgba(17,17,17,0.08)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.14)",
+              padding: "28px 24px",
+              display: "grid",
+              gap: "16px",
+              justifyItems: "center",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                width: "54px",
+                height: "54px",
+                borderRadius: "999px",
+                background: "#111",
+                color: "#fff",
+                display: "grid",
+                placeItems: "center",
+                fontSize: "24px",
+                animation: "publishPulse 1.15s ease-in-out infinite",
+              }}
+            >
+              {submitOverlayMode === "review" ? "✓" : "↑"}
+            </div>
+
+            <div style={{ display: "grid", gap: "6px" }}>
+              <div
+                style={{
+                  fontSize: "19px",
+                  fontWeight: 800,
+                  color: "#111",
+                }}
+              >
+                {submitOverlayMode === "review"
+                  ? "Оголошення відправлено на перевірку"
+                  : submitMode === "draft"
+                    ? "Зберігаємо чернетку"
+                    : "Публікуємо оголошення"}
+              </div>
+
+              <div
+                style={{
+                  fontSize: "14px",
+                  color: "#666",
+                  lineHeight: 1.5,
+                }}
+              >
+                {submitOverlayMode === "review"
+                  ? "Ми перевіримо оголошення. Після схвалення воно зʼявиться на карті."
+                  : "Завантажуємо фото та перевіряємо дані. Це може тривати кілька секунд."}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "6px",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "18px",
+              }}
+            >
+              {[0, 1, 2].map((item) => (
+                <span
+                  key={item}
+                  style={{
+                    width: "7px",
+                    height: "7px",
+                    borderRadius: "999px",
+                    background: "#111",
+                    opacity: 0.35,
+                    animation: "publishDot 1s ease-in-out infinite",
+                    animationDelay: `${item * 0.14}s`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <style jsx>{`
+            @keyframes publishPulse {
+              0%,
+              100% {
+                transform: scale(1);
+                opacity: 1;
+              }
+              50% {
+                transform: scale(1.08);
+                opacity: 0.82;
+              }
+            }
+
+            @keyframes publishDot {
+              0%,
+              80%,
+              100% {
+                transform: translateY(0);
+                opacity: 0.35;
+              }
+              40% {
+                transform: translateY(-4px);
+                opacity: 1;
+              }
+            }
+          `}</style>
+        </div>
+      )}
     </form>
   );
+}
+
+function RequiredBadge() {
+  return (
+    <span
+      style={{
+        marginLeft: "6px",
+        padding: "2px 7px",
+        borderRadius: "999px",
+        background: "#fff1f2",
+        color: "#be123c",
+        fontSize: "11px",
+        fontWeight: 800,
+        verticalAlign: "middle",
+      }}
+    >
+      Обовʼязково
+    </span>
+  );
+}
+
+function isValidPhone(value: string) {
+  const normalized = value.trim();
+
+  if (!normalized) return false;
+
+  return /^\+?\d{10,15}$/.test(normalized);
 }
 
 const errorStyle: React.CSSProperties = {
@@ -1102,4 +1434,30 @@ const labelStyle: React.CSSProperties = {
 const mapPickerWrapStyle: React.CSSProperties = {
   display: "grid",
   gap: "10px",
+};
+
+const getTextProgressColor = (current: number, min: number) => {
+  if (current === 0) return "#777";
+  if (current < min) return "#dc2626";
+  return "#16a34a";
+};
+
+const successHintStyle: React.CSSProperties = {
+  color: "#16a34a",
+  fontWeight: 700,
+  marginLeft: "6px",
+  padding: "2px 7px",
+  borderRadius: "999px",
+  fontSize: "11px",
+  verticalAlign: "middle",
+};
+
+const warningHintStyle: React.CSSProperties = {
+  color: "#dc2626",
+  fontWeight: 700,
+  marginLeft: "6px",
+  padding: "2px 7px",
+  borderRadius: "999px",
+  fontSize: "11px",
+  verticalAlign: "middle",
 };
