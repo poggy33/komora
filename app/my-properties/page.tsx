@@ -137,17 +137,7 @@ export default async function MyPropertiesPage() {
     if (items.length === 0) return null;
 
     return (
-      <section
-        style={{
-          display: "grid",
-          gap: "14px",
-        }}
-      >
-
-<ClosePageButton />
-
-
-
+      <section style={{ display: "grid", gap: "14px" }}>
         <div
           style={{
             display: "flex",
@@ -160,7 +150,7 @@ export default async function MyPropertiesPage() {
           <h2
             style={{
               margin: 0,
-              fontSize: "22px",
+              fontSize: "18px",
               fontWeight: 800,
               color: "#111",
             }}
@@ -187,53 +177,61 @@ export default async function MyPropertiesPage() {
           </span>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gap: "14px",
-          }}
-        >
+        <div style={{ display: "grid", gap: "14px" }}>
           {items.map((property) => (
             <div
               key={property.id}
+              className="my-property-card"
               style={{
-                border: "1px solid #ececec",
-                borderRadius: "18px",
                 background: getCardBackground(property.status),
-                padding: "12px",
-                display: "grid",
-                gap: "10px",
               }}
             >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "76px minmax(0, 1fr)",
-                  gap: "12px",
-                  alignItems: "start",
-                }}
-              >
+              <div className="my-property-card-main">
                 <div
-                  style={{
-                    width: "76px",
-                    height: "76px",
-                    borderRadius: "14px",
-                    overflow: "hidden",
-                    background: "#f1f1f1",
-                    border: "1px solid rgba(0,0,0,0.04)",
-                  }}
+                  className="my-property-image"
+                  style={{ position: "relative" }}
                 >
                   {property.coverImage ? (
-                    <img
-                      src={property.coverImage}
-                      alt={property.title}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
-                    />
+                    <>
+                      <img
+                        src={property.coverImage}
+                        alt={property.title}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                      />
+
+                      {/* STATUS */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "6px",
+                          left: "6px",
+                          padding: "2px 7px",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          backdropFilter: "blur(6px)",
+                          WebkitBackdropFilter: "blur(6px)",
+                          background:
+                            property.status === "archived"
+                              ? "rgba(243,244,246,0.9)"
+                              : property.status === "draft"
+                                ? "rgba(255,247,237,0.9)"
+                                : property.status === "pending_review"
+                                  ? "rgba(239,246,255,0.9)"
+                                  : "rgba(236,253,243,0.9)",
+                          color: "#111",
+                          border: "1px solid rgba(0,0,0,0.06)",
+                          lineHeight: 1,
+                        }}
+                      >
+                        {getStatusLabel(property.status)}
+                      </div>
+                    </>
                   ) : (
                     <div
                       style={{
@@ -251,31 +249,28 @@ export default async function MyPropertiesPage() {
                   )}
                 </div>
 
-                <div style={{ minWidth: 0, display: "grid", gap: "6px" }}>
+                <div style={{ minWidth: 0, display: "grid", gap: "7px" }}>
                   <div
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      gap: "8px",
+                      gap: "10px",
                       alignItems: "flex-start",
                     }}
                   >
                     <div
                       style={{
-                        fontSize: "16px",
-                        fontWeight: 800,
-                        color: "#111",
-                        lineHeight: 1.15,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        minWidth: 0,
+                        display: "grid",
+                        gap: "5px",
                       }}
                     >
-                      {property.title}
+                      <div className="my-property-title">{property.title}</div>
                     </div>
 
                     <div
                       style={{
-                        fontSize: "16px",
+                        fontSize: "15px",
                         fontWeight: 800,
                         color: "#111",
                         whiteSpace: "nowrap",
@@ -305,14 +300,10 @@ export default async function MyPropertiesPage() {
                   <div
                     style={{
                       display: "flex",
-                      gap: "6px",
+                      gap: "4px",
                       flexWrap: "wrap",
                     }}
                   >
-                    <span style={statusChipStyle(property.status)}>
-                      {getStatusLabel(property.status)}
-                    </span>
-
                     <span style={compactChipStyle}>
                       {property.dealType === "sale" ? "Продаж" : "Оренда"}
                     </span>
@@ -338,13 +329,7 @@ export default async function MyPropertiesPage() {
                 </div>
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "8px",
-                }}
-              >
+              <div className="my-property-actions">
                 {property.status === "active" ? (
                   <Link
                     href={`/property/${property.id}`}
@@ -405,50 +390,23 @@ export default async function MyPropertiesPage() {
 
   return (
     <main
-      style={{
-        minHeight: "100vh",
-        background: "#f7f7f7",
-        padding: "32px 16px",
-        fontFamily: "Arial, sans-serif",
-      }}
+      className="my-properties-page"
+      style={{ fontFamily: "Arial, sans-serif" }}
     >
       <div
         style={{
           maxWidth: "980px",
           margin: "0 auto",
-          display: "grid",
-          gap: "20px",
         }}
       >
-        <div
-          style={{
-            background: "#fff",
-            border: "1px solid #ececec",
-            borderRadius: "24px",
-            padding: "28px",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
-            display: "grid",
-            gap: "18px",
-          }}
-        >
-          <h1
-            style={{
-              margin: 0,
-              fontSize: "30px",
-              fontWeight: 800,
-              color: "#111",
-            }}
-          >
-            Мої оголошення
-          </h1>
+        <div className="my-properties-shell">
+          <div className="my-properties-header">
+            <h1 className="my-properties-title">Мої оголошення</h1>
+            <ClosePageButton />
+          </div>
 
           {!user ? (
-            <div
-              style={{
-                display: "grid",
-                gap: "14px",
-              }}
-            >
+            <div style={{ display: "grid", gap: "14px" }}>
               <div
                 style={{
                   fontSize: "15px",
@@ -464,12 +422,7 @@ export default async function MyPropertiesPage() {
               </Link>
             </div>
           ) : properties.length === 0 ? (
-            <div
-              style={{
-                display: "grid",
-                gap: "14px",
-              }}
-            >
+            <div style={{ display: "grid", gap: "14px" }}>
               <div
                 style={{
                   fontSize: "15px",
@@ -518,6 +471,7 @@ const primaryLinkStyle: React.CSSProperties = {
 };
 
 function getStatusLabel(status?: string) {
+  if (status === "pending_review") return "На перевірці";
   if (status === "archived") return "Архів";
   if (status === "draft") return "Чернетка";
   return "Активне";
@@ -526,20 +480,22 @@ function getStatusLabel(status?: string) {
 function getCardBackground(status?: string) {
   if (status === "archived") return "#fafafa";
   if (status === "draft") return "#fffdf7";
+  if (status === "pending_review") return "#fff";
   return "#fff";
 }
 
 const compactChipStyle: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
-  height: "26px",
-  padding: "0 9px",
+  height: "24px",
+  padding: "0 8px",
   borderRadius: "999px",
   border: "1px solid #e5e5e5",
   background: "#fff",
   color: "#111",
-  fontSize: "12px",
+  fontSize: "11px",
   fontWeight: 700,
+  width: "fit-content",
 };
 
 const statusChipStyle = (status?: string): React.CSSProperties => ({
@@ -549,46 +505,81 @@ const statusChipStyle = (status?: string): React.CSSProperties => ({
       ? "#f3f4f6"
       : status === "draft"
         ? "#fff7ed"
-        : "#ecfdf3",
+        : status === "pending_review"
+          ? "#eff6ff"
+          : "#ecfdf3",
   border:
     status === "archived"
       ? "1px solid #d1d5db"
       : status === "draft"
         ? "1px solid #fed7aa"
-        : "1px solid #bbf7d0",
+        : status === "pending_review"
+          ? "1px solid #bfdbfe"
+          : "1px solid #bbf7d0",
   color:
     status === "archived"
       ? "#374151"
       : status === "draft"
         ? "#9a3412"
-        : "#166534",
+        : status === "pending_review"
+          ? "#1d4ed8"
+          : "#166534",
 });
+
+// const compactPrimaryLinkStyle: React.CSSProperties = {
+//   display: "inline-flex",
+//   alignItems: "center",
+//   justifyContent: "center",
+//   height: "38px",
+//   padding: "0 12px",
+//   borderRadius: "12px",
+//   background: "#111",
+//   color: "#fff",
+//   textDecoration: "none",
+//   fontSize: "13px",
+//   fontWeight: 800,
+// };
 
 const compactPrimaryLinkStyle: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  height: "38px",
-  padding: "0 12px",
-  borderRadius: "12px",
+  minHeight: "34px",
+  padding: "0 10px",
+  borderRadius: "11px",
   background: "#111",
   color: "#fff",
   textDecoration: "none",
-  fontSize: "13px",
+  fontSize: "12px",
   fontWeight: 800,
 };
+
+// const compactSecondaryLinkStyle: React.CSSProperties = {
+//   display: "inline-flex",
+//   alignItems: "center",
+//   justifyContent: "center",
+//   height: "38px",
+//   padding: "0 12px",
+//   borderRadius: "12px",
+//   border: "1px solid #ddd",
+//   background: "#fff",
+//   color: "#111",
+//   textDecoration: "none",
+//   fontSize: "13px",
+//   fontWeight: 800,
+// };
 
 const compactSecondaryLinkStyle: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  height: "38px",
-  padding: "0 12px",
-  borderRadius: "12px",
+  minHeight: "34px",
+  padding: "0 10px",
+  borderRadius: "11px",
   border: "1px solid #ddd",
   background: "#fff",
   color: "#111",
   textDecoration: "none",
-  fontSize: "13px",
+  fontSize: "12px",
   fontWeight: 800,
 };
