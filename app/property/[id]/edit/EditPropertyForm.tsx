@@ -471,7 +471,7 @@ const formStyle: React.CSSProperties = {
 };
 
 const titleStyle: React.CSSProperties = {
-  fontSize: "30px",
+  fontSize: "26px",
   fontWeight: 800,
   color: "#111",
   margin: 0,

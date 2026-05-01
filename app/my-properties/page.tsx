@@ -471,7 +471,7 @@ const primaryLinkStyle: React.CSSProperties = {
 };
 
 function getStatusLabel(status?: string) {
-  if (status === "pending_review") return "На перевірці";
+  if (status === "pending_review") return "Перевірка";
   if (status === "archived") return "Архів";
   if (status === "draft") return "Чернетка";
   return "Активне";
@@ -526,19 +526,6 @@ const statusChipStyle = (status?: string): React.CSSProperties => ({
           : "#166534",
 });
 
-// const compactPrimaryLinkStyle: React.CSSProperties = {
-//   display: "inline-flex",
-//   alignItems: "center",
-//   justifyContent: "center",
-//   height: "38px",
-//   padding: "0 12px",
-//   borderRadius: "12px",
-//   background: "#111",
-//   color: "#fff",
-//   textDecoration: "none",
-//   fontSize: "13px",
-//   fontWeight: 800,
-// };
 
 const compactPrimaryLinkStyle: React.CSSProperties = {
   display: "inline-flex",
@@ -554,20 +541,6 @@ const compactPrimaryLinkStyle: React.CSSProperties = {
   fontWeight: 800,
 };
 
-// const compactSecondaryLinkStyle: React.CSSProperties = {
-//   display: "inline-flex",
-//   alignItems: "center",
-//   justifyContent: "center",
-//   height: "38px",
-//   padding: "0 12px",
-//   borderRadius: "12px",
-//   border: "1px solid #ddd",
-//   background: "#fff",
-//   color: "#111",
-//   textDecoration: "none",
-//   fontSize: "13px",
-//   fontWeight: 800,
-// };
 
 const compactSecondaryLinkStyle: React.CSSProperties = {
   display: "inline-flex",
