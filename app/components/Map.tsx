@@ -6,6 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection, Point } from "geojson";
 import PopupCard from "./PopupCard";
 import type { DealType, Property } from "@/types/property";
+import type { MapBounds } from "../../lib/properties";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
 import SidebarV2 from "./SidebarV2";
 import MobileMapHeader from "./MobileMapHeader";
@@ -119,6 +120,7 @@ type Props = {
   onMobileListModeChange?: (isListMode: boolean) => void;
   onVisibleSearchPropertiesChange?: (properties: Property[]) => void;
   onVisibleBasePropertiesChange?: (properties: Property[]) => void;
+  onMapBoundsChange?: (bounds: MapBounds) => void;
   rawProperties: Property[];
   isBootLoading: boolean;
   isRefreshing: boolean;
@@ -138,6 +140,7 @@ export default function Map({
   onMobileListModeChange,
   onVisibleSearchPropertiesChange,
   onVisibleBasePropertiesChange,
+  onMapBoundsChange,
   rawProperties,
   isBootLoading,
   isRefreshing,
@@ -429,6 +432,15 @@ export default function Map({
   };
 
   const syncViewportDerivedState = (map: mapboxgl.Map) => {
+    const bounds = map.getBounds();
+    if (!bounds) return;
+
+    onMapBoundsChange?.({
+      north: bounds.getNorth(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      west: bounds.getWest(),
+    });
     const nextVisibleSearch = getPropertiesInView(
       map,
       searchPropertiesRef.current,
@@ -788,18 +800,13 @@ export default function Map({
   const isDesktopSidebarLoading =
     !isMobile && (isBootLoading || isRefreshing || !hasDesktopViewportSnapshot);
 
-  // const isMobileListLoading =
-  //   isMobile === true &&
-  //   mobileViewMode === "list" &&
-  //   (isBootLoading || isRefreshing || !hasMobileSnapshot);
-
   const isMobileListLoading =
-  isMobile === true &&
-  mobileViewMode === "list" &&
-  (isBootLoading ||
-    isRefreshing ||
-    (!showFavoritesOnly && !hasMobileSnapshot));
-    
+    isMobile === true &&
+    mobileViewMode === "list" &&
+    (isBootLoading ||
+      isRefreshing ||
+      (!showFavoritesOnly && !hasMobileSnapshot));
+
   const mobileMapHeaderProperties = showFavoritesOnly
     ? searchProperties
     : mobileSnapshotProperties.length > 0

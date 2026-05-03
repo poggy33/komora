@@ -288,6 +288,14 @@ export async function getPropertiesFromSupabase({
     query = query.eq("property_type", propertyType);
   }
 
+  if (bounds) {
+  query = query
+    .gte("lat", bounds.south)
+    .lte("lat", bounds.north)
+    .gte("lng", bounds.west)
+    .lte("lng", bounds.east);
+}
+
   query = applyPropertyFilters(query, propertyType, filters);
 
   const { data, error } = await query;
