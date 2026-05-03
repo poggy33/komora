@@ -264,8 +264,8 @@ export default function MainTopBar({
                 setIsUserMenuOpen((prev) => !prev);
               }}
               style={{
-                width: "32px",
-                height: "32px",
+                width: "34px",
+                height: "34px",
                 borderRadius: "999px", // 🔥 замість 999px
                 border: "1px solid rgba(0,0,0,0.08)",
                 background: "#111",
