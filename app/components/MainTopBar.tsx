@@ -264,9 +264,9 @@ export default function MainTopBar({
                 setIsUserMenuOpen((prev) => !prev);
               }}
               style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "999px",
+                width: "32px",
+                height: "32px",
+                borderRadius: "999px", // 🔥 замість 999px
                 border: "1px solid rgba(0,0,0,0.08)",
                 background: "#111",
                 color: "#fff",
@@ -276,7 +276,7 @@ export default function MainTopBar({
                 cursor: "pointer",
                 padding: 0,
                 flexShrink: 0,
-                boxShadow: "0 2px 10px rgba(0,0,0,0.10)",
+                boxShadow: "0 1px 6px rgba(0,0,0,0.08)",
               }}
               aria-label="Відкрити меню користувача"
             >
