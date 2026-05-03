@@ -146,13 +146,12 @@ export default function MainTopBar({
       <div
         style={{
           maxWidth: "100%",
-          padding: "8px 12px 0px",
+          padding: "8px 12px 6px",
           display: "grid",
           gap: "12px",
           position: "relative",
         }}
       >
-
         {/* row 1 */}
         <div
           style={{
@@ -219,10 +218,8 @@ export default function MainTopBar({
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  {/* голова (більша) */}
                   <circle cx="12" cy="9" r="4" fill="#fff" />
 
-                  {/* тіло (ширше і м’якше) */}
                   <path
                     d="M5.5 20c1-3.5 3.8-5.2 6.5-5.2s5.5 1.7 6.5 5.2"
                     fill="#fff"
@@ -478,17 +475,3 @@ const pillButtonStyle: React.CSSProperties = {
   flexShrink: 0,
 };
 
-const userButtonStyle: React.CSSProperties = {
-  width: "40px",
-  height: "40px",
-  borderRadius: "999px",
-  border: "1px solid #ddd",
-  background: "#fff",
-  fontSize: "15px",
-  cursor: "pointer",
-  flexShrink: 0,
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontWeight: 700,
-};

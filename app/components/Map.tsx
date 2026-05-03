@@ -7,7 +7,6 @@ import type { FeatureCollection, Point } from "geojson";
 import PopupCard from "./PopupCard";
 import type { DealType, Property } from "@/types/property";
 import MobilePropertyOverlay from "./MobilePropertyOverlay";
-import LoadingPill from "./ui/LoadingPill";
 import SidebarV2 from "./SidebarV2";
 import MobileMapHeader from "./MobileMapHeader";
 
@@ -789,11 +788,18 @@ export default function Map({
   const isDesktopSidebarLoading =
     !isMobile && (isBootLoading || isRefreshing || !hasDesktopViewportSnapshot);
 
-  const isMobileListLoading =
-    isMobile === true &&
-    mobileViewMode === "list" &&
-    (isBootLoading || isRefreshing || !hasMobileSnapshot);
+  // const isMobileListLoading =
+  //   isMobile === true &&
+  //   mobileViewMode === "list" &&
+  //   (isBootLoading || isRefreshing || !hasMobileSnapshot);
 
+  const isMobileListLoading =
+  isMobile === true &&
+  mobileViewMode === "list" &&
+  (isBootLoading ||
+    isRefreshing ||
+    (!showFavoritesOnly && !hasMobileSnapshot));
+    
   const mobileMapHeaderProperties = showFavoritesOnly
     ? searchProperties
     : mobileSnapshotProperties.length > 0
@@ -1138,7 +1144,10 @@ export default function Map({
         />
 
         <SidebarV2
-          properties={mobileSnapshotProperties}
+          properties={
+            showFavoritesOnly ? searchProperties : mobileSnapshotProperties
+          }
+          // properties={mobileSnapshotProperties}
           onSelect={handleSelect}
           onHover={setHoveredPropertyId}
           hoveredPropertyId={hoveredPropertyId}
@@ -1188,19 +1197,6 @@ export default function Map({
             <span>Показати карту</span>
           </button>
         </div>
-
-        {isRefreshing && (
-          <div
-            style={{
-              position: "absolute",
-              top: 12,
-              right: 12,
-              zIndex: 5,
-            }}
-          >
-            <LoadingPill size="sm" label="Оновлюємо мапу..." />
-          </div>
-        )}
 
         {propertiesError && (
           <div
@@ -1269,19 +1265,6 @@ export default function Map({
           isBootLoading={isDesktopSidebarLoading}
           isRefreshing={false}
         />
-
-        {isRefreshing && (
-          <div
-            style={{
-              position: "absolute",
-              top: 16,
-              right: 16,
-              zIndex: 5,
-            }}
-          >
-            <LoadingPill size="sm" label="Оновлюємо мапу..." />
-          </div>
-        )}
 
         {propertiesError && (
           <div

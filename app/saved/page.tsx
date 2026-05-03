@@ -382,18 +382,6 @@ const primaryLinkStyle: React.CSSProperties = {
   fontWeight: 700,
 };
 
-// const chipStyle: React.CSSProperties = {
-//   display: "inline-flex",
-//   alignItems: "center",
-//   height: "32px",
-//   padding: "0 12px",
-//   borderRadius: "999px",
-//   border: "1px solid #e5e5e5",
-//   background: "#fafafa",
-//   color: "#111",
-//   fontSize: "13px",
-//   fontWeight: 600,
-// };
 
 const compactChipStyle: React.CSSProperties = {
   display: "inline-flex",

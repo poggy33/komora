@@ -1115,6 +1115,34 @@ export async function setPropertyCoverImageInSupabase(
   }
 }
 
+// export async function getSavedPropertyIdsFromSupabase(): Promise<string[]> {
+//   const supabase = createClient();
+
+//   const {
+//     data: { user },
+//     error: userError,
+//   } = await supabase.auth.getUser();
+
+//   if (userError) {
+//     throw new Error(`Failed to get auth user: ${userError.message}`);
+//   }
+
+//   if (!user) {
+//     return [];
+//   }
+
+//   const { data, error } = await supabase
+//     .from("saved_properties")
+//     .select("property_id")
+//     .eq("user_id", user.id);
+
+//   if (error) {
+//     throw new Error(`Failed to load saved properties: ${error.message}`);
+//   }
+
+//   return (data ?? []).map((row) => String(row.property_id));
+// }
+
 export async function getSavedPropertyIdsFromSupabase(): Promise<string[]> {
   const supabase = createClient();
 
@@ -1133,8 +1161,17 @@ export async function getSavedPropertyIdsFromSupabase(): Promise<string[]> {
 
   const { data, error } = await supabase
     .from("saved_properties")
-    .select("property_id")
-    .eq("user_id", user.id);
+    .select(`
+      property_id,
+      properties!inner (
+        id,
+        status,
+        is_published
+      )
+    `)
+    .eq("user_id", user.id)
+    .eq("properties.status", "active")
+    .eq("properties.is_published", true);
 
   if (error) {
     throw new Error(`Failed to load saved properties: ${error.message}`);
@@ -1142,6 +1179,36 @@ export async function getSavedPropertyIdsFromSupabase(): Promise<string[]> {
 
   return (data ?? []).map((row) => String(row.property_id));
 }
+
+// export async function savePropertyInSupabase(
+//   propertyId: string,
+// ): Promise<void> {
+//   const supabase = createClient();
+
+//   const {
+//     data: { user },
+//     error: userError,
+//   } = await supabase.auth.getUser();
+
+//   if (userError) {
+//     throw new Error(`Failed to get auth user: ${userError.message}`);
+//   }
+
+//   if (!user) {
+//     throw new Error("Unauthorized");
+//   }
+
+//   const payload: Database["public"]["Tables"]["saved_properties"]["Insert"] = {
+//     user_id: user.id,
+//     property_id: propertyId,
+//   };
+
+//   const { error } = await supabase.from("saved_properties").insert([payload]);
+
+//   if (error && error.code !== "23505") {
+//     throw new Error(`Failed to save property: ${error.message}`);
+//   }
+// }
 
 export async function savePropertyInSupabase(
   propertyId: string,
@@ -1159,6 +1226,24 @@ export async function savePropertyInSupabase(
 
   if (!user) {
     throw new Error("Unauthorized");
+  }
+
+  const { data: property, error: propertyError } = await supabase
+    .from("properties")
+    .select("id")
+    .eq("id", propertyId)
+    .eq("status", "active")
+    .eq("is_published", true)
+    .maybeSingle();
+
+  if (propertyError) {
+    throw new Error(
+      `Failed to check property before saving: ${propertyError.message}`,
+    );
+  }
+
+  if (!property) {
+    throw new Error("Property is not available");
   }
 
   const payload: Database["public"]["Tables"]["saved_properties"]["Insert"] = {
