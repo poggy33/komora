@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import type { DealType, Property } from "@/types/property";
 import type { FiltersState, SupportedPropertyType } from "./filters.types";
+import type { MapBounds } from "../../lib/properties";
 
 type Props = {
   hoveredPropertyId: string | null;
@@ -17,6 +18,7 @@ type Props = {
   isLoadingProperties: boolean;
   propertiesError: string | null;
   onMobileListModeChange?: (isListMode: boolean) => void;
+  onMapBoundsChange?: (bounds: MapBounds) => void;
 
   // 🔥 нові callbacks
   onVisibleSearchPropertiesChange?: (properties: Property[]) => void;
@@ -46,6 +48,7 @@ export default function MapWrapper({
   onVisibleBasePropertiesChange,
   isBootLoading,
   isRefreshing,
+  onMapBoundsChange,
 }: Props) {
   return (
     <Map
@@ -66,6 +69,7 @@ export default function MapWrapper({
       onVisibleBasePropertiesChange={onVisibleBasePropertiesChange}
       isBootLoading={isBootLoading}
       isRefreshing={isRefreshing}
+      onMapBoundsChange={onMapBoundsChange}
     />
   );
 }

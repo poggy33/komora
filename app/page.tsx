@@ -9,7 +9,7 @@ import FiltersDrawer from "./components/FiltersDrawer";
 import ActiveFiltersBar from "./components/ActiveFiltersBar";
 import { useFavorites } from "./hooks/useFavorites";
 import type { DealType, Property } from "@/types/property";
-import { getPropertiesFromSupabase } from "../lib/properties";
+import { getPropertiesFromSupabase, type MapBounds } from "../lib/properties";
 import {
   DEFAULT_FILTERS_STATE,
   type FiltersState,
@@ -141,8 +141,8 @@ function buildSearchParamsFromState(args: {
   setIfArray("landPurpose", filters.landPurpose);
 
   if (filters.publishedWithin !== "all") {
-  params.set("publishedWithin", filters.publishedWithin);
-}
+    params.set("publishedWithin", filters.publishedWithin);
+  }
 
   return params;
 }
@@ -184,7 +184,10 @@ export default function HomePage() {
   const { favoriteIds, toggleFavorite } = useFavorites();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [isMobileListMode, setIsMobileListMode] = useState(false);
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
 
+  void mapBounds;
+  
   const favoriteIdsSet = useMemo(
     () => new Set(favoriteIds.map(String)),
     [favoriteIds],
@@ -407,7 +410,8 @@ export default function HomePage() {
             propertiesError={propertiesError}
             onMobileListModeChange={setIsMobileListMode}
             onVisibleSearchPropertiesChange={setVisibleProperties}
-            onVisibleBasePropertiesChange={setVisiblePropertiesForDrawer}
+            onVisibleBasePropertiesChange={setVisiblePropertiesForDrawer}      
+            onMapBoundsChange={setMapBounds}
             isBootLoading={isBootLoading}
             isRefreshing={isRefreshing}
           />
