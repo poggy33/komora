@@ -5,6 +5,7 @@ import type { DealType } from "@/types/property";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import UserMenu from "@/components/UserMenu";
 import type { SupportedPropertyType } from "./filters.types";
+import Logo from "./ui/Logo";
 
 type Props = {
   propertyType: SupportedPropertyType;
@@ -152,7 +153,7 @@ export default function MainTopBar({
         }}
       >
         {/* row 1 */}
-        <div
+        {/* <div
           style={{
             display: "flex",
             alignItems: "center",
@@ -177,7 +178,7 @@ export default function MainTopBar({
                 objectFit: "contain",
                 display: "block",
               }}
-            />
+            />  
           </div>
 
           <div style={{ position: "relative" }} ref={menuRef}>
@@ -199,10 +200,9 @@ export default function MainTopBar({
                 user?.phone?.slice(-2) || "•"
               ) : (
                 <svg width="34" height="34" viewBox="0 0 40 40">
-                  {/* фон */}
+         
                   <circle cx="20" cy="20" r="20" fill="#0B0B0B" />
-
-                  {/* обводка */}
+      
                   <circle
                     cx="20"
                     cy="20"
@@ -210,11 +210,9 @@ export default function MainTopBar({
                     stroke="#E31B23"
                     strokeWidth="1.5"
                   />
-
-                  {/* голова */}
+        
                   <circle cx="20" cy="15" r="5.5" fill="#E31B23" />
 
-                  {/* тіло */}
                   <path d="M9 30c0-5.5 5.5-8 11-8s11 2.5 11 8" fill="#E31B23" />
                 </svg>
               )}
@@ -233,7 +231,101 @@ export default function MainTopBar({
               </div>
             )}
           </div>
+        </div> */}
+
+        {/* row 1 */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            width: "100%",
+          }}
+        >
+          {/* Logo */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              paddingLeft: "2px",
+              minWidth: 0,
+            }}
+          >
+            <Logo />
+          </div>
+
+          {/* User avatar */}
+          <div style={{ position: "relative" }} ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => {
+                onOpenUserMenu?.();
+                setIsUserMenuOpen((prev) => !prev);
+              }}
+              style={{
+                width: "38px",
+                height: "38px",
+                borderRadius: "999px",
+                border: "1px solid rgba(0,0,0,0.08)",
+                background: "#111",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                padding: 0,
+                flexShrink: 0,
+                boxShadow: "0 2px 10px rgba(0,0,0,0.10)",
+              }}
+              aria-label="Відкрити меню користувача"
+            >
+              {isAuthenticated ? (
+                <span
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    letterSpacing: "-0.03em",
+                    color: "#fff",
+                  }}
+                >
+                  {user?.phone?.slice(-2) || "•"}
+                </span>
+              ) : (
+                <svg
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* голова (більша) */}
+                  <circle cx="12" cy="9" r="4" fill="#fff" />
+
+                  {/* тіло (ширше і м’якше) */}
+                  <path
+                    d="M5.5 20c1-3.5 3.8-5.2 6.5-5.2s5.5 1.7 6.5 5.2"
+                    fill="#fff"
+                  />
+                </svg>
+              )}
+            </button>
+
+            {isUserMenuOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "48px",
+                  right: 0,
+                  zIndex: 50,
+                }}
+              >
+                <UserMenu onClose={() => setIsUserMenuOpen(false)} />
+              </div>
+            )}
+          </div>
         </div>
+
         {/* row 2 */}
         <div
           style={{
