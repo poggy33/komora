@@ -146,92 +146,12 @@ export default function MainTopBar({
       <div
         style={{
           maxWidth: "100%",
-          padding: "8px 12px 6px",
+          padding: "8px 12px 0px",
           display: "grid",
-          gap: "10px",
+          gap: "12px",
           position: "relative",
         }}
       >
-        {/* row 1 */}
-        {/* <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "10px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "18px",
-              fontWeight: 700,
-              color: "#111",
-              whiteSpace: "nowrap",
-              lineHeight: 1.1,
-            }}
-          >
-            <img
-              src="/komora_logo_ultratight_more_rounded.svg"
-              alt="KOMORA"
-              style={{
-                height: "32px",
-                objectFit: "contain",
-                display: "block",
-              }}
-            />  
-          </div>
-
-          <div style={{ position: "relative" }} ref={menuRef}>
-            <button
-              type="button"
-              onClick={() => {
-                onOpenUserMenu?.();
-                setIsUserMenuOpen((prev) => !prev);
-              }}
-              style={{
-                ...userButtonStyle,
-                background: isAuthenticated ? "#111" : "#fff",
-                color: isAuthenticated ? "#E31B23" : "#111",
-                border: isAuthenticated ? "1px solid #111" : "1px solid #ddd",
-              }}
-              aria-label="Відкрити меню користувача"
-            >
-              {isAuthenticated ? (
-                user?.phone?.slice(-2) || "•"
-              ) : (
-                <svg width="34" height="34" viewBox="0 0 40 40">
-         
-                  <circle cx="20" cy="20" r="20" fill="#0B0B0B" />
-      
-                  <circle
-                    cx="20"
-                    cy="20"
-                    r="19"
-                    stroke="#E31B23"
-                    strokeWidth="1.5"
-                  />
-        
-                  <circle cx="20" cy="15" r="5.5" fill="#E31B23" />
-
-                  <path d="M9 30c0-5.5 5.5-8 11-8s11 2.5 11 8" fill="#E31B23" />
-                </svg>
-              )}
-            </button>
-
-            {isUserMenuOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "46px",
-                  right: 0,
-                  zIndex: 50,
-                }}
-              >
-                <UserMenu onClose={() => setIsUserMenuOpen(false)} />
-              </div>
-            )}
-          </div>
-        </div> */}
 
         {/* row 1 */}
         <div
