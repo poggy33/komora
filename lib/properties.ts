@@ -88,10 +88,19 @@ function mapDbPropertyToUi(row: any): Property {
   };
 }
 
+export type MapBounds = {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+};
+
 export type GetPropertiesParams = {
   dealType?: "sale" | "rent";
   propertyType?: "apartment" | "house" | "land" | "commercial";
   filters?: FiltersState;
+  bounds?: MapBounds;
+  limit?: number;
 };
 
 function applyPropertyFilters(
@@ -217,6 +226,8 @@ export async function getPropertiesFromSupabase({
   dealType,
   propertyType,
   filters,
+  bounds,
+  limit = 300,
 }: GetPropertiesParams): Promise<Property[]> {
   const supabase = createClient();
 
@@ -266,7 +277,8 @@ export async function getPropertiesFromSupabase({
     `)
     .eq("status", "active")
     .eq("is_published", true)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
   if (dealType) {
     query = query.eq("listing_type", dealType);
@@ -286,6 +298,7 @@ export async function getPropertiesFromSupabase({
 
   return (data ?? []).map(mapDbPropertyToUi);
 }
+
 
 export async function getPropertyByIdFromSupabase(
   id: string,
