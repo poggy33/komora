@@ -2,6 +2,7 @@ import type { Property } from "@/types/property";
 import type { Database } from "@/types/database.types";
 import type { FiltersState } from "@/components/filters.types";
 import { createClient } from "../lib/supabase/client";
+import { createPublicClient } from "../lib/supabase/publicClient";
 import { moderatePropertyText } from "./moderation";
 
 function buildFullAddress(row: {
@@ -229,7 +230,7 @@ export async function getPropertiesFromSupabase({
   bounds,
   limit = 300,
 }: GetPropertiesParams): Promise<Property[]> {
-  const supabase = createClient();
+  const supabase = createPublicClient();
 
   let query = supabase
     .from("properties")
@@ -311,7 +312,7 @@ export async function getPropertiesFromSupabase({
 export async function getPropertyByIdFromSupabase(
   id: string,
 ): Promise<Property | null> {
-  const supabase = createClient();
+  const supabase = createPublicClient();
 
   const { data, error } = await supabase
     .from("properties")
@@ -375,7 +376,7 @@ export async function getPropertiesCountFromSupabase({
   propertyType,
   filters,
 }: GetPropertiesParams): Promise<number> {
-  const supabase = createClient();
+  const supabase = createPublicClient();
 
   let query = supabase
     .from("properties")
