@@ -9,7 +9,7 @@ import FiltersDrawer from "./components/FiltersDrawer";
 import ActiveFiltersBar from "./components/ActiveFiltersBar";
 import { useFavorites } from "./hooks/useFavorites";
 import type { DealType, Property } from "@/types/property";
-import { getPropertiesFromSupabase, type MapBounds } from "../lib/properties";
+import { getPropertiesFromSupabase } from "../lib/properties";
 import {
   DEFAULT_FILTERS_STATE,
   type FiltersState,
@@ -184,9 +184,6 @@ export default function HomePage() {
   const { favoriteIds, toggleFavorite } = useFavorites();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [isMobileListMode, setIsMobileListMode] = useState(false);
-  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
-
-  void mapBounds;
   
   const favoriteIdsSet = useMemo(
     () => new Set(favoriteIds.map(String)),
@@ -411,7 +408,6 @@ export default function HomePage() {
             onMobileListModeChange={setIsMobileListMode}
             onVisibleSearchPropertiesChange={setVisibleProperties}
             onVisibleBasePropertiesChange={setVisiblePropertiesForDrawer}      
-            onMapBoundsChange={setMapBounds}
             isBootLoading={isBootLoading}
             isRefreshing={isRefreshing}
           />
