@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import AuthForm from "./AuthForm";
 
 export default function AuthPage() {
@@ -21,7 +22,9 @@ export default function AuthPage() {
           boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
         }}
       >
-        <AuthForm />
+        <Suspense fallback={null}>
+          <AuthForm />
+        </Suspense>
       </div>
     </main>
   );

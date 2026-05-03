@@ -498,34 +498,6 @@ const compactChipStyle: React.CSSProperties = {
   width: "fit-content",
 };
 
-const statusChipStyle = (status?: string): React.CSSProperties => ({
-  ...compactChipStyle,
-  background:
-    status === "archived"
-      ? "#f3f4f6"
-      : status === "draft"
-        ? "#fff7ed"
-        : status === "pending_review"
-          ? "#eff6ff"
-          : "#ecfdf3",
-  border:
-    status === "archived"
-      ? "1px solid #d1d5db"
-      : status === "draft"
-        ? "1px solid #fed7aa"
-        : status === "pending_review"
-          ? "1px solid #bfdbfe"
-          : "1px solid #bbf7d0",
-  color:
-    status === "archived"
-      ? "#374151"
-      : status === "draft"
-        ? "#9a3412"
-        : status === "pending_review"
-          ? "#1d4ed8"
-          : "#166534",
-});
-
 
 const compactPrimaryLinkStyle: React.CSSProperties = {
   display: "inline-flex",

@@ -61,7 +61,7 @@ function mapDbPropertyToUi(row: any): Property {
 
     description: row.description ?? undefined,
     publishedAt: row.created_at ?? undefined,
-    status: "active",
+    status: row.status ?? "active",
     currency: row.currency ?? "USD",
 
     livingArea: row.living_area ?? undefined,
@@ -862,6 +862,8 @@ export async function archivePropertyInSupabase(id: string): Promise<void> {
     throw new Error("Archived limit reached");
   }
 
+  await supabase.from("saved_properties").delete().eq("property_id", id);
+
   const payload: Database["public"]["Tables"]["properties"]["Update"] = {
     status: "archived",
     is_published: false,
@@ -1115,33 +1117,6 @@ export async function setPropertyCoverImageInSupabase(
   }
 }
 
-// export async function getSavedPropertyIdsFromSupabase(): Promise<string[]> {
-//   const supabase = createClient();
-
-//   const {
-//     data: { user },
-//     error: userError,
-//   } = await supabase.auth.getUser();
-
-//   if (userError) {
-//     throw new Error(`Failed to get auth user: ${userError.message}`);
-//   }
-
-//   if (!user) {
-//     return [];
-//   }
-
-//   const { data, error } = await supabase
-//     .from("saved_properties")
-//     .select("property_id")
-//     .eq("user_id", user.id);
-
-//   if (error) {
-//     throw new Error(`Failed to load saved properties: ${error.message}`);
-//   }
-
-//   return (data ?? []).map((row) => String(row.property_id));
-// }
 
 export async function getSavedPropertyIdsFromSupabase(): Promise<string[]> {
   const supabase = createClient();
@@ -1180,35 +1155,6 @@ export async function getSavedPropertyIdsFromSupabase(): Promise<string[]> {
   return (data ?? []).map((row) => String(row.property_id));
 }
 
-// export async function savePropertyInSupabase(
-//   propertyId: string,
-// ): Promise<void> {
-//   const supabase = createClient();
-
-//   const {
-//     data: { user },
-//     error: userError,
-//   } = await supabase.auth.getUser();
-
-//   if (userError) {
-//     throw new Error(`Failed to get auth user: ${userError.message}`);
-//   }
-
-//   if (!user) {
-//     throw new Error("Unauthorized");
-//   }
-
-//   const payload: Database["public"]["Tables"]["saved_properties"]["Insert"] = {
-//     user_id: user.id,
-//     property_id: propertyId,
-//   };
-
-//   const { error } = await supabase.from("saved_properties").insert([payload]);
-
-//   if (error && error.code !== "23505") {
-//     throw new Error(`Failed to save property: ${error.message}`);
-//   }
-// }
 
 export async function savePropertyInSupabase(
   propertyId: string,
@@ -1303,12 +1249,35 @@ export async function publishPropertyInSupabase(id: string): Promise<void> {
     throw new Error("Unauthorized");
   }
 
+  const { data: property, error: loadError } = await supabase
+    .from("properties")
+    .select("title, description, city, address_line")
+    .eq("id", id)
+    .eq("owner_id", user.id)
+    .single();
+
+  if (loadError) {
+    throw new Error(`Failed to load property before publish: ${loadError.message}`);
+  }
+
+  const moderation = moderatePropertyText({
+    title: property.title,
+    description: property.description ?? "",
+    city: property.city,
+    addressLine: property.address_line ?? undefined,
+  });
+
+  const isActive = moderation.status === "passed";
+
   const payload: Database["public"]["Tables"]["properties"]["Update"] = {
-  status: "active",
-  is_published: true,
-  published_at: new Date().toISOString(),
-  expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    };
+    status: isActive ? "active" : "pending_review",
+    is_published: isActive,
+    published_at: isActive ? new Date().toISOString() : null,
+    expires_at: isActive
+      ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      : null,
+    rejection_reason: isActive ? null : (moderation.reason ?? null),
+  };
 
   const { error } = await supabase
     .from("properties")
@@ -1338,6 +1307,8 @@ export async function unpublishPropertyToDraftInSupabase(
   if (!user) {
     throw new Error("Unauthorized");
   }
+
+  await supabase.from("saved_properties").delete().eq("property_id", id);
 
   const payload: Database["public"]["Tables"]["properties"]["Update"] = {
     status: "draft",
@@ -1391,13 +1362,29 @@ export async function getMyPropertyStatusCountsFromSupabase(): Promise<{
   };
 }
 
-export async function deletePropertyInSupabase(id: string) {
+export async function deletePropertyInSupabase(id: string): Promise<void> {
   const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(`Failed to get auth user: ${userError.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  await supabase.from("saved_properties").delete().eq("property_id", id);
 
   const { error } = await supabase
     .from("properties")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("owner_id", user.id);
 
   if (error) {
     throw new Error(`Failed to delete property: ${error.message}`);

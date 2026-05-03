@@ -1,38 +1,75 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "lib/supabase/client";
+
+function normalizePhone(input: string): string {
+  let value = input.trim();
+
+  // прибираємо пробіли, дужки, тире
+  value = value.replace(/[^\d+]/g, "");
+
+  // якщо починається з 0 → +380
+  if (value.startsWith("0")) {
+    value = "+38" + value;
+  }
+
+  // якщо без + але починається з 380
+  if (!value.startsWith("+") && value.startsWith("380")) {
+    value = "+" + value;
+  }
+
+  return value;
+}
+
+function isValidPhone(phone: string): boolean {
+  return /^\+\d{10,15}$/.test(phone);
+}
 
 export default function AuthForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+  const rawNextUrl = searchParams.get("next");
+  const nextUrl =
+    rawNextUrl && rawNextUrl.startsWith("/") && !rawNextUrl.startsWith("//")
+      ? rawNextUrl
+      : "/";
 
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
 
   const sendCode = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const normalized = normalizePhone(phone);
+
+    if (!isValidPhone(normalized)) {
+      setError("Введіть номер у форматі +380XXXXXXXXX");
+      return;
+    }
 
     try {
       setIsLoading(true);
       setError(null);
 
       const { error } = await supabase.auth.signInWithOtp({
-        phone,
+        phone: normalized,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
+      setPhone(normalized); // 🔥 важливо
       setStep("code");
+      setCooldown(60); // 60 секунд
     } catch (err) {
       console.error(err);
-      setError("Не вдалося надіслати код. Перевір номер телефону.");
+      setError("Не вдалося надіслати код. Спробуйте пізніше.");
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +92,7 @@ export default function AuthForm() {
         throw error;
       }
 
-      router.push("/");
+      router.push(nextUrl);
       router.refresh();
     } catch (err) {
       console.error(err);
@@ -64,6 +101,23 @@ export default function AuthForm() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+
+    const timer = setTimeout(() => {
+      setCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [cooldown]);
+
+  const isPhoneValid = isValidPhone(normalizePhone(phone));
+  const isCodeValid = code.length === 6;
+  const isSubmitDisabled =
+    isLoading ||
+    (step === "phone" && !isPhoneValid) ||
+    (step === "code" && !isCodeValid);
 
   return (
     <form
@@ -142,15 +196,12 @@ export default function AuthForm() {
             Код з SMS
           </label>
 
-          {/* <input
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="123456"
-            style={inputStyle}
-          /> */}
           <input
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\D/g, "");
+              setCode(raw.slice(0, 6));
+            }}
             placeholder="123456"
             type="text"
             inputMode="numeric"
@@ -163,11 +214,11 @@ export default function AuthForm() {
 
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isSubmitDisabled}
         style={{
           ...buttonStyle,
-          opacity: isLoading ? 0.7 : 1,
-          cursor: isLoading ? "not-allowed" : "pointer",
+          opacity: isSubmitDisabled ? 0.6 : 1,
+          cursor: isSubmitDisabled ? "not-allowed" : "pointer",
         }}
       >
         {isLoading
@@ -176,7 +227,22 @@ export default function AuthForm() {
             ? "Надіслати код"
             : "Підтвердити код"}
       </button>
-
+      {step === "code" && (
+        <button
+          type="button"
+          disabled={cooldown > 0}
+          onClick={sendCode}
+          style={{
+            ...secondaryButtonStyle,
+            opacity: cooldown > 0 ? 0.5 : 1,
+            cursor: cooldown > 0 ? "not-allowed" : "pointer",
+          }}
+        >
+          {cooldown > 0
+            ? `Надіслати ще раз (${cooldown})`
+            : "Надіслати код ще раз"}
+        </button>
+      )}
       {step === "code" && (
         <button
           type="button"
@@ -184,6 +250,7 @@ export default function AuthForm() {
             setStep("phone");
             setCode("");
             setError(null);
+            setCooldown(0);
           }}
           style={secondaryButtonStyle}
         >
@@ -193,7 +260,6 @@ export default function AuthForm() {
     </form>
   );
 }
-
 
 const inputStyle: React.CSSProperties = {
   width: "100%",

@@ -28,7 +28,7 @@ export default function ArchivePropertyButton({
       console.error(error);
 
       if (error?.message === "Archived limit reached") {
-        alert("Можна мати не більше 5 архівних оголошень");
+        alert("Можна мати не більше 10 архівних оголошень");
         return;
       }
 

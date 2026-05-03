@@ -20,13 +20,6 @@ export function useAuthUser() {
     supabase.auth.getUser().then(({ data, error }) => {
       if (!isMounted) return;
 
-    //   if (error) {
-    //     console.error("Failed to get auth user:", error);
-    //     setUser(null);
-    //     setIsLoading(false);
-    //     return;
-    //   }
-
         if (error) {
             if (error.name !== "AuthSessionMissingError") {
                 console.error("Failed to get auth user:", error);
